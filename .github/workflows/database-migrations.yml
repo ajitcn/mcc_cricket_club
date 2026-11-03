@@ -1,0 +1,25 @@
+name: Database migrations
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate-non-production:
+    runs-on: ubuntu-latest
+    environment: deployment-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli
+      - run: composer install --no-interaction --prefer-dist
+      - name: Apply migrations to deployment test database
+        env:
+          CI_ENVIRONMENT: testing
+          "database.tests.hostname": ${{ secrets.MIGRATION_DB_HOST }}
+          "database.tests.username": ${{ secrets.MIGRATION_DB_USER }}
+          "database.tests.password": ${{ secrets.MIGRATION_DB_PASSWORD }}
+          "database.tests.database": ${{ secrets.MIGRATION_DB_NAME }}
+          MCC_MIGRATION_ALLOW_GROUP: tests
+        run: php bin/migrate.php latest --group=tests --confirm=YES

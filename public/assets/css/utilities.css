@@ -1,0 +1,25 @@
+.mcc-stack {
+    display: grid;
+    gap: 1rem
+}
+.mcc-grid {
+    display: grid;
+    gap: 1rem
+}
+.mcc-text-muted {
+    color: var(--app-muted)
+}
+.mcc-sr-only {
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    clip: rect(0,0,0,0);
+    white-space: nowrap
+}
+.mcc-button-block {
+    display: flex;
+    width: 100%
+}

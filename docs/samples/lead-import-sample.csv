@@ -1,0 +1,5 @@
+Name,Phone,Email,Source,Status,Branch,Assigned To,Notes,Date of Birth
+Aarav Mehta,9990001001,aarav.mehta@example.invalid,TEST_MCC_SEED,lead,TEST_MCC_VNS,test.mcc.staff.del@example.invalid,Sample Varanasi lead assigned to a Delhi user,2012-04-18
+Isha Kapoor,9990001002,isha.kapoor@example.invalid,TEST_MCC_WEBSITE,follow-up,TEST_MCC_DEL,test.mcc.reception@example.invalid,Sample Delhi lead assigned to a Varanasi user,2011-11-06
+Kabir Rao,9990001003,kabir.rao@example.invalid,TEST_MCC_REFERRAL,trial booked,TEST_MCC_VNS,,Sample unassigned lead,2013-02-24
+Naina Shah,9990001004,naina.shah@example.invalid,TEST_MCC_SOCIAL,lead,TEST_MCC_DEL,test.mcc.staff.del@example.invalid,Sample lead for import testing,2012-08-30

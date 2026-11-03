@@ -1,0 +1,10 @@
+/vendor/
+/writable/cache/*
+/writable/debugbar/*
+/writable/logs/*
+/writable/session/*
+/writable/uploads/*
+!.gitkeep
+.env
+.test-credentials.local.md
+.phpunit.result.cache

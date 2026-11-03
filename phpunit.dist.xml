@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/codeigniter4/framework/system/Test/bootstrap.php" colors="true" cacheDirectory="build/.phpunit.cache">
+  <testsuites><testsuite name="MCC Application"><directory>./tests</directory></testsuite></testsuites>
+  <source><include><directory suffix=".php">./app</directory></include><exclude><directory suffix=".php">./app/Views</directory><file>./app/Config/Routes.php</file></exclude></source>
+  <php><server name="CI_ENVIRONMENT" value="testing" force="true"/><server name="app.baseURL" value="http://example.com/"/><const name="HOMEPATH" value="./"/><const name="CONFIGPATH" value="./app/Config/"/><const name="PUBLICPATH" value="./public/"/></php>
+</phpunit>

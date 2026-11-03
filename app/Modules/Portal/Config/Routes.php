@@ -1,0 +1,31 @@
+<?php
+
+$routes->get('student-login', '\\App\\Modules\\Portal\\Controllers\\Browser::loginPage');
+$routes->post('student-login', '\\App\\Modules\\Portal\\Controllers\\Browser::login');
+$routes->post('portal-logout', '\\App\\Modules\\Portal\\Controllers\\Browser::logout', ['filter' => 'portal']);
+$routes->get('student-dashboard', '\\App\\Modules\\Portal\\Controllers\\Browser::studentDashboard', ['filter' => 'portal']);
+$routes->get('parent-dashboard', '\\App\\Modules\\Portal\\Controllers\\Browser::parentDashboard', ['filter' => 'portal']);
+$routes->get('student-portal/profile', '\\App\\Modules\\Portal\\Controllers\\Browser::studentProfile', ['filter' => 'portal']);
+$routes->get('student-portal/academy', '\\App\\Modules\\Portal\\Controllers\\Browser::studentAcademy', ['filter' => 'portal']);
+$routes->get('student-portal/coach', '\\App\\Modules\\Portal\\Controllers\\Browser::studentCoach', ['filter' => 'portal']);
+$routes->get('student-portal/schedule', '\\App\\Modules\\Portal\\Controllers\\Browser::studentSchedule', ['filter' => 'portal']);
+$routes->get('student-portal/matches', '\\App\\Modules\\Portal\\Controllers\\Browser::studentMatches', ['filter' => 'portal']);
+$routes->get('student-portal/tournaments', '\\App\\Modules\\Portal\\Controllers\\Browser::studentTournaments', ['filter' => 'portal']);
+$routes->get('student-portal/attendance', '\\App\\Modules\\Portal\\Controllers\\Browser::studentAttendance', ['filter' => 'portal']);
+$routes->get('student-portal/development', '\\App\\Modules\\Portal\\Controllers\\Browser::studentDevelopment', ['filter' => 'portal']);
+$routes->get('student-portal/documents', '\\App\\Modules\\Portal\\Controllers\\Browser::studentDocuments', ['filter' => 'portal']);
+$routes->get('student-portal/notices', '\\App\\Modules\\Portal\\Controllers\\Browser::studentNotices', ['filter' => 'portal']);
+$routes->get('student-portal/progress', '\\App\\Modules\\Portal\\Controllers\\Browser::studentProgress', ['filter' => 'portal']);
+$routes->get('parent-portal/profile', '\\App\\Modules\\Portal\\Controllers\\Browser::parentProfile', ['filter' => 'portal']);
+$routes->get('parent-portal/academy', '\\App\\Modules\\Portal\\Controllers\\Browser::parentAcademy', ['filter' => 'portal']);
+$routes->get('parent-portal/coach', '\\App\\Modules\\Portal\\Controllers\\Browser::parentCoach', ['filter' => 'portal']);
+$routes->get('parent-portal/schedule', '\\App\\Modules\\Portal\\Controllers\\Browser::parentSchedule', ['filter' => 'portal']);
+$routes->get('parent-portal/matches', '\\App\\Modules\\Portal\\Controllers\\Browser::parentMatches', ['filter' => 'portal']);
+$routes->get('parent-portal/tournaments', '\\App\\Modules\\Portal\\Controllers\\Browser::parentTournaments', ['filter' => 'portal']);
+$routes->get('parent-portal/attendance', '\\App\\Modules\\Portal\\Controllers\\Browser::parentAttendance', ['filter' => 'portal']);
+$routes->get('parent-portal/development', '\\App\\Modules\\Portal\\Controllers\\Browser::parentDevelopment', ['filter' => 'portal']);
+$routes->get('parent-portal/documents', '\\App\\Modules\\Portal\\Controllers\\Browser::parentDocuments', ['filter' => 'portal']);
+$routes->get('parent-portal/notices', '\\App\\Modules\\Portal\\Controllers\\Browser::parentNotices', ['filter' => 'portal']);
+$routes->get('parent-portal/progress', '\\App\\Modules\\Portal\\Controllers\\Browser::parentProgress', ['filter' => 'portal']);
+$routes->get('student-achievements', '\\App\\Modules\\Portal\\Controllers\\Browser::studentAchievements', ['filter' => 'portal']);
+$routes->get('parent-achievements', '\\App\\Modules\\Portal\\Controllers\\Browser::parentAchievements', ['filter' => 'portal']);
