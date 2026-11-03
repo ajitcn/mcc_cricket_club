@@ -8,3 +8,6 @@
 .env
 .test-credentials.local.md
 .phpunit.result.cache
+
+# Codex configuration
+.codex/
