@@ -157,6 +157,7 @@ final class NavigationService
                 'items' => [
                     $this->item('ground.view', 'Grounds', 'grounds', 'grounds', 'implemented', 'settings'),
                     $this->item('equipment.view', 'Equipment', 'equipment', 'equipment', 'implemented', 'settings'),
+                    $this->item('equipment.view', 'Equipment Assignments', 'equipment/assignments', 'equipment/assignments', 'implemented', 'settings'),
                 ],
             ],
             [

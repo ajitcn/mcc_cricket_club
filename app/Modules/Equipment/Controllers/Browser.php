@@ -27,6 +27,113 @@ final class Browser extends StaffController
         }
     }
 
+    public function assignments(): string|ResponseInterface
+    {
+        try {
+            return $this->page('App\\Modules\\Equipment\\Views\\assignments', 'Equipment assignments', [
+                'assignments' => service('equipment')->assignments($this->request->getGet()),
+                'filters' => $this->request->getGet(),
+            ]);
+        } catch (Throwable $exception) {
+            return $this->failure($exception);
+        }
+    }
+
+    public function assignmentPage(): string|ResponseInterface
+    {
+        try {
+            return $this->page(
+                'App\\Modules\\Equipment\\Views\\assignment_form',
+                'Assign equipment',
+                [
+                    'options' => service('equipment')->assignmentOptions(),
+                ]
+            );
+        } catch (Throwable $exception) {
+            return $this->failure($exception);
+        }
+    }
+
+    public function editAssignmentPage(int $id): string|ResponseInterface
+    {
+        try {
+            $assignment = service('equipment')->findAssignmentForUpdate($id);
+
+            return $this->page(
+                'App\\Modules\\Equipment\\Views\\assignment_form',
+                'Edit equipment assignment',
+                [
+                    'options' => service('equipment')->assignmentOptions(),
+                    'assignment' => $assignment,
+                    'isEdit' => true,
+                ]
+            );
+        } catch (Throwable $exception) {
+            return $this->failure($exception);
+        }
+    }
+
+    public function viewAssignmentPage(int $id): string|ResponseInterface
+    {
+        try {
+            return $this->page(
+                'App\\Modules\\Equipment\\Views\\assignment_view',
+                'View equipment assignment',
+                [
+                    'assignment' => service('equipment')->findAssignment($id),
+                ]
+            );
+        } catch (Throwable $exception) {
+            return $this->failure($exception);
+        }
+    }
+
+    public function returnAssignmentPage(int $id): string|ResponseInterface
+    {
+        try {
+            return $this->page(
+                'App\\Modules\\Equipment\\Views\\return_form',
+                'Record equipment return',
+                [
+                    'assignment' => service('equipment')->findAssignment($id),
+                ]
+            );
+        } catch (Throwable $exception) {
+            return $this->failure($exception);
+        }
+    }
+
+    public function createAssignment(): ResponseInterface|string
+    {
+        try {
+            service('equipment')->createAssignment($this->request->getPost());
+            return redirect()->to('/equipment/assignments')->with('message', 'Equipment assigned.');
+        } catch (Throwable $exception) {
+            return redirect()->back()->withInput()->with('error', $this->errorMessage($exception));
+        }
+    }
+
+    public function updateAssignment(int $id): ResponseInterface|string
+    {
+        try {
+            service('equipment')->updateAssignment($id, $this->request->getPost());
+
+            return redirect()->to('/equipment/assignments')->with('message', 'Equipment assignment updated.');
+        } catch (Throwable $exception) {
+            return redirect()->back()->withInput()->with('error', $this->errorMessage($exception));
+        }
+    }
+
+    public function returnAssignment(int $id): ResponseInterface|string
+    {
+        try {
+            service('equipment')->returnAssignment($id, $this->request->getPost());
+            return redirect()->to('/equipment/assignments')->with('message', 'Equipment return recorded.');
+        } catch (Throwable $exception) {
+            return redirect()->back()->withInput()->with('error', $this->errorMessage($exception));
+        }
+    }
+
     public function createPage(): string|ResponseInterface
     {
         try {
@@ -172,6 +279,8 @@ final class Browser extends StaffController
             'Invalid branch selection.' => 'Select a branch you are authorized to manage.',
             'Not found.' => 'The equipment record was not found in your authorized branch scope.',
             'Invalid equipment.' => 'Enter a name and a positive whole quantity within the supported range.',
+            'Invalid equipment assignment.' => 'Choose at least one equipment item and enter a valid quantity.',
+            'Unable to record assigned equipment.' => 'The equipment assignment could not be recorded. Please try again.',
             default => 'The equipment request could not be completed.',
         };
     }

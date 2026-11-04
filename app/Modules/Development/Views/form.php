@@ -18,8 +18,6 @@ $fieldError = static function (string $field) use ($fieldErrors): string {
 $selectedBranch = (string) old('branch_id', $plan['branch_id'] ?? '');
 $selectedPlayer = (string) old('player_id', $plan['player_id'] ?? '');
 $selectedCoach = (string) old('coach_user_id', $plan['coach_user_id'] ?? '');
-$selectedProgram = (string) old('program_id', '');
-$selectedBatch = (string) old('batch_id', '');
 $selectedStatus = (string) old('status', $plan['status'] ?? 'active');
 $pageActions = '<div class="mcc-page-actions">'
     . '<a class="mcc-button mcc-button-secondary" href="'
@@ -109,76 +107,12 @@ $pageActions = '<div class="mcc-page-actions">'
             <?php endif; ?>
         </div>
 
-        <div class="mcc-form-field">
-            <label for="development-program">Program context</label>
-            <select
-                class="form-control"
-                id="development-program"
-                name="program_id"
-                data-development-program
-            >
-                <option value="">All authorized Programs</option>
-                <?php foreach ($options['programs'] as $program): ?>
-                    <option
-                        value="<?= (int) $program['id'] ?>"
-                        <?= (string) $program['id'] === $selectedProgram ? 'selected' : '' ?>
-                    >
-                        <?= esc($program['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <?php if ($fieldError('program_id') !== ''): ?>
-                <p class="mcc-field-error" role="alert"><?= esc($fieldError('program_id')) ?></p>
-            <?php endif; ?>
-        </div>
-
-        <div class="mcc-form-field">
-            <label for="development-batch">Batch context</label>
-            <select
-                class="form-control"
-                id="development-batch"
-                name="batch_id"
-                data-development-batch
-            >
-                <option value="">All authorized Batches</option>
-                <?php foreach ($options['batches'] as $batch): ?>
-                    <option
-                        value="<?= (int) $batch['id'] ?>"
-                        data-branch-id="<?= (int) ($batch['branch_id'] ?? 0) ?>"
-                        data-program-id="<?= (int) ($batch['program_id'] ?? 0) ?>"
-                        <?= (string) $batch['id'] === $selectedBatch ? 'selected' : '' ?>
-                    >
-                        <?= esc(($batch['branch_name'] ?? '') . ' - ' . $batch['name']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <?php if ($fieldError('batch_id') !== ''): ?>
-                <p class="mcc-field-error" role="alert"><?= esc($fieldError('batch_id')) ?></p>
-            <?php endif; ?>
-        </div>
-
-        <div class="mcc-form-field">
-            <label for="development-player">Player</label>
-            <select
-                class="form-control selectpicker btSelect"
-                id="development-player"
-                name="player_id"
-                data-development-player
-                data-bt-select
-                data-live-search="true"
-                data-actions-box="true"
-                title="Select a Player"
-                aria-describedby="development-player-error"
-                required
-            >
-                <option value="" hidden selected>Select a Player</option>
-                <?php if ($options['players'] === []): ?>
-                    <option value="" disabled>No eligible Players are available.</option>
-                <?php endif; ?>
-                <?php foreach ($options['players'] as $player): ?>
-                    <option value="<?= (int) $player['id'] ?>" data-player-id="<?= (int) $player['id'] ?>" data-branch-id="<?= (int) $player['branch_id'] ?>" <?= (string) $player['id'] === $selectedPlayer ? 'selected' : '' ?>><?= esc($player['full_name']) ?> (Player #<?= (int) $player['id'] ?>)</option>
-                <?php endforeach; ?>
-            </select>
+        <div class="mcc-form-field mcc-development-player-search" data-development-player-search data-search-url="<?= esc(site_url('development/player-search')) ?>">
+            <label for="development-player-search">Player</label>
+            <input class="form-control" id="development-player-search" type="search" autocomplete="off" placeholder="Search Player by name or number" value="<?= $selectedPlayer !== '' ? esc((string) ($plan['player_name'] ?? '')) : '' ?>" required>
+            <input id="development-player" name="player_id" type="hidden" value="<?= esc($selectedPlayer) ?>">
+            <div class="mcc-live-search-results" data-development-player-results role="listbox" hidden></div>
+            <p class="mcc-form-help" data-development-player-selected <?= $selectedPlayer === '' ? 'hidden' : '' ?>>Selected Player #<?= esc($selectedPlayer) ?></p>
             <?php if ($fieldError('player_id') !== ''): ?>
                 <p class="mcc-field-error" id="development-player-error" role="alert">
                     <?= esc($fieldError('player_id')) ?>
@@ -261,7 +195,7 @@ $pageActions = '<div class="mcc-page-actions">'
         </div>
 
         <div class="mcc-form-field mcc-form-field-wide">
-            <label for="development-notes">Notes</label>
+            <label for="development-notes">Plan details</label>
             <textarea
                 class="form-control"
                 id="development-notes"
@@ -288,5 +222,90 @@ $pageActions = '<div class="mcc-page-actions">'
         </div>
     </form>
 </section>
+
+<script>
+    (() => {
+        const container = document.querySelector('[data-development-player-search]');
+        if (!container) {
+            return;
+        }
+        const input = container.querySelector('#development-player-search');
+        const hidden = container.querySelector('#development-player');
+        const results = container.querySelector('[data-development-player-results]');
+        const selected = container.querySelector('[data-development-player-selected]');
+        const branch = document.querySelector('[data-development-branch]');
+        let timer;
+        let highlightedIndex = -1;
+
+        const highlight = (index) => {
+            const options = Array.from(results.querySelectorAll('.mcc-live-search-result'));
+            highlightedIndex = options.length === 0 ? -1 : Math.max(0, Math.min(index, options.length - 1));
+            options.forEach((option, optionIndex) => {
+                option.classList.toggle('is-highlighted', optionIndex === highlightedIndex);
+                option.setAttribute('aria-selected', optionIndex === highlightedIndex ? 'true' : 'false');
+            });
+            if (options[highlightedIndex]) {
+                options[highlightedIndex].scrollIntoView({block: 'nearest'});
+            }
+        };
+
+        input.addEventListener('input', () => {
+            hidden.value = '';
+            selected.hidden = true;
+            highlightedIndex = -1;
+            window.clearTimeout(timer);
+            const query = input.value.trim();
+            if (query.length < 2) {
+                results.replaceChildren();
+                results.hidden = true;
+                return;
+            }
+            timer = window.setTimeout(async () => {
+                const params = new URLSearchParams({q: query});
+                if (branch && branch.value) {
+                    params.set('branch_id', branch.value);
+                }
+                const response = await fetch(container.dataset.searchUrl + '?' + params.toString(), {headers: {Accept: 'application/json'}});
+                const payload = await response.json();
+                results.replaceChildren();
+                (payload.players || []).forEach((player) => {
+                    const option = document.createElement('button');
+                    option.type = 'button';
+                    option.className = 'mcc-live-search-result';
+                    option.textContent = player.full_name + ' · ' + player.branch_name + ' · Player #' + player.id;
+                    option.addEventListener('click', () => {
+                        input.value = player.full_name;
+                        hidden.value = player.id;
+                        selected.textContent = 'Selected Player #' + player.id + ' · ' + player.branch_name;
+                        selected.hidden = false;
+                        results.hidden = true;
+                    });
+                    results.appendChild(option);
+                });
+                highlight(-1);
+                results.hidden = results.children.length === 0;
+            }, 250);
+        });
+
+        input.addEventListener('keydown', (event) => {
+            const options = results.querySelectorAll('.mcc-live-search-result');
+            if (results.hidden || options.length === 0) {
+                return;
+            }
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                highlight(highlightedIndex + 1);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                highlight(highlightedIndex - 1);
+            } else if (event.key === 'Enter' && highlightedIndex >= 0) {
+                event.preventDefault();
+                options[highlightedIndex].click();
+            } else if (event.key === 'Escape') {
+                results.hidden = true;
+            }
+        });
+    })();
+</script>
 
 <?= view('staff_footer') ?>

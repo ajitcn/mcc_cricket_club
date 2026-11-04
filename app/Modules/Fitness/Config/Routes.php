@@ -4,8 +4,17 @@ $routes->group('fitness', ['filter' => 'auth'], static function ($routes): void 
     $routes->get('/', '\\App\\Modules\\Fitness\\Controllers\\Browser::index', [
         'filter' => 'permission:fitness.view',
     ]);
+    $routes->get('new', '\\App\\Modules\\Fitness\\Controllers\\Browser::createPage', [
+        'filter' => 'permission:fitness.create',
+    ]);
+    $routes->get('player-search', '\\App\\Modules\\Fitness\\Controllers\\Browser::playerSearch', [
+        'filter' => 'permission:fitness.create',
+    ]);
     $routes->get('players/(:num)', '\\App\\Modules\\Fitness\\Controllers\\Browser::player/$1', [
         'filter' => 'permission:fitness.view',
+    ]);
+    $routes->get('assessments/(:num)/edit', '\\App\\Modules\\Fitness\\Controllers\\Browser::editAssessment/$1', [
+        'filter' => 'permission:fitness.update',
     ]);
     $routes->post('players/(:num)/assessments', '\\App\\Modules\\Fitness\\Controllers\\Browser::assessment/$1', [
         'filter' => 'permission:fitness.create',

@@ -32,7 +32,7 @@ $pageActions = '<div class="mcc-page-actions">
 </div>';
 ?>
 <?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
-<main class="container py-4 mcc-development-page">
+<div class="mcc-development-page">
     <section id="development-filters" class="mcc-card mcc-development-filter-card" aria-labelledby="development-filters-heading" <?= $hasDevelopmentFilters ? '' : 'hidden' ?>>
         <div class="mcc-card-heading">
             <div>
@@ -103,21 +103,35 @@ $pageActions = '<div class="mcc-page-actions">
                         <?php $status = (string) ($plan['status'] ?? ''); ?>
                         <tr>
                             <th scope="row" data-label="Player / assignment">
-                                <strong><?= esc($plan['full_name'] ?? 'Not available') ?></strong>
+                                <span class="mcc-table-primary-text"><?= esc($plan['full_name'] ?? 'Not available') ?></span>
+                                <span class="mcc-development-assignment-meta">Player #<?= (int) ($plan['player_id'] ?? 0) ?></span>
                                 <span class="mcc-development-assignment-meta">
-                                    <span class="mcc-development-assignment-meta-badge"><b>Branch:</b><em><?= esc($plan['branch_name'] ?? 'Not available') ?></em></span>
-                                    <span class="mcc-development-assignment-meta-badge"><b>Coach:</b><em><?= esc($plan['coach_name'] ?? 'Not available') ?></em></span>
+                                    <span><b>Branch:</b><em><?= esc($plan['branch_name'] ?? 'Not available') ?></em></span>
+                                    <span><b>Coach:</b><em><?= esc($plan['coach_name'] ?? 'Not available') ?></em></span>
                                 </span>
                             </th>
-                            <td data-label="Plan"><?= esc($plan['title'] ?? '') ?></td>
+                            <td data-label="Plan">
+                                <span class="mcc-table-primary-text"><?= esc($plan['title'] ?? 'Untitled plan') ?></span>
+                                <span class="mcc-table-secondary-text">Updated: <?= esc(mcc_user_date($plan['updated_at'] ?? null)) ?></span>
+                            </td>
                             <td data-label="Status">
-                                <span class="mcc-badge mcc-badge-<?= $status === 'active' ? 'success' : ($status === 'cancelled' ? 'danger' : 'neutral') ?>">
+                                <span class="mcc-badge mcc-badge-<?= $status === 'active' || $status === 'completed' ? 'success' : ($status === 'cancelled' ? 'danger' : 'neutral') ?>">
                                     <?= esc($statusLabels[$status] ?? $status) ?>
                                 </span>
                             </td>
                             <td data-label="Target"><?= esc(mcc_user_date($plan['target_date'] ?? null, 'Not set')) ?></td>
                             <td data-label="Actions">
-                                <a class="mcc-button mcc-button-secondary" href="<?= site_url('development/' . (int) $plan['id']) ?>">Open</a>
+                                <div class="mcc-session-action-menu" data-session-actions>
+                                    <button class="mcc-button mcc-button-secondary mcc-button-sm" type="button" data-session-actions-toggle aria-expanded="false" aria-haspopup="true" aria-controls="development-actions-<?= (int) $plan['id'] ?>">
+                                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i><span>Actions</span>
+                                    </button>
+                                    <div class="mcc-session-action-dropdown" id="development-actions-<?= (int) $plan['id'] ?>" data-session-actions-menu hidden>
+                                        <a href="<?= esc(site_url('development/' . (int) $plan['id'])) ?>"><i class="fa-solid fa-eye" aria-hidden="true"></i> View plan</a>
+                                        <?php if ($status !== 'completed'): ?>
+                                            <a href="<?= esc(site_url('development/' . (int) $plan['id'] . '/edit')) ?>"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit plan</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -158,5 +172,5 @@ $pageActions = '<div class="mcc-page-actions">
             </nav>
         <?php endif; ?>
     </section>
-</main>
+</div>
 <?= view('staff_footer') ?>

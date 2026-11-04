@@ -7,6 +7,14 @@ $routes->group('equipment', ['filter' => 'auth'], static function ($routes): voi
     $routes->get('new', '\\App\\Modules\\Equipment\\Controllers\\Browser::createPage', [
         'filter' => 'permission:equipment.create',
     ]);
+    $routes->get('assignments', '\\App\\Modules\\Equipment\\Controllers\\Browser::assignments', ['filter' => 'permission:equipment.view']);
+    $routes->get('assignments/new', '\\App\\Modules\\Equipment\\Controllers\\Browser::assignmentPage', ['filter' => 'permission:equipment.update']);
+    $routes->get('assignments/(:num)', '\\App\\Modules\\Equipment\\Controllers\\Browser::viewAssignmentPage/$1', ['filter' => 'permission:equipment.view']);
+    $routes->get('assignments/(:num)/return', '\\App\\Modules\\Equipment\\Controllers\\Browser::returnAssignmentPage/$1', ['filter' => 'permission:equipment.update']);
+    $routes->get('assignments/(:num)/edit', '\\App\\Modules\\Equipment\\Controllers\\Browser::editAssignmentPage/$1', ['filter' => 'permission:equipment.update']);
+    $routes->post('assignments', '\\App\\Modules\\Equipment\\Controllers\\Browser::createAssignment', ['filter' => 'permission:equipment.update']);
+    $routes->post('assignments/(:num)', '\\App\\Modules\\Equipment\\Controllers\\Browser::updateAssignment/$1', ['filter' => 'permission:equipment.update']);
+    $routes->post('assignments/(:num)/return', '\\App\\Modules\\Equipment\\Controllers\\Browser::returnAssignment/$1', ['filter' => 'permission:equipment.update']);
     $routes->post('/', '\\App\\Modules\\Equipment\\Controllers\\Browser::create', [
         'filter' => 'permission:equipment.create',
     ]);

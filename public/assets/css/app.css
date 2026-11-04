@@ -6521,6 +6521,61 @@ tr:last-child td {
 .mcc-performance-import-card {
     overflow: visible;
 }
+.mcc-fitness-player-search-form {
+    align-items: end;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.mcc-fitness-player-results {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: .35rem;
+    box-shadow: var(--app-shadow);
+    display: grid;
+    margin-top: .35rem;
+    max-height: 220px;
+    overflow-y: auto;
+    position: relative;
+    z-index: 20;
+}
+.mcc-fitness-selected-player {
+    align-items: baseline;
+    background: #f8fafc;
+    border: 1px solid var(--app-border);
+    border-radius: .35rem;
+    display: flex;
+    gap: .75rem;
+    margin-top: .55rem;
+    padding: .65rem .8rem;
+}
+.mcc-fitness-selected-player span {
+    color: var(--app-muted);
+    font-size: .8rem;
+}
+.mcc-fitness-player-result {
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid var(--app-border);
+    cursor: pointer;
+    padding: .7rem .85rem;
+    text-align: left;
+}
+.mcc-fitness-player-result:hover,
+.mcc-fitness-player-result:focus,
+.mcc-fitness-player-result.is-highlighted {
+    background: #eef4ff;
+    color: #1d4ed8;
+    outline: 0;
+}
+.mcc-fitness-player-search-form .mcc-form-actions {
+    margin: 0;
+}
+@media (max-width: 700px) {
+    .mcc-fitness-player-search-form {
+        grid-template-columns: 1fr;
+    }
+}
 .mcc-performance-import-heading {
     align-items: center;
     gap: 1rem;
@@ -10821,7 +10876,47 @@ tr:last-child td {
 }
 
 .mcc-fitness-table {
-    min-width: 680px;
+    min-width: 760px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.mcc-fitness-table th:nth-child(1),
+.mcc-fitness-table td:nth-child(1) {
+    width: 28%;
+}
+
+.mcc-fitness-table th:nth-child(2),
+.mcc-fitness-table td:nth-child(2) {
+    width: 32%;
+}
+
+.mcc-fitness-table th:nth-child(3),
+.mcc-fitness-table td:nth-child(3) {
+    width: 22%;
+}
+
+.mcc-fitness-table th:nth-child(4),
+.mcc-fitness-table td:nth-child(4) {
+    width: 18%;
+}
+
+.mcc-fitness-table .mcc-table-primary-text,
+.mcc-fitness-table .mcc-table-secondary-text {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.mcc-fitness-table .mcc-table-primary-text {
+    color: var(--app-text);
+    font-weight: 600;
+}
+
+.mcc-fitness-table .mcc-table-secondary-text {
+    color: var(--app-muted);
+    font-size: 10px;
+    line-height: 1.45;
+    margin-top: .15rem;
 }
 
 .mcc-fitness-table th,
@@ -14125,23 +14220,23 @@ tr:last-child td {
 }
 
 .mcc-development-page .development-table th:first-child {
-    width: 30%;
+    width: 28%;
 }
 
 .mcc-development-page .development-table th:nth-child(2) {
-    width: 30%;
+    width: 34%;
 }
 
 .mcc-development-page .development-table th:nth-child(3) {
-    width: 14%;
+    width: 12%;
 }
 
 .mcc-development-page .development-table th:nth-child(4) {
-    width: 14%;
+    width: 12%;
 }
 
 .mcc-development-page .development-table th:nth-child(5) {
-    width: 12%;
+    width: 14%;
 }
 
 .mcc-development-page .development-table th,
@@ -14150,9 +14245,209 @@ tr:last-child td {
     vertical-align: middle;
 }
 
+.mcc-development-page .development-table .mcc-table-primary-text,
+.mcc-development-page .development-table .mcc-table-secondary-text {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.mcc-equipment-table .mcc-table-primary-text,
+.mcc-equipment-table .mcc-table-secondary-text {
+    display: block;
+}
+
+.mcc-equipment-assignment-card {
+    margin: 0;
+}
+
+.mcc-equipment-assignment-form {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.mcc-equipment-assignment-section {
+    background: var(--app-card-bg, #fff);
+    border: 1px solid var(--app-border);
+    border-radius: .75rem;
+    padding: 1.1rem 1.2rem;
+}
+
+.mcc-equipment-assignment-meta {
+    display: grid;
+    gap: 1rem 1.25rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-equipment-assignment-section .mcc-section-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: 1rem;
+    padding-bottom: .7rem;
+}
+
+.mcc-equipment-assignment-section .mcc-section-heading h3 {
+    font-size: 1rem;
+    margin: 0 0 .25rem;
+}
+
+.mcc-equipment-assignment-section .mcc-section-heading p {
+    color: var(--app-muted);
+    font-size: .82rem;
+    margin: 0;
+}
+
+.mcc-equipment-assignment-form fieldset {
+    border: 1px solid var(--app-border);
+    border-radius: .6rem;
+    margin: 0;
+    padding: 1rem;
+}
+
+.mcc-equipment-assignment-form legend {
+    color: var(--app-text);
+    font-size: .95rem;
+    font-weight: 700;
+    padding: 0 .35rem;
+}
+
+.mcc-equipment-assignment-grid {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-equipment-assignment-item {
+    background: #f8fafc;
+    border: 1px solid var(--app-border);
+    border-radius: .5rem;
+    display: grid;
+    gap: .35rem;
+    padding: .75rem;
+}
+
+.mcc-equipment-assignment-item-heading {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    min-width: 0;
+}
+
+.mcc-equipment-assignment-item label {
+    color: var(--app-text);
+    font-weight: 650;
+}
+
+.mcc-equipment-assignment-item .mcc-muted {
+    font-size: 10px;
+}
+
+@media (max-width: 800px) {
+    .mcc-equipment-assignment-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-equipment-assignment-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-equipment-assignment-section {
+        padding: .9rem;
+    }
+
+    .mcc-equipment-assignment-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-equipment-assignment-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mcc-equipment-table .mcc-table-primary-text {
+    color: var(--app-text);
+    font-weight: 600;
+}
+
+.mcc-equipment-table .mcc-table-secondary-text {
+    color: var(--app-muted);
+    font-size: 10px;
+    margin-top: .15rem;
+}
+
+.mcc-development-page .development-table .mcc-table-primary-text {
+    color: var(--app-text);
+    font-weight: 600;
+}
+
+.mcc-development-page .development-table .mcc-table-secondary-text {
+    color: var(--app-muted);
+    font-size: 10px;
+    line-height: 1.4;
+    margin-top: .15rem;
+}
+
 .mcc-development-page .development-table th:last-child,
 .mcc-development-page .development-table td:last-child {
+    overflow: visible;
     white-space: nowrap;
+}
+
+.mcc-development-page .development-table td:last-child {
+    position: relative;
+}
+
+/* Keep open action menus above table rows and neighbouring cards. */
+.mcc-player-action-menu:has(.mcc-player-action-dropdown.is-open),
+.mcc-coach-action-menu:has(.mcc-coach-action-dropdown.is-open),
+.mcc-session-action-menu:has(.mcc-session-action-dropdown.is-open),
+.mcc-admission-action-menu:has(.mcc-admission-action-dropdown.is-open),
+.mcc-follow-up-action-menu:has(.mcc-follow-up-action-dropdown.is-open),
+.mcc-detail-action-menu[open] {
+    position: relative;
+    z-index: 100000;
+}
+
+.mcc-player-action-dropdown.is-open,
+.mcc-coach-action-dropdown.is-open,
+.mcc-session-action-dropdown.is-open,
+.mcc-admission-action-dropdown.is-open,
+.mcc-follow-up-action-dropdown:not([hidden]),
+.mcc-detail-action-dropdown {
+    z-index: 100001;
+}
+
+/* Shared action-popup sizing across staff list and detail pages. */
+.mcc-player-action-dropdown,
+.mcc-coach-action-dropdown,
+.mcc-session-action-dropdown,
+.mcc-admission-action-dropdown,
+.mcc-follow-up-action-dropdown,
+.mcc-detail-action-dropdown {
+    max-width: min(250px, calc(100vw - 16px)) !important;
+    min-width: 0;
+    width: min(250px, calc(100vw - 16px)) !important;
+}
+
+.mcc-session-action-dropdown {
+    background: #fff !important;
+}
+
+.mcc-detail-action-dropdown {
+    background: #fff !important;
+}
+
+.mcc-development-page .development-table .mcc-session-action-menu {
+    position: relative;
+}
+
+.mcc-development-page .development-table .mcc-session-action-dropdown {
+    right: 0;
+    left: auto;
+    min-width: 170px;
+    max-width: min(240px, calc(100vw - 2rem));
+    z-index: 1400;
 }
 
 .mcc-development-assignment-meta {
@@ -17341,3 +17636,144 @@ tr:last-child td {
     margin-top: -.1rem;
 }
 
+.mcc-fitness-player-page .mcc-fitness-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.mcc-fitness-player-page .mcc-stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    padding: 1rem;
+    border: 1px solid var(--mcc-border, #dfe5ef);
+    border-radius: .75rem;
+    background: var(--mcc-surface-muted, #f8fafc);
+}
+
+.mcc-fitness-player-page .mcc-stat-card strong {
+    color: var(--mcc-heading, #17233d);
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.mcc-fitness-player-page .mcc-meta-text {
+    font-size: 10px;
+}
+
+.mcc-development-player-search {
+    position: relative;
+}
+
+.mcc-development-player-search .mcc-live-search-results {
+    background: #fff;
+    border: 1px solid var(--app-border);
+    border-radius: .5rem;
+    box-shadow: 0 8px 24px rgba(23, 31, 56, .14);
+    left: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: calc(100% - .25rem);
+    z-index: 1200;
+}
+
+.mcc-development-player-search .mcc-live-search-result {
+    background: #fff;
+    border: 0;
+    border-bottom: 1px solid var(--app-border);
+    color: var(--app-text);
+    cursor: pointer;
+    display: block;
+    padding: .65rem .75rem;
+    text-align: left;
+    width: 100%;
+}
+
+.mcc-development-player-search .mcc-live-search-result:hover,
+.mcc-development-player-search .mcc-live-search-result:focus,
+.mcc-development-player-search .mcc-live-search-result.is-highlighted {
+    background: #f1edff;
+    color: var(--app-primary);
+    outline: 0;
+}
+
+.mcc-fitness-player-page > .mcc-card {
+    margin: 0;
+}
+
+.mcc-fitness-player-page > .mcc-card + .mcc-card {
+    margin-top: 1rem;
+}
+
+.mcc-fitness-player-page .mcc-card-heading {
+    align-items: flex-start;
+    gap: .75rem;
+    margin-bottom: 1rem;
+}
+
+.mcc-fitness-player-page .mcc-detail-hero h1 {
+    font-size: 1.35rem;
+    line-height: 1.25;
+    margin: .25rem 0 .35rem;
+}
+
+.mcc-fitness-player-page .mcc-detail-hero .mcc-badge {
+    font-size: .78rem;
+    padding: .45rem .65rem;
+}
+
+.mcc-fitness-player-page .mcc-table-wrap {
+    margin: 0;
+    overflow-x: auto;
+}
+
+.mcc-fitness-player-page .mcc-table {
+    min-width: 760px;
+}
+
+.mcc-fitness-table .mcc-meta-text,
+.mcc-fitness-table .mcc-fitness-date {
+    display: block;
+    margin-top: .25rem;
+}
+
+.mcc-fitness-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(90px, 1fr));
+    gap: .35rem .75rem;
+    min-width: 360px;
+    color: var(--app-text, #1d2939);
+    font-size: .82rem;
+}
+
+.mcc-fitness-metric-grid b {
+    color: var(--app-muted, #7b8190);
+    font-size: 10px;
+    font-weight: 600;
+    margin-right: .2rem;
+}
+
+.mcc-fitness-table td:last-child .mcc-page-actions {
+    flex-wrap: nowrap;
+    gap: .4rem;
+}
+
+@media (max-width: 768px) {
+    .mcc-fitness-metric-grid {
+        grid-template-columns: repeat(2, minmax(100px, 1fr));
+        min-width: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .mcc-fitness-player-page .mcc-fitness-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-fitness-player-page .mcc-detail-hero {
+        gap: 1rem;
+    }
+}

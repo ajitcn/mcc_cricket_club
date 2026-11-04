@@ -15,6 +15,8 @@ final class FitnessAssessmentModel extends Model
         'player_id', 'branch_id', 'assessment_date', 'height_cm', 'weight_kg',
         'body_fat_percent', 'vertical_jump_cm', 'sprint_time_seconds',
         'agility_seconds', 'flexibility_cm', 'yoyo_level', 'endurance_minutes',
-        'coach_notes', 'recorded_by', 'created_at', 'updated_at', 'deleted_at',
+        'age_group', 'squats', 'broad_jump', 'shoulder_tap', 'bronco_test',
+        'running_between_wickets', 'plank', 'crunches', 'thirty_meter_timing',
+        'bmi', 'coach_notes', 'recorded_by', 'created_at', 'updated_at', 'deleted_at',
     ];
 }

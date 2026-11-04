@@ -14,7 +14,8 @@ final class FitnessManagementService
     private const METRICS = [
         'height_cm', 'weight_kg', 'body_fat_percent', 'vertical_jump_cm',
         'sprint_time_seconds', 'agility_seconds', 'flexibility_cm', 'yoyo_level',
-        'endurance_minutes',
+        'endurance_minutes', 'squats', 'broad_jump', 'shoulder_tap', 'bronco_test',
+        'running_between_wickets', 'plank', 'crunches', 'thirty_meter_timing', 'bmi',
     ];
 
     public function list(array $filters = []): array
@@ -25,10 +26,11 @@ final class FitnessManagementService
         }
 
         $builder = Database::connect('default')->table('fitness_assessments fa')
-            ->select('fa.*, pe.full_name, b.name AS branch_name')
+            ->select('fa.*, pe.full_name, b.name AS branch_name, creator.display_name AS created_by_name')
             ->join('players p', 'p.id = fa.player_id')
             ->join('persons pe', 'pe.id = p.person_id')
             ->join('branches b', 'b.id = fa.branch_id')
+            ->join('users creator', 'creator.id = fa.recorded_by', 'left')
             ->whereIn('fa.branch_id', $branches)
             ->where('fa.deleted_at', null);
         $this->restrictAssignedCoach($builder, 'fa.player_id');
@@ -61,6 +63,59 @@ final class FitnessManagementService
             'pages' => max(1, (int) ceil($total / 20)),
             'filters' => $filters,
         ];
+    }
+
+    public function playersForNewAssessment(string $query = ''): array
+    {
+        $branches = $this->authorizedBranches();
+        if ($branches === []) {
+            return [];
+        }
+
+        $builder = Database::connect('default')->table('players p')
+            ->select('p.id, pe.full_name, b.name AS branch_name')
+            ->join('persons pe', 'pe.id = p.person_id')
+            ->join('branches b', 'b.id = p.branch_id')
+            ->whereIn('p.branch_id', $branches)
+            ->where('p.status', 'active')
+            ->orderBy('pe.full_name', 'ASC');
+        $query = trim($query);
+        if ($query !== '') {
+            $builder->like('pe.full_name', $query);
+        }
+
+        return $builder->get(50)->getResultArray();
+    }
+
+    public function ageGroups(): array
+    {
+        return Database::connect('default')->table('admission_age_groups')
+            ->select('id, name')
+            ->where('is_active', 1)
+            ->orderBy('display_order', 'ASC')
+            ->orderBy('name', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function authorizedPlayerForAssessment(int $playerId): ?array
+    {
+        $branches = $this->authorizedBranches();
+        if ($playerId < 1 || $branches === []) {
+            return null;
+        }
+
+        $player = Database::connect('default')->table('players p')
+            ->select('p.id, pe.full_name, b.name AS branch_name')
+            ->join('persons pe', 'pe.id = p.person_id')
+            ->join('branches b', 'b.id = p.branch_id')
+            ->where('p.id', $playerId)
+            ->whereIn('p.branch_id', $branches)
+            ->where('p.status', 'active')
+            ->get()
+            ->getRowArray();
+
+        return is_array($player) ? $player : null;
     }
 
     public function player(int $playerId): array
@@ -129,6 +184,24 @@ final class FitnessManagementService
         return $assessmentId;
     }
 
+    public function assessmentForEdit(int $assessmentId): array
+    {
+        $assessment = Database::connect('default')->table('fitness_assessments fa')
+            ->select('fa.*, pe.full_name, b.name AS branch_name')
+            ->join('players p', 'p.id = fa.player_id')
+            ->join('persons pe', 'pe.id = p.person_id')
+            ->join('branches b', 'b.id = fa.branch_id')
+            ->where('fa.id', $assessmentId)
+            ->where('fa.deleted_at', null)
+            ->get()
+            ->getRowArray();
+        if (! is_array($assessment)) {
+            throw new RuntimeException('Not found.');
+        }
+        $this->authorizePlayer($this->playerRow((int) $assessment['player_id']), 'fitness.update');
+        return $assessment;
+    }
+
     public function savePlan(int $playerId, array $input, ?int $planId = null): int
     {
         $player = $this->playerRow($playerId);
@@ -194,7 +267,15 @@ final class FitnessManagementService
         if (!$this->validDate($date)) {
             throw new RuntimeException('Invalid fitness assessment.');
         }
-        $data = ['assessment_date' => $date, 'coach_notes' => $this->nullableText($input['coach_notes'] ?? null, 10000)];
+        $ageGroup = trim((string) ($input['age_group'] ?? ''));
+        if (strlen($ageGroup) > 50) {
+            throw new RuntimeException('Invalid fitness assessment.');
+        }
+        $data = [
+            'assessment_date' => $date,
+            'age_group' => $ageGroup === '' ? null : $ageGroup,
+            'coach_notes' => $this->nullableText($input['coach_notes'] ?? null, 10000),
+        ];
         foreach (self::METRICS as $metric) {
             $value = trim((string) ($input[$metric] ?? ''));
             if ($value === '') {
@@ -202,6 +283,9 @@ final class FitnessManagementService
                 continue;
             }
             if (!is_numeric($value) || (float) $value < 0) {
+                throw new RuntimeException('Invalid fitness assessment.');
+            }
+            if ($metric === 'bmi' && (float) $value > 99.99) {
                 throw new RuntimeException('Invalid fitness assessment.');
             }
             $data[$metric] = (float) $value;
@@ -302,6 +386,10 @@ final class FitnessManagementService
 
     private function bmi(?array $row): ?float
     {
+        if (isset($row['bmi']) && $row['bmi'] !== '' && $row['bmi'] !== null) {
+            return round((float) $row['bmi'], 2);
+        }
+
         $height = (float) ($row['height_cm'] ?? 0);
         $weight = (float) ($row['weight_kg'] ?? 0);
         return $height > 0 && $weight > 0 ? round($weight / (($height / 100) ** 2), 2) : null;

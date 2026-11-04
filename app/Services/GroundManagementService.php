@@ -315,8 +315,10 @@ final class GroundManagementService
     private function ground(int $id): array
     {
         $row = Database::connect('default')
-            ->table('grounds')
-            ->where('id', $id)
+            ->table('grounds g')
+            ->select('g.*, b.name AS branch_name')
+            ->join('branches b', 'b.id = g.branch_id', 'left')
+            ->where('g.id', $id)
             ->get()
             ->getRowArray();
         if (!is_array($row)) {

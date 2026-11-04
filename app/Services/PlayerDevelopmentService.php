@@ -173,6 +173,30 @@ final class PlayerDevelopmentService
         ];
     }
 
+    public function playersForSearch(string $query, ?int $branchId = null): array
+    {
+        $branches = $this->developmentBranches();
+        $query = trim($query);
+        if ($branches === [] || mb_strlen($query) < 2) {
+            return [];
+        }
+
+        $allowedBranch = $this->validatedBranchFilter($branchId, $branches);
+        $builder = Database::connect('default')->table('players p')
+            ->select('p.id, p.branch_id, pe.full_name, b.name AS branch_name')
+            ->join('persons pe', 'pe.id = p.person_id')
+            ->join('branches b', 'b.id = p.branch_id')
+            ->whereIn('p.branch_id', $allowedBranch === null ? $branches : [$allowedBranch])
+            ->groupStart()
+            ->like('pe.full_name', $query)
+            ->orLike('p.id', $query)
+            ->groupEnd()
+            ->orderBy('pe.full_name', 'ASC')
+            ->limit(20);
+
+        return $builder->get()->getResultArray();
+    }
+
     public function save(array $input, ?int $id = null): int
     {
         $branch = (int) ($input['branch_id'] ?? 0);

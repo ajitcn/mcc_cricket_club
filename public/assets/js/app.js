@@ -324,7 +324,7 @@
     }
 
     function initSessionPlanActionMenus() {
-        var menus = document.querySelectorAll('[data-session-plan-action-menu]');
+        var menus = document.querySelectorAll('[data-session-plan-action-menu], .mcc-detail-action-menu');
         var openMenu = null;
         var openSummary = null;
         var openDropdown = null;
@@ -1081,21 +1081,31 @@
 
     function initFollowUpActions() {
         var menus = document.querySelectorAll('[data-follow-up-actions]');
+        var openMenu = null;
+        var openToggle = null;
+        var placeholder = null;
 
         if (! menus.length) {
             return;
         }
 
         var closeMenus = function () {
-            document.querySelectorAll('[data-follow-up-actions-menu]').forEach(function (menu) {
-                menu.hidden = true;
-                menu.style.left = '';
-                menu.style.top = '';
-                menu.style.position = '';
-            });
+            if (openMenu && placeholder) {
+                openMenu.hidden = true;
+                openMenu.style.left = '';
+                openMenu.style.top = '';
+                openMenu.style.position = '';
+                openMenu.style.zIndex = '';
+                placeholder.parentNode.insertBefore(openMenu, placeholder.nextSibling);
+                placeholder.remove();
+            }
+
             document.querySelectorAll('[data-follow-up-actions-toggle]').forEach(function (toggle) {
                 toggle.setAttribute('aria-expanded', 'false');
             });
+            openMenu = null;
+            openToggle = null;
+            placeholder = null;
         };
 
         menus.forEach(function (container) {
@@ -1107,16 +1117,21 @@
             }
 
             toggle.addEventListener('click', function () {
-                var shouldOpen = menu.hidden;
+                var shouldOpen = openMenu !== menu;
                 closeMenus();
                 if (! shouldOpen) {
                     return;
                 }
 
+                placeholder = document.createElement('span');
+                placeholder.setAttribute('data-follow-up-actions-placeholder', 'true');
+                menu.parentNode.insertBefore(placeholder, menu);
+                document.body.appendChild(menu);
                 menu.hidden = false;
                 menu.style.position = 'fixed';
+                menu.style.zIndex = '999999';
                 var rect = toggle.getBoundingClientRect();
-                var width = menu.offsetWidth || 190;
+                var width = Math.min(menu.offsetWidth || 190, window.innerWidth - 16);
                 var left = Math.min(rect.right - width, window.innerWidth - width - 8);
                 var top = rect.bottom + 4;
                 if (top + menu.offsetHeight > window.innerHeight && rect.top > menu.offsetHeight + 8) {
@@ -1124,6 +1139,8 @@
                 }
                 menu.style.left = Math.max(8, left) + 'px';
                 menu.style.top = Math.max(8, top) + 'px';
+                openMenu = menu;
+                openToggle = toggle;
                 toggle.setAttribute('aria-expanded', 'true');
                 var first = menu.querySelector('[role="menuitem"]');
                 if (first) {
@@ -1133,7 +1150,8 @@
         });
 
         document.addEventListener('click', function (event) {
-            if (! event.target.closest('[data-follow-up-actions]')) {
+            if (! event.target.closest('[data-follow-up-actions]')
+                && ! event.target.closest('[data-follow-up-actions-menu]')) {
                 closeMenus();
             }
         });
@@ -1847,7 +1865,7 @@
                     dropdown.classList.add('is-open');
                     dropdown.style.position = 'absolute';
                     dropdown.style.right = 'auto';
-                    dropdown.style.zIndex = '1200';
+                    dropdown.style.zIndex = '999999';
                     openDropdown = dropdown;
                     openToggle = toggle;
                     positionDropdown(dropdown, toggle);
@@ -3816,6 +3834,7 @@
                     menu.style.left = '';
                     menu.style.top = '';
                     menu.style.position = '';
+                    menu.style.zIndex = '';
                 }
             });
             document.querySelectorAll('[data-session-actions-toggle]').forEach(function (toggle) {
@@ -3952,6 +3971,7 @@
                     dropdown.hidden = false;
                     dropdown.classList.add('is-open');
                     dropdown.style.position = 'absolute';
+                    dropdown.style.zIndex = '999999';
                     openDropdown = dropdown;
                     openToggle = toggle;
                     positionDropdown(dropdown, toggle);

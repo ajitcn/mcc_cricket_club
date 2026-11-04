@@ -11,19 +11,25 @@ $old = static function (string $key, mixed $fallback = '') use ($ground): mixed 
     return old($key, $ground[$key] ?? $fallback);
 };
 $selectedBranch = (string) $old('branch_id');
+$pageActions = '<div class="mcc-page-actions">'
+    . '<a class="mcc-button mcc-button-secondary" href="'
+    . site_url('grounds')
+    . '"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>'
+    . '<span class="mcc-button-label">Back to grounds</span></a></div>';
 ?>
-<?= view('staff_header', ['title' => $title]) ?>
-<main class="container py-4 mcc-ground-form-page">
-    <section class="mcc-card mcc-ground-form-card" aria-labelledby="ground-form-heading">
-        <div class="mcc-card-heading mcc-ground-form-heading">
-            <div>
-                <span class="mcc-eyebrow">Grounds &amp; Equipment</span>
-                <h1 id="ground-form-heading"><?= esc($heading) ?></h1>
-                <p class="mcc-card-subtitle">
-                    Enter the ground details and choose its authorized branch.
-                </p>
-            </div>
+<?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
+<section class="mcc-card mcc-ground-form-card" aria-labelledby="ground-form-heading">
+    <div class="mcc-card-heading mcc-ground-form-heading">
+        <div>
+            <span class="mcc-eyebrow">Grounds &amp; Equipment</span>
+            <h2 id="ground-form-heading"><?= esc($heading) ?></h2>
+            <p class="mcc-card-subtitle">
+                <?= $isEdit
+                    ? 'Update the ground details for this authorized branch.'
+                    : 'Add a ground to an authorized branch.' ?>
+            </p>
         </div>
+    </div>
 
         <form
             method="post"
@@ -42,7 +48,7 @@ $selectedBranch = (string) $old('branch_id');
                             <input
                                 class="form-control"
                                 id="ground-branch"
-                                value="<?= (int) ($ground['branch_id'] ?? 0) ?>"
+                                value="<?= esc((string) ($ground['branch_name'] ?? ('Branch #' . (int) ($ground['branch_id'] ?? 0)))) ?>"
                                 readonly
                             >
                             <input
@@ -143,7 +149,6 @@ $selectedBranch = (string) $old('branch_id');
                     Cancel
                 </a>
             </div>
-        </form>
-    </section>
-</main>
+    </form>
+</section>
 <?= view('staff_footer') ?>

@@ -37,6 +37,16 @@ final class Browser extends StaffController
         );
     }
 
+    public function playerSearch(): ResponseInterface
+    {
+        return $this->response->setJSON([
+            'players' => service('development')->playersForSearch(
+                (string) $this->request->getGet('q'),
+                is_numeric($this->request->getGet('branch_id')) ? (int) $this->request->getGet('branch_id') : null,
+            ),
+        ]);
+    }
+
     public function editPage(int $id): ResponseInterface|string
     {
         try {

@@ -4,7 +4,10 @@ $equipment = is_array($equipment ?? null) ? $equipment : [];
 $canUpdate = (bool) ($canUpdate ?? false);
 $canDelete = (bool) ($canDelete ?? false);
 ?>
-<?= view('staff_header', ['title' => $title]) ?>
+<?= view('staff_header', [
+    'title' => $title,
+    'pageActions' => '<a class="mcc-button mcc-button-primary" href="' . site_url('equipment/new') . '"><i class="fa-solid fa-plus" aria-hidden="true"></i> Create equipment</a>',
+]) ?>
 <section class="mcc-card" aria-labelledby="equipment-list-heading">
     <div class="mcc-card-heading">
         <div>
@@ -12,9 +15,6 @@ $canDelete = (bool) ($canDelete ?? false);
             <h2 id="equipment-list-heading">Equipment inventory</h2>
             <p class="mcc-card-subtitle">Equipment records in your authorized branch scope.</p>
         </div>
-        <a class="mcc-button mcc-button-primary" href="<?= site_url('equipment/new') ?>">
-            Create equipment
-        </a>
     </div>
 
     <?php if ($equipment === []): ?>
@@ -25,11 +25,11 @@ $canDelete = (bool) ($canDelete ?? false);
         </div>
     <?php else: ?>
         <div class="mcc-table-wrap">
-            <table class="mcc-table">
+            <table class="mcc-table mcc-equipment-table">
                 <caption class="sr-only">Equipment records in authorized branches</caption>
                 <thead>
                     <tr>
-                            <th scope="col">Name</th>
+                            <th scope="col">Equipment</th>
                             <th scope="col">Quantity</th>
                             <th scope="col">Branch</th>
                             <?php if ($canUpdate || $canDelete): ?>
@@ -40,24 +40,21 @@ $canDelete = (bool) ($canDelete ?? false);
                 <tbody>
                     <?php foreach ($equipment as $record): ?>
                         <tr>
-                            <th scope="row"><?= esc($record['name']) ?></th>
-                            <td><?= (int) $record['quantity'] ?></td>
-                            <td><?= esc($record['branch_name']) ?></td>
+                            <th scope="row">
+                                <span class="mcc-table-primary-text"><?= esc($record['name']) ?></span>
+                                <span class="mcc-table-secondary-text">Equipment #<?= (int) $record['id'] ?></span>
+                            </th>
+                            <td><span class="mcc-badge mcc-badge-info"><?= (int) $record['quantity'] ?> available</span></td>
+                            <td><span class="mcc-table-secondary-text"><?= esc($record['branch_name']) ?></span></td>
                             <?php if ($canUpdate || $canDelete): ?>
-                                <td>
-                                    <?php if (! empty($record['can_update'])): ?>
-                                        <a href="<?= site_url('equipment/' . (int) $record['id'] . '/edit') ?>">
-                                            Edit
-                                        </a>
-                                    <?php endif; ?>
-                                    <?php if (! empty($record['can_update']) && ! empty($record['can_delete'])): ?>
-                                        <span aria-hidden="true"> · </span>
-                                    <?php endif; ?>
-                                    <?php if (! empty($record['can_delete'])): ?>
-                                        <a href="<?= site_url('equipment/' . (int) $record['id'] . '/delete') ?>">
-                                            Delete
-                                        </a>
-                                    <?php endif; ?>
+                                <td data-label="Actions">
+                                    <div class="mcc-session-action-menu" data-session-actions>
+                                        <button class="mcc-button mcc-button-secondary mcc-button-sm" type="button" data-session-actions-toggle aria-expanded="false" aria-haspopup="true" aria-controls="equipment-actions-<?= (int) $record['id'] ?>"><i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i> Actions</button>
+                                        <div class="mcc-session-action-dropdown" id="equipment-actions-<?= (int) $record['id'] ?>" data-session-actions-menu hidden>
+                                            <?php if (! empty($record['can_update'])): ?><a href="<?= esc(site_url('equipment/' . (int) $record['id'] . '/edit')) ?>"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit</a><?php endif; ?>
+                                            <?php if (! empty($record['can_delete'])): ?><a href="<?= esc(site_url('equipment/' . (int) $record['id'] . '/delete')) ?>"><i class="fa-solid fa-trash" aria-hidden="true"></i> Delete</a><?php endif; ?>
+                                        </div>
+                                    </div>
                                 </td>
                             <?php endif; ?>
                         </tr>

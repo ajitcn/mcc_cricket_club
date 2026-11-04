@@ -3,6 +3,12 @@ $fitnessFilters = is_array($result['filters'] ?? null) ? $result['filters'] : []
 $hasFitnessFilters = trim((string) ($fitnessFilters['q'] ?? '')) !== ''
     || trim((string) ($fitnessFilters['from'] ?? '')) !== ''
     || trim((string) ($fitnessFilters['to'] ?? '')) !== '';
+$currentPage = max(1, (int) ($result['page'] ?? 1));
+$pageCount = max(1, (int) ($result['pages'] ?? 1));
+$pageUrl = static function (int $page) use ($fitnessFilters): string {
+    $query = http_build_query(array_merge(array_filter($fitnessFilters, static fn ($value): bool => $value !== null && $value !== ''), ['page' => $page]));
+    return site_url('fitness') . ($query === '' ? '' : '?' . $query);
+};
 $pageActions = '<div class="mcc-page-actions">
     <button class="mcc-button mcc-button-secondary" type="button"
         data-filter-toggle data-show-label="Show filters" data-hide-label="Hide filters"
@@ -10,11 +16,15 @@ $pageActions = '<div class="mcc-page-actions">
         <i class="fa-solid fa-filter" aria-hidden="true"></i>
         <span class="mcc-button-label">' . ($hasFitnessFilters ? 'Hide filters' : 'Show filters') . '</span>
     </button>
+    <a class="mcc-button mcc-button-primary" href="' . site_url('fitness/new') . '">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span class="mcc-button-label">New Fitness</span>
+    </a>
 </div>';
 ?>
 <?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
 
-<main class="container py-4 mcc-fitness-page">
+<div class="mcc-fitness-page">
     <section id="fitness-filters" class="mcc-card mcc-fitness-filter-card" aria-labelledby="fitness-filter-heading" <?= $hasFitnessFilters ? '' : 'hidden' ?>>
         <div class="mcc-card-heading">
             <div>
@@ -48,7 +58,7 @@ $pageActions = '<div class="mcc-page-actions">
                 <p class="mcc-eyebrow">Assessment history</p>
                 <h2 id="fitness-results-heading">Recorded assessments</h2>
             </div>
-            <span class="mcc-muted"><?= count($result['assessments'] ?? []) ?> shown</span>
+            <span class="mcc-muted"><?= (int) ($result['total'] ?? 0) ?> total assessments</span>
         </div>
         <?php if (($result['assessments'] ?? []) === []): ?>
             <div class="mcc-empty-state" role="status">
@@ -61,23 +71,46 @@ $pageActions = '<div class="mcc-page-actions">
                 <table class="mcc-table mcc-fitness-table">
                     <caption class="visually-hidden">Fitness assessments</caption>
                     <thead>
-                        <tr><th scope="col">Player</th><th scope="col">Branch</th><th scope="col">Assessment date</th><th scope="col">BMI</th><th scope="col">Action</th></tr>
+                        <tr><th scope="col">Player information</th><th scope="col">Created information</th><th scope="col">Created by</th><th scope="col">Actions</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($result['assessments'] as $assessment): ?>
                             <tr>
-                                <th scope="row" data-label="Player"><?= esc($assessment['full_name']) ?></th>
-                                <td data-label="Branch"><?= esc($assessment['branch_name']) ?></td>
-                                <td data-label="Assessment date"><span class="mcc-fitness-date"><?= esc(mcc_user_date($assessment['assessment_date'] ?? null)) ?></span></td>
-                                <td data-label="BMI"><span class="mcc-badge mcc-badge-info"><?= esc($assessment['bmi'] ?? 'Not available') ?></span></td>
-                                <td data-label="Action"><a class="mcc-button mcc-button-secondary mcc-button-sm" href="<?= site_url('fitness/players/' . (int) $assessment['player_id']) ?>">View fitness</a></td>
+                                <th scope="row" data-label="Player">
+                                    <span class="mcc-table-primary-text"><?= esc($assessment['full_name']) ?></span>
+                                    <span class="mcc-table-secondary-text">Branch: <?= esc($assessment['branch_name']) ?></span>
+                                    <span class="mcc-table-secondary-text">Player #<?= (int) $assessment['player_id'] ?></span>
+                                    <span class="mcc-table-secondary-text">Age group: <?= esc($assessment['age_group'] ?? 'Not captured') ?></span>
+                                </th>
+                                <td data-label="Created information">
+                                    <span class="mcc-table-primary-text"><?= esc(mcc_user_date($assessment['created_at'] ?? $assessment['assessment_date'] ?? null)) ?></span>
+                                    <span class="mcc-table-secondary-text">Updated: <?= esc(mcc_user_date($assessment['updated_at'] ?? null)) ?></span>
+                                    <span class="mcc-table-secondary-text">Assessment: <?= esc(mcc_user_date($assessment['assessment_date'] ?? null)) ?></span>
+                                    <span class="mcc-table-secondary-text">Notes: <?= esc(trim((string) ($assessment['coach_notes'] ?? '')) !== '' ? $assessment['coach_notes'] : 'Not provided') ?></span>
+                                </td>
+                                <td data-label="Created by">
+                                    <span class="mcc-table-primary-text"><?= esc($assessment['created_by_name'] ?? 'System') ?></span>
+                                </td>
+                                <td data-label="Actions">
+                                    <div class="mcc-page-actions">
+                                        <a class="mcc-button mcc-button-secondary mcc-button-sm" href="<?= site_url('fitness/players/' . (int) $assessment['player_id']) ?>">View</a>
+                                        <a class="mcc-button mcc-button-primary mcc-button-sm" href="<?= site_url('fitness/assessments/' . (int) $assessment['id'] . '/edit') ?>">Edit</a>
+                                    </div>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         <?php endif; ?>
+        <?php if ($pageCount > 1): ?>
+            <nav class="mcc-pagination" aria-label="Fitness assessment pages">
+                <?php for ($page = 1; $page <= $pageCount; $page++): ?>
+                    <a class="<?= $page === $currentPage ? 'is-active' : '' ?>" href="<?= esc($pageUrl($page)) ?>" aria-current="<?= $page === $currentPage ? 'page' : 'false' ?>"><?= $page ?></a>
+                <?php endfor; ?>
+            </nav>
+        <?php endif; ?>
     </section>
-</main>
+</div>
 
 <?= view('staff_footer') ?>

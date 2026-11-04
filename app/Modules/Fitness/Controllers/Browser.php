@@ -24,11 +24,51 @@ final class Browser extends StaffController
         ]);
     }
 
+    public function createPage(): string
+    {
+        $selectedPlayerId = (int) $this->request->getGet('player_id');
+        $query = trim((string) $this->request->getGet('q'));
+        $players = [];
+
+        return $this->page('App\\Modules\\Fitness\\Views\\new', 'New fitness assessment', [
+            'players' => $players,
+            'age_groups' => service('fitness')->ageGroups(),
+            'selected_player' => service('fitness')->authorizedPlayerForAssessment($selectedPlayerId),
+            'query' => $query,
+        ]);
+    }
+
+    public function playerSearch(): ResponseInterface
+    {
+        $query = trim((string) $this->request->getGet('q'));
+        if (mb_strlen($query) < 2) {
+            return $this->response->setJSON(['players' => []]);
+        }
+
+        return $this->response->setJSON([
+            'players' => service('fitness')->playersForNewAssessment($query),
+        ]);
+    }
+
     public function player(int $id): ResponseInterface|string
     {
         try {
             return $this->page('App\\Modules\\Fitness\\Views\\player', 'Player fitness', [
                 'result' => service('fitness')->player($id),
+                'age_groups' => service('fitness')->ageGroups(),
+            ]);
+        } catch (Throwable $exception) {
+            return $this->response->setStatusCode($exception->getMessage() === 'Forbidden' ? 403 : 404)
+                ->setBody(esc($this->safe($exception)));
+        }
+    }
+
+    public function editAssessment(int $id): ResponseInterface|string
+    {
+        try {
+            return $this->page('App\\Modules\\Fitness\\Views\\edit', 'Edit fitness assessment', [
+                'assessment' => service('fitness')->assessmentForEdit($id),
+                'age_groups' => service('fitness')->ageGroups(),
             ]);
         } catch (Throwable $exception) {
             return $this->response->setStatusCode($exception->getMessage() === 'Forbidden' ? 403 : 404)
@@ -38,7 +78,17 @@ final class Browser extends StaffController
 
     public function assessment(int $id): ResponseInterface|string
     {
-        return $this->save(fn(array $data): int => service('fitness')->saveAssessment($id, $data));
+        try {
+            $data = $this->request->getPost();
+            unset($data[csrf_token()]);
+            service('fitness')->saveAssessment($id, $data);
+
+            return redirect()->to('/fitness/players/' . $id)->with('message', 'Fitness assessment saved.');
+        } catch (Throwable $exception) {
+            return redirect()->to('/fitness/new?player_id=' . $id)
+                ->withInput()
+                ->with('error', $this->safe($exception));
+        }
     }
 
     public function updateAssessment(int $id): ResponseInterface|string
@@ -49,9 +99,12 @@ final class Browser extends StaffController
                 throw new \RuntimeException('Not found.');
             }
             service('fitness')->saveAssessment((int) $assessment['player_id'], $this->request->getPost(), $id);
-            return redirect()->back()->with('message', 'Fitness assessment updated.');
+            return redirect()->to('/fitness/players/' . (int) $assessment['player_id'])
+                ->with('message', 'Fitness assessment updated.');
         } catch (Throwable $exception) {
-            return redirect()->back()->withInput()->with('error', $this->safe($exception));
+            return redirect()->to('/fitness/assessments/' . $id . '/edit')
+                ->withInput()
+                ->with('error', $this->safe($exception));
         }
     }
 
