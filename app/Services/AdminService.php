@@ -450,6 +450,7 @@ final class AdminService
     {
         $actor = $this->guard();
         $this->assertUserInBranchScope($id);
+        $this->assertSuperAdminModificationAllowed($id, $actor);
         $name = trim((string) ($input['display_name'] ?? ''));
         $email = strtolower(trim((string) ($input['email'] ?? '')));
         $newPassword = (string) ($input['new_password'] ?? '');
@@ -485,6 +486,7 @@ final class AdminService
     {
         $actor = $this->guard();
         $this->assertUserInBranchScope($id);
+        $this->assertSuperAdminModificationAllowed($id, $actor);
         if ($id === $actor) {
             throw new RuntimeException('You cannot disable your own account.');
         }
@@ -560,6 +562,7 @@ final class AdminService
     {
         $actor = $this->guard();
         $this->assertUserInBranchScope($userId);
+        $this->assertSuperAdminModificationAllowed($userId, $actor);
         if ($userId < 1 || $roleId < 1 || $userId === $actor) {
             throw new RuntimeException('Self privilege changes are not allowed.');
         }
@@ -747,6 +750,7 @@ final class AdminService
     {
         $actor = $this->guard();
         $this->assertUserInBranchScope($userId);
+        $this->assertSuperAdminModificationAllowed($userId, $actor);
 
         if ($userId < 1 || $branchId < 1) {
             throw new RuntimeException('Invalid branch assignment.');
@@ -856,6 +860,20 @@ final class AdminService
             ->countAllResults() > 0;
         if (! $visible) {
             throw new RuntimeException('Forbidden');
+        }
+    }
+
+    private function assertSuperAdminModificationAllowed(int $userId, int $actorId): void
+    {
+        $isSuperAdmin = Database::connect('default')
+            ->table('user_roles ur')
+            ->join('roles r', 'r.id = ur.role_id')
+            ->where('ur.user_id', $userId)
+            ->where('r.name', 'Super Admin')
+            ->countAllResults() > 0;
+
+        if ($isSuperAdmin && $userId !== $actorId) {
+            throw new RuntimeException('Super Admin accounts may only be modified by themselves.');
         }
     }
     private function createLeadConfig(object $model, string $entity, string $name, int $sortOrder): int

@@ -366,6 +366,7 @@ final class Browser extends StaffController
             'Forbidden' => 'You are not authorized to manage access.',
             'Not found.' => 'The requested account or role was not found.',
             'Self privilege changes are not allowed.' => 'Self privilege changes are not allowed.',
+            'Super Admin accounts may only be modified by themselves.' => 'Super Admin accounts can only be modified by their own account.',
             'Branch is not authorized.' => 'That branch is outside your authorized scope.',
             'Email already exists.' => 'That email address is already in use.',
             'Invalid user details.' => 'Enter a valid name, email, and password of at least 16 characters.',
