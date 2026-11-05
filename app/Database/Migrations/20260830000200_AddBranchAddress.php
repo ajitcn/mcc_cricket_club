@@ -8,10 +8,22 @@ final class AddBranchAddress extends Migration
 {
     public function up(): void
     {
-        $this->forge->addColumn('branches', ['address' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true, 'after' => 'code']]);
+        if (! $this->db->fieldExists('address', 'branches')) {
+            $this->forge->addColumn('branches', [
+                'address' => [
+                    'type' => 'VARCHAR',
+                    'constraint' => 255,
+                    'null' => true,
+                    'after' => 'code',
+                ],
+            ]);
+        }
     }
+
     public function down(): void
     {
-        $this->forge->dropColumn('branches', 'address');
+        if ($this->db->fieldExists('address', 'branches')) {
+            $this->forge->dropColumn('branches', 'address');
+        }
     }
 }
