@@ -117,6 +117,16 @@ final class AdminService
                 'id,email,display_name,is_enabled,failed_login_count,session_version,locked_until,last_login_at,created_at,updated_at',
             )
             ->orderBy('display_name');
+        if (service('branchContext')->isBranchAdminContext()) {
+            $branchIds = service('branchContext')->authorizedBranchIds(false);
+            if ($branchIds === []) {
+                return [];
+            }
+
+            $model->distinct()
+                ->join('user_branches ub', 'ub.user_id = users.id')
+                ->whereIn('ub.branch_id', $branchIds);
+        }
         $query = trim((string) $query);
         if ($query !== '') {
             $model->groupStart()->like('display_name', $query)->orLike('email', $query)->groupEnd();
@@ -368,6 +378,7 @@ final class AdminService
     public function user(int $id): array
     {
         $this->guard();
+        $this->assertUserInBranchScope($id);
         $user = (new AdminUserModel())
             ->select(
                 'id,email,display_name,is_enabled,failed_login_count,session_version,locked_until,last_login_at,created_at,updated_at',
@@ -437,6 +448,7 @@ final class AdminService
     public function updateUser(int $id, array $input): void
     {
         $actor = $this->guard();
+        $this->assertUserInBranchScope($id);
         $name = trim((string) ($input['display_name'] ?? ''));
         $email = strtolower(trim((string) ($input['email'] ?? '')));
         $newPassword = (string) ($input['new_password'] ?? '');
@@ -471,6 +483,7 @@ final class AdminService
     public function setEnabled(int $id, bool $enabled): void
     {
         $actor = $this->guard();
+        $this->assertUserInBranchScope($id);
         if ($id === $actor) {
             throw new RuntimeException('You cannot disable your own account.');
         }
@@ -545,6 +558,7 @@ final class AdminService
     public function assignRole(int $userId, int $roleId, bool $assign): void
     {
         $actor = $this->guard();
+        $this->assertUserInBranchScope($userId);
         if ($userId < 1 || $roleId < 1 || $userId === $actor) {
             throw new RuntimeException('Self privilege changes are not allowed.');
         }
@@ -731,6 +745,7 @@ final class AdminService
     public function assignBranch(int $userId, int $branchId, bool $assign): void
     {
         $actor = $this->guard();
+        $this->assertUserInBranchScope($userId);
 
         if ($userId < 1 || $branchId < 1) {
             throw new RuntimeException('Invalid branch assignment.');
@@ -820,6 +835,27 @@ final class AdminService
             throw new RuntimeException('Forbidden');
         }
         return (int) $user['id'];
+    }
+
+    private function assertUserInBranchScope(int $userId): void
+    {
+        if (! service('branchContext')->isBranchAdminContext()) {
+            return;
+        }
+
+        $branchIds = service('branchContext')->authorizedBranchIds(false);
+        if ($userId < 1 || $branchIds === []) {
+            throw new RuntimeException('Forbidden');
+        }
+
+        $visible = Database::connect('default')
+            ->table('user_branches')
+            ->where('user_id', $userId)
+            ->whereIn('branch_id', $branchIds)
+            ->countAllResults() > 0;
+        if (! $visible) {
+            throw new RuntimeException('Forbidden');
+        }
     }
     private function createLeadConfig(object $model, string $entity, string $name, int $sortOrder): int
     {
