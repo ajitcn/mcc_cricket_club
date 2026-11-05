@@ -63,7 +63,11 @@ final class MasterBrowser extends StaffController
 
             return redirect()->to('/admission-masters/' . $type)->with('message', 'Admission master saved.');
         } catch (Throwable $exception) {
-            return redirect()->back()->withInput()->with('error', $this->safe($exception));
+            $target = '/admission-masters/' . $type . ($id === null ? '/new' : '/' . $id . '/edit');
+
+            return redirect()->to($target)
+                ->withInput()
+                ->with('error', $this->safe($exception));
         }
     }
 

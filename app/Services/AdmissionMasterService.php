@@ -42,11 +42,11 @@ final class AdmissionMasterService
 
         $query
             ->where($definition['table'] . '.branch_id', null)
-            ->orderBy('is_active', 'DESC')
-            ->orderBy('display_order', 'ASC')
-            ->orderBy('name', 'ASC');
+            ->orderBy($definition['table'] . '.is_active', 'DESC')
+            ->orderBy($definition['table'] . '.display_order', 'ASC')
+            ->orderBy($definition['table'] . '.name', 'ASC');
 
-        return $query->orderBy('id', 'DESC')->get()->getResultArray();
+        return $query->orderBy($definition['table'] . '.id', 'DESC')->get()->getResultArray();
     }
 
     /** @return array<string, list<array<string, mixed>>> */
@@ -165,7 +165,6 @@ final class AdmissionMasterService
             $type === 'age_group'
         );
         $data = $this->normalize($type, $input, $before);
-        $this->validateRelationships($type, $data);
         $data['updated_at'] = gmdate('Y-m-d H:i:s');
         if (! $model->update($id, $data)) {
             throw new RuntimeException('Unable to update Admission master.');
