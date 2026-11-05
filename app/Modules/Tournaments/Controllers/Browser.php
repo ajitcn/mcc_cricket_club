@@ -34,6 +34,29 @@ final class Browser extends StaffController
         ]);
     }
 
+    public function fixtureList(): string
+    {
+        $filters = $this->request->getGet();
+        try {
+            $result = service('tournament')->listFixtures($filters);
+            $error = null;
+        } catch (Throwable $exception) {
+            $result = [
+                'fixtures' => [],
+                'filters' => $filters,
+                'page' => 1,
+                'pages' => 1,
+                'total' => 0,
+            ];
+            $error = $this->tournamentError($exception);
+        }
+
+        return $this->page('App\\Modules\\Tournaments\\Views\\fixture_list', 'Fixtures', [
+            'result' => $result,
+            'error' => $error,
+        ]);
+    }
+
     public function createPage(): string
     {
         return $this->page('App\\Modules\\Tournaments\\Views\\form', 'Create tournament', [

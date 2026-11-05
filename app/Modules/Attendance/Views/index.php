@@ -7,30 +7,32 @@ $queryFilters = array_filter(
         && $value !== '',
     ARRAY_FILTER_USE_BOTH
 );
-$selectedBranchId = (int) ($filters['branch_id'] ?? 0);
-$visibleBatchOptions = $selectedBranchId > 0
-    ? ($batchesByBranch[$selectedBranchId] ?? [])
-    : $batchOptions;
 $pageUrl = static function (int $targetPage) use ($queryFilters): string {
     $query = http_build_query(array_merge($queryFilters, ['page' => $targetPage]));
 
     return site_url('attendance') . ($query === '' ? '' : '?' . $query);
 };
-$sessionStatusMeta = [
-    'scheduled' => [
-        'label' => 'Scheduled',
-        'class' => 'mcc-attendance-status-ready',
-        'icon' => 'fa-calendar-check',
-    ],
-    'cancelled' => [
-        'label' => 'Cancelled',
-        'class' => 'mcc-attendance-status-cancelled',
-        'icon' => 'fa-lock',
-    ],
+$attendanceStatusMeta = [
+    'PRESENT' => ['label' => 'Present', 'class' => 'mcc-status-badge-success'],
+    'ABSENT' => ['label' => 'Absent', 'class' => 'mcc-status-badge-danger'],
+    'LATE' => ['label' => 'Late', 'class' => 'mcc-status-badge-warning'],
+    'LEAVE' => ['label' => 'Leave', 'class' => 'mcc-status-badge-info'],
+    'MEDICAL' => ['label' => 'Medical', 'class' => 'mcc-status-badge-info'],
+    'RAIN_CANCELLED' => ['label' => 'Rain cancelled', 'class' => 'mcc-status-badge-neutral'],
+    'COACH_CANCELLED' => ['label' => 'Coach cancelled', 'class' => 'mcc-status-badge-neutral'],
+];
+$summaryFilters = $queryFilters;
+unset($summaryFilters['attendance_status'], $summaryFilters['page']);
+$summaryCards = [
+    'PRESENT' => ['label' => 'Present', 'class' => 'mcc-player-status-active'],
+    'ABSENT' => ['label' => 'Absent', 'class' => 'mcc-player-status-inactive'],
+    'LATE' => ['label' => 'Late', 'class' => 'mcc-player-status-suspended'],
+    'LEAVE' => ['label' => 'Leave', 'class' => 'mcc-player-status-left_academy'],
+    'MEDICAL' => ['label' => 'Medical', 'class' => 'mcc-player-status-alumni'],
 ];
 ?>
 <?= view('staff_header', [
-    'title' => 'Attendance sessions',
+    'title' => 'Attendance records',
     'nav' => $nav,
     'error' => $error,
     'message' => $message,
@@ -39,37 +41,32 @@ $sessionStatusMeta = [
     ],
     'pageActions' => '<div class="mcc-page-actions">
         <button class="mcc-button mcc-button-secondary" type="button"
-            data-filter-toggle aria-controls="attendance-filters" aria-expanded="false">
+            data-filter-toggle data-show-label="Show Filters" data-hide-label="Hide Filters"
+            aria-controls="attendance-filters" aria-expanded="false">
             <i class="fa-solid fa-filter" aria-hidden="true"></i>
-            Filters
+            <span class="mcc-button-label">Show Filters</span>
         </button>
     </div>',
 ]) ?>
 <?php if (! empty($error)): ?>
-<p class="message" role="alert">
+<div class="mcc-alert mcc-alert-danger" role="alert">
 <?= esc($error) ?>
-</p>
+</div>
 <?php endif ?>
 <?php if (! empty($message)): ?>
-<p class="message" role="status">
+<div class="mcc-alert mcc-alert-success" role="status">
 <?= esc($message) ?>
-</p>
+</div>
 <?php endif ?>
-<section id="attendance-filters" class="mcc-card" hidden aria-labelledby="filter-heading">
+<section id="attendance-filters" class="mcc-card mcc-attendance-filter-card" hidden aria-labelledby="filter-heading">
 <div class="mcc-card-heading">
 <div>
 <span class="mcc-eyebrow">Search and filter</span>
-<h2 id="filter-heading">Find a session or roster record</h2>
+<h2 id="filter-heading">Find attendance records</h2>
 </div>
 </div>
-<form class="filter-form mcc-form-grid" method="get" action="<?= site_url('attendance') ?>">
-<label for="session-date">Date <input id="session-date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" name="date"
-    data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d"
-    value="<?= esc(mcc_user_date_input($filters['date'] ?? null)) ?>">
-</label>
-<label for="session-id">Session ID <input id="session-id" type="number" min="1" name="session_id" value="<?= esc($filters['session_id'] ?? '') ?>">
-</label>
-<label for="session-player">Player <input id="session-player" type="search" maxlength="100" name="player" value="<?= esc($filters['player'] ?? '') ?>">
+<form class="filter-form mcc-form-grid mcc-attendance-filter-grid mcc-attendance-filter-form" method="get" action="<?= site_url('attendance') ?>">
+<label for="session-player">Player or player number <input id="session-player" type="search" maxlength="100" name="player" value="<?= esc($filters['player'] ?? '') ?>" placeholder="Search player">
 </label>
 <label for="attendance-status">Attendance status <select id="attendance-status" name="attendance_status">
 <option value="">All attendance states</option>
@@ -78,12 +75,6 @@ $sessionStatusMeta = [
 <?= esc(ucwords(strtolower(str_replace('_', ' ', $state)))) ?>
 </option>
 <?php endforeach ?>
-</select>
-</label>
-<label for="session-status">Session status <select id="session-status" name="status">
-<option value="">All session statuses</option>
-<option value="scheduled" <?= ($filters['status'] ?? '') === 'scheduled' ? 'selected' : '' ?>>Scheduled</option>
-<option value="cancelled" <?= ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
 </select>
 </label>
 <?php if (count($branchOptions) > 1): ?>
@@ -97,113 +88,114 @@ $sessionStatusMeta = [
 </select>
 </label>
 <?php endif ?>
-<label for="session-batch">Batch <select id="session-batch" name="batch_id"
-    data-mcc-attendance-batches-by-branch="<?= esc(json_encode($batchesByBranch ?? [])) ?>">
+<label for="session-batch">Batch <select id="session-batch" name="batch_id">
 <option value="">All authorized batches</option>
-<?php foreach ($visibleBatchOptions as $batchId => $batchName): ?>
+<?php foreach (($batchOptions ?? []) as $batchId => $batchName): ?>
 <option value="<?= (int) $batchId ?>" <?= (string) ($filters['batch_id'] ?? '') === (string) $batchId ? 'selected' : '' ?>>
 <?= esc($batchName) ?>
 </option>
 <?php endforeach ?>
 </select>
 </label>
-<button type="submit">Apply filters</button>
-<a href="<?= site_url('attendance') ?>">Clear filters</a>
-</form>
-</section>
-<section class="mcc-card" aria-labelledby="attendance-report-heading">
-<div class="mcc-card-heading">
-<h2 id="attendance-report-heading">Attendance summary</h2>
-<span class="mcc-muted">Configured local calendar period</span>
-</div>
-<form class="filter-form mcc-form-grid" method="get" action="<?= site_url('attendance') ?>">
-<label for="attendance-period">Reporting period
-<select id="attendance-period" name="period">
-<?php foreach (($reportingPeriods ?? []) as $periodKey => $periodLabel): ?>
-<option value="<?= esc($periodKey) ?>" <?= ($filters['period'] ?? 'monthly') === $periodKey ? 'selected' : '' ?>><?= esc($periodLabel) ?></option>
+<label for="session-coach">Coach <select id="session-coach" name="coach_user_id">
+<option value="">All coaches</option>
+<?php foreach (($coachOptions ?? []) as $coachId => $coachName): ?>
+<option value="<?= (int) $coachId ?>" <?= (string) ($filters['coach_user_id'] ?? '') === (string) $coachId ? 'selected' : '' ?>><?= esc($coachName) ?></option>
 <?php endforeach ?>
 </select>
 </label>
-<label for="attendance-report-date">Anchor date
-<input id="attendance-report-date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" name="report_date" value="<?= esc(mcc_user_date_input($filters['report_date'] ?? null)) ?>">
+<label for="recorded-from">Recorded from <input id="recorded-from" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" name="recorded_from" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($filters['recorded_from'] ?? null)) ?>">
 </label>
-<button type="submit">Refresh summary</button>
+<label for="recorded-to">Recorded to <input id="recorded-to" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" name="recorded_to" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($filters['recorded_to'] ?? null)) ?>">
+</label>
+<label for="session-id">Session ID <input id="session-id" type="number" min="1" name="session_id" value="<?= esc($filters['session_id'] ?? '') ?>">
+</label>
+<div class="mcc-form-actions">
+<button class="mcc-button mcc-button-primary" type="submit">Apply filters</button>
+<a class="mcc-button mcc-button-secondary" href="<?= site_url('attendance') ?>">Clear filters</a>
+</div>
 </form>
-<?php $metrics = is_array($attendanceMetrics ?? null) ? $attendanceMetrics : []; ?>
-<p class="mcc-muted">
-<?= esc((string) ($metrics['from'] ?? '')) ?> to <?= esc((string) ($metrics['to'] ?? '')) ?>:
-<?= $metrics['percentage'] === null ? 'No data' : esc((string) $metrics['percentage']) . '%' ?>
-(<?= (int) ($metrics['attended'] ?? 0) ?> attended of <?= (int) ($metrics['denominator'] ?? 0) ?> eligible records)
-</p>
-<?php if (($attendanceAlerts ?? []) !== []): ?>
-<ul class="mcc-alert-list" aria-label="Attendance alerts">
-<?php foreach ($attendanceAlerts as $alert): ?>
-<li><strong><?= esc($alert['player_name']) ?></strong>: <?= esc(implode(', ', $alert['alerts'])) ?></li>
-<?php endforeach ?>
-</ul>
-<?php else: ?>
-<p class="mcc-empty-state">No attendance alerts for this period.</p>
-<?php endif ?>
 </section>
-<section class="mcc-card" aria-labelledby="attendance-sessions-heading">
-<div class="mcc-card-heading">
-<h2 id="attendance-sessions-heading">Attendance sessions</h2>
+<section class="mcc-card mcc-attendance-summary-card" aria-labelledby="attendance-summary-heading">
+<div class="mcc-session-summary">
+<div>
+<span class="mcc-eyebrow">Current view</span>
+<h2 id="attendance-summary-heading">Attendance summary</h2>
+</div>
+</div>
+<div class="mcc-follow-up-summary-grid mcc-admission-status-summary-grid">
+<?php foreach ($summaryCards as $status => $card): ?>
+<?php $statusQuery = array_merge($summaryFilters, ['attendance_status' => $status]); ?>
+<a class="mcc-follow-up-summary-card mcc-status-badge <?= esc($card['class']) ?>" href="<?= esc(site_url('attendance') . '?' . http_build_query($statusQuery)) ?>">
+<span class="mcc-follow-up-summary-label"><?= esc($card['label']) ?></span>
+<strong class="mcc-follow-up-summary-count"><?= (int) (($statusCounts ?? [])[$status] ?? 0) ?></strong>
+</a>
+<?php endforeach ?>
+</div>
+</section>
+<section class="mcc-card mcc-attendance-results-card" aria-labelledby="attendance-records-heading">
+<div class="mcc-session-summary">
+<div>
+<span class="mcc-eyebrow">Latest records</span>
+<h2 id="attendance-records-heading">Player attendance</h2>
+</div>
 <span class="mcc-muted"><?= (int) ($total ?? 0) ?> result<?= (int) ($total ?? 0) === 1 ? '' : 's' ?></span>
 </div>
 <div class="mcc-table-wrap">
 <table class="mcc-table">
-<caption>Sessions available to your authorized branches</caption>
+<caption>Latest attendance records for your authorized branches</caption>
 <thead>
 <tr>
-<th scope="col">When</th>
+<th scope="col">Player</th>
 <th scope="col">Branch</th>
-<th scope="col">Batch</th>
-<th scope="col">Coach</th>
-<th scope="col">Recorded / roster</th>
-<th scope="col">Status and action</th>
+<th scope="col">Attendance</th>
+<th scope="col">Recorded</th>
+<th scope="col">Session</th>
 </tr>
 </thead>
 <tbody>
 <?php foreach ($sessions as $item): ?>
-<?php $sessionStatus = strtolower((string) $item['status']); ?>
-<?php $sessionMeta = $sessionStatusMeta[$sessionStatus] ?? $sessionStatusMeta['cancelled']; ?>
-<tr class="<?= $sessionStatus === 'cancelled' ? 'cancelled attendance-session-cancelled' : '' ?>">
-<td data-label="When">
-<?= esc(mcc_user_datetime($item['starts_at_local'] ?? null)) ?> &ndash; <?= esc(mcc_user_datetime($item['ends_at_local'] ?? null)) ?>
+<?php $statusKey = strtoupper((string) ($item['status'] ?? '')); ?>
+<?php $statusMeta = $attendanceStatusMeta[$statusKey] ?? ['label' => ucwords(strtolower(str_replace('_', ' ', $statusKey))), 'class' => 'mcc-status-badge-neutral']; ?>
+<tr>
+<td data-label="Player">
+<span class="mcc-table-primary-text"><?= esc($item['player_name']) ?></span>
+<span class="mcc-table-secondary-text">Player #<?= (int) $item['player_id'] ?></span>
 </td>
 <td data-label="Branch">
-<?= esc($item['branch_name']) ?>
-</td>
-<td data-label="Batch">
-<?= esc((string) ($item['batch_name'] ?? 'Not assigned')) ?>
-</td>
-<td data-label="Coach">
-<?= esc($item['coach_name']) ?>
-</td>
-<td data-label="Recorded / roster">
-<?= (int) $item['recorded_count'] ?> / <?= (int) $item['roster_count'] ?>
-</td>
-<td data-label="Status and action">
-<span class="mcc-badge mcc-status-badge <?= esc($sessionMeta['class']) ?>">
-<i class="fa-solid <?= esc($sessionMeta['icon']) ?>" aria-hidden="true"></i>
-<?= esc($sessionMeta['label']) ?>
+<span class="mcc-table-primary-text"><?= esc($item['branch_name']) ?></span>
+<span class="mcc-table-secondary-text">
+<?= esc($item['batch_name'] ?? 'No batch') ?>
 </span>
-<?php if ($sessionStatus === 'cancelled'): ?>
-<br>
-<span class="muted"><i class="fa-solid fa-eye" aria-hidden="true"></i> Read-only session</span>
-<?php endif ?>
-<br>
-<a href="<?= site_url('attendance/sessions/' . (int) $item['id']) ?>">Open roster</a>
+</td>
+<td data-label="Attendance">
+<span class="mcc-attendance-record-status <?= esc($statusMeta['class']) ?>">
+<?= esc($statusMeta['label']) ?>
+</span>
+</td>
+<td data-label="Recorded">
+<span class="mcc-table-primary-text"><?= esc(mcc_user_datetime($item['recorded_at'] ?? null)) ?></span>
+<span class="mcc-table-secondary-text">By <?= esc($item['recorded_by_name'] ?? 'Unknown') ?></span>
+</td>
+<td data-label="Session">
+<span class="mcc-table-primary-text">Session #<?= (int) $item['session_id'] ?></span>
+<span class="mcc-table-secondary-text">
+<?= esc(mcc_user_datetime($item['starts_at'] ?? null)) ?>
+</span>
+<span class="mcc-table-secondary-text">
+Coach: <?= esc($item['coach_name'] ?? 'No coach') ?>
+</span>
+<a class="mcc-button mcc-button-secondary mcc-button-small" href="<?= site_url('attendance/sessions/' . (int) $item['session_id']) ?>">View session</a>
 </td>
 </tr>
 <?php endforeach ?>
 <?php if ($sessions === []): ?>
 <tr>
-<td colspan="6" class="mcc-empty-state attendance-empty-state">
+<td colspan="5" class="mcc-empty-state attendance-empty-state">
 <i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>
-<strong>No attendance sessions found</strong>
-<span>No sessions match the selected filters.</span>
-<a href="<?= site_url('attendance') ?>">Clear filters and view all authorized sessions</a>
+<strong>No attendance records found</strong>
+<span>No attendance records match the selected filters.</span>
+<a href="<?= site_url('attendance') ?>">Clear filters and view all authorized records</a>
 </td>
 </tr>
 <?php endif ?>
@@ -211,7 +203,7 @@ $sessionStatusMeta = [
 </table>
 </div>
 <?php if ((int) ($pages ?? 1) > 1): ?>
-<nav class="mcc-pagination" aria-label="Attendance session pages">
+<nav class="mcc-pagination" aria-label="Attendance record pages">
 <span>Page <?= (int) ($page ?? 1) ?> of <?= (int) ($pages ?? 1) ?></span>
 <div>
 <?php if ((int) ($page ?? 1) > 1): ?>

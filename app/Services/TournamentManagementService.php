@@ -49,21 +49,6 @@ final class TournamentManagementService
         $pages = max(1, (int) ceil($total / self::TOURNAMENTS_PER_PAGE));
         $page = $this->pageNumber($filters['page'] ?? 1);
         $page = min($page, $pages);
-        $matchOptions = $db->table('matches')
-            ->where(['branch_id' => $branch])
-            ->whereIn('status', ['scheduled', 'completed'])
-            ->where('opponent_id IS NOT NULL', null, false);
-        if ($db->fieldExists('match_category', 'matches')) {
-            $matchOptions->where('match_category', 'tournament');
-        } else {
-            $matchOptions->where('id', 0);
-        }
-        if ($db->fieldExists('your_team_opponent_id', 'matches')) {
-            $matchOptions->where('your_team_opponent_id IS NOT NULL', null, false);
-        } else {
-            $matchOptions->where('id', 0);
-        }
-
         return [
             'tournaments' => $builder
                 ->orderBy('t.starts_on', 'DESC')
@@ -71,6 +56,61 @@ final class TournamentManagementService
                 ->limit(self::TOURNAMENTS_PER_PAGE, ($page - 1) * self::TOURNAMENTS_PER_PAGE)
                 ->get()
                 ->getResultArray(),
+            'filters' => $filters,
+            'page' => $page,
+            'pages' => $pages,
+            'total' => $total,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public function listFixtures(array $filters = []): array
+    {
+        $branches = $this->branches();
+        $db = Database::connect('default');
+        $builder = $db->table('tournament_fixtures tf')
+            ->select('tf.*, t.name AS tournament_name, t.branch_id, b.name AS branch_name, g.name AS ground_name')
+            ->join('tournaments t', 't.id = tf.tournament_id', 'inner')
+            ->join('branches b', 'b.id = t.branch_id', 'inner')
+            ->join('grounds g', 'g.id = tf.ground_id AND g.branch_id = t.branch_id', 'left')
+            ->whereIn('t.branch_id', $branches ?: [0]);
+
+        $query = trim((string) ($filters['q'] ?? ''));
+        if ($query !== '') {
+            $builder->groupStart()
+                ->like('t.name', $query)
+                ->orLike('tf.home_team', $query)
+                ->orLike('tf.away_team', $query)
+                ->orLike('tf.round', $query)
+                ->groupEnd();
+        }
+
+        $status = strtolower(trim((string) ($filters['status'] ?? '')));
+        if (in_array($status, ['scheduled', 'postponed', 'completed', 'cancelled'], true)) {
+            $builder->where('tf.status', $status === 'scheduled' ? 'planned' : $status);
+        }
+
+        $total = (clone $builder)->countAllResults();
+        $pages = max(1, (int) ceil($total / 20));
+        $page = min($this->pageNumber($filters['page'] ?? 1), $pages);
+        $rows = $builder
+            ->orderBy('tf.scheduled_at', 'DESC')
+            ->orderBy('tf.id', 'DESC')
+            ->limit(20, ($page - 1) * 20)
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as &$fixture) {
+            if (($fixture['status'] ?? '') === 'planned') {
+                $fixture['status'] = 'scheduled';
+            }
+            $local = $this->local($fixture['scheduled_at'] ?? null);
+            $fixture['display_datetime'] = $local?->format('d-m-Y h:i A');
+        }
+        unset($fixture);
+
+        return [
+            'fixtures' => $rows,
             'filters' => $filters,
             'page' => $page,
             'pages' => $pages,

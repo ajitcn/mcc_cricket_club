@@ -20,7 +20,15 @@ final class EquipmentService
 
         $records = Database::connect('default')
             ->table('equipment e')
-            ->select('e.id, e.name, e.quantity, e.branch_id, b.name AS branch_name')
+            ->select(
+                'e.id, e.name, e.quantity, e.branch_id, b.name AS branch_name, '
+                . '(SELECT COALESCE(SUM(GREATEST(eai.quantity_assigned - eai.quantity_returned, 0)), 0) '
+                . 'FROM equipment_assignment_items eai '
+                . 'INNER JOIN equipment_assignments ea ON ea.id = eai.assignment_id '
+                . 'WHERE eai.equipment_id = e.id '
+                . "AND ea.deleted_at IS NULL AND ea.status IN ('assigned', 'partially_returned')) AS quantity_assigned",
+                false
+            )
             ->join('branches b', 'b.id = e.branch_id')
             ->whereIn('e.branch_id', $branches)
             ->where('e.deleted_at', null)
@@ -33,6 +41,8 @@ final class EquipmentService
         $updateBranches = $this->branchIdsIfPermitted('equipment.update');
         $deleteBranches = $this->branchIdsIfPermitted('equipment.delete');
         foreach ($records as &$record) {
+            $record['quantity_assigned'] = (int) ($record['quantity_assigned'] ?? 0);
+            $record['quantity_available'] = max(0, (int) $record['quantity'] - $record['quantity_assigned']);
             $branchId = (int) $record['branch_id'];
             $record['can_update'] = in_array($branchId, $updateBranches, true);
             $record['can_delete'] = in_array($branchId, $deleteBranches, true);

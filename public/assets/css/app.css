@@ -1711,6 +1711,149 @@ tr:last-child td {
     }
 }
 
+/* Attendance list page */
+.mcc-attendance-filter-card[hidden] {
+    display: none !important;
+}
+
+.mcc-attendance-filter-card,
+.mcc-attendance-results-card {
+    margin-bottom: 1rem;
+}
+
+.mcc-attendance-filter-grid {
+    align-items: end;
+    display: grid !important;
+    gap: 1rem 1.15rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.mcc-attendance-filter-form > label {
+    display: grid;
+    gap: .4rem;
+    grid-column: auto !important;
+    min-width: 0;
+}
+
+.mcc-attendance-filter-form input,
+.mcc-attendance-filter-form select {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-attendance-filter-form .mcc-form-actions {
+    align-items: center;
+    display: flex;
+    gap: .6rem;
+    grid-column: 1 / -1;
+    margin-top: .15rem;
+}
+
+.mcc-attendance-filter-form .mcc-form-actions .mcc-button {
+    margin: 0;
+}
+
+@media (max-width: 980px) {
+    .mcc-attendance-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .mcc-attendance-filter-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .mcc-attendance-filter-form .mcc-form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mcc-attendance-filter-form .mcc-form-actions .mcc-button {
+        width: 100%;
+    }
+}
+
+.mcc-attendance-results-card .mcc-session-summary {
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.mcc-attendance-results-card .mcc-session-summary .mcc-muted {
+    font-size: .78rem;
+    white-space: nowrap;
+}
+
+.mcc-attendance-results-card .mcc-table th,
+.mcc-attendance-results-card .mcc-table td {
+    vertical-align: top;
+}
+
+.mcc-attendance-results-card .mcc-table-secondary-text {
+    color: var(--app-muted);
+    display: block;
+    font-size: .7rem;
+    margin-top: .2rem;
+}
+
+.mcc-attendance-record-status {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: .74rem;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: .3rem .55rem;
+    white-space: nowrap;
+}
+
+.mcc-status-badge-success {
+    background: #e7f7ed;
+    border-color: #b8e5c7;
+    color: #16753a;
+}
+
+.mcc-status-badge-danger {
+    background: #fdecec;
+    border-color: #f3c2c2;
+    color: #b42318;
+}
+
+.mcc-status-badge-warning {
+    background: #fff4db;
+    border-color: #f1d18b;
+    color: #8a5a00;
+}
+
+.mcc-status-badge-info {
+    background: #eaf3ff;
+    border-color: #bfd8f6;
+    color: #245b96;
+}
+
+.mcc-status-badge-neutral {
+    background: #f1f3f5;
+    border-color: #d8dde3;
+    color: #5b6573;
+}
+
+.mcc-attendance-results-card .mcc-button-small {
+    font-size: .76rem;
+    min-height: 32px;
+    padding: .35rem .6rem;
+}
+
+@media (max-width: 760px) {
+    .mcc-attendance-results-card .mcc-session-summary {
+        flex-direction: column;
+    }
+
+    .mcc-attendance-results-card .mcc-session-summary .mcc-muted {
+        white-space: normal;
+    }
+}
+
 /* Shared UI rhythm: keep page actions, cards, filters, tables, and dialogs consistent. */
 .mcc-page-heading {
     align-items: flex-end;
@@ -4716,11 +4859,15 @@ tr:last-child td {
 /* Director Dashboard reference composition. */
 .mcc-page-container:has(> .mcc-dashboard) {
     background: #eef5ff;
+    border: 0;
+    box-shadow: none;
     max-width: none;
     padding: .75rem 1rem 1.75rem;
 }
 
 .mcc-page-container:has(> .mcc-dashboard) > .mcc-dashboard {
+    border: 0;
+    box-shadow: none;
     display: grid;
     gap: .7rem;
     grid-template-columns: minmax(0, 1fr);
@@ -4814,6 +4961,151 @@ tr:last-child td {
 .mcc-dashboard .dashboard-hero-filters button {
     background: #1464d2;
     border-color: #1464d2;
+}
+
+.mcc-dashboard .dashboard-hero-filters {
+    background: #f8fbff;
+    border: 1px solid #dbe7f7;
+    border-radius: .7rem;
+    padding: .45rem;
+}
+
+.mcc-dashboard .dashboard-summary {
+    border-top: 3px solid #1464d2;
+}
+
+.mcc-dashboard .dashboard-section-heading h2,
+.mcc-dashboard .dashboard-subsection-heading h3 {
+    letter-spacing: -.01em;
+}
+
+.mcc-dashboard .dashboard-visual-grid {
+    display: grid;
+    gap: .7rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    order: 4;
+}
+
+.mcc-dashboard .dashboard-chart-card {
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-donut-summary {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    min-height: 8rem;
+}
+
+.mcc-dashboard .dashboard-donut-chart {
+    background: conic-gradient(#1464d2 0 var(--dashboard-group-percent), #f5a623 var(--dashboard-group-percent) 100%);
+    border: .8rem solid #edf4ff;
+    border-radius: 50%;
+    display: block;
+    flex: 0 0 6.5rem;
+    height: 6.5rem;
+    position: relative;
+    width: 6.5rem;
+}
+
+.mcc-dashboard .dashboard-donut-chart::after {
+    background: #fff;
+    border-radius: 50%;
+    content: '';
+    inset: 1.2rem;
+    position: absolute;
+}
+
+.mcc-dashboard .dashboard-chart-legend {
+    display: grid;
+    gap: .55rem;
+}
+
+.mcc-dashboard .dashboard-chart-legend span {
+    align-items: center;
+    color: var(--app-muted);
+    display: flex;
+    font-size: .76rem;
+    gap: .4rem;
+}
+
+.mcc-dashboard .dashboard-chart-legend strong {
+    color: var(--app-text);
+    margin-left: .2rem;
+}
+
+.mcc-dashboard .dashboard-chart-dot {
+    border-radius: 50%;
+    display: inline-block;
+    height: .55rem;
+    width: .55rem;
+}
+
+.mcc-dashboard .dashboard-chart-dot-group {
+    background: #1464d2;
+}
+
+.mcc-dashboard .dashboard-chart-dot-personal {
+    background: #f5a623;
+}
+
+.mcc-dashboard .dashboard-horizontal-bars {
+    display: grid;
+    gap: .8rem;
+    padding-top: .25rem;
+}
+
+.mcc-dashboard .dashboard-horizontal-bar-row {
+    align-items: center;
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: minmax(5rem, .7fr) minmax(5rem, 1.5fr) 2rem;
+}
+
+.mcc-dashboard .dashboard-horizontal-bar-row > span {
+    color: var(--app-muted);
+    font-size: .72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-dashboard .dashboard-horizontal-bar-row > i {
+    background: #edf3fb;
+    border-radius: 999px;
+    display: block;
+    height: .55rem;
+    overflow: hidden;
+}
+
+.mcc-dashboard .dashboard-horizontal-bar-row > i > b {
+    background: linear-gradient(90deg, #1464d2, #62a6ee);
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+}
+
+.mcc-dashboard .dashboard-trial-bars .dashboard-horizontal-bar-row > i > b {
+    background: linear-gradient(90deg, #7d4fd1, #b08be8);
+}
+
+.mcc-dashboard .dashboard-horizontal-bar-row > strong {
+    color: var(--app-text);
+    font-size: .78rem;
+    text-align: right;
+}
+
+@media (max-width: 1180px) {
+    .mcc-dashboard .dashboard-visual-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .mcc-dashboard .dashboard-visual-grid {
+        grid-template-columns: 1fr;
+    }
+
 }
 
 .mcc-dashboard .dashboard-summary,
@@ -6319,13 +6611,116 @@ tr:last-child td {
     font-size: .78rem;
 }
 
+/* Fixture detail presentation follows the shared detail-page rhythm. */
+.mcc-tournament-detail {
+    padding-bottom: 1.5rem;
+}
+
+.mcc-tournament-detail-header {
+    align-items: center;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    padding: 1.15rem 1.25rem;
+}
+
+.mcc-tournament-detail-header h1 {
+    font-size: clamp(1.55rem, 2.4vw, 2.35rem);
+    line-height: 1.2;
+}
+
+.mcc-fixture-reference {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.mcc-fixture-vs {
+    color: var(--app-primary);
+    font-size: .72em;
+    font-weight: 800;
+    letter-spacing: .08em;
+    margin: 0 .2em;
+    text-transform: uppercase;
+}
+
+.mcc-fixture-detail-status {
+    align-items: flex-end;
+    display: grid;
+    gap: .35rem;
+    justify-items: end;
+}
+
+.mcc-tournament-detail-card .mcc-card-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: 1rem;
+    padding-bottom: .75rem;
+}
+
+.mcc-tournament-detail-list > div {
+    background: var(--app-body-bg);
+    border: 1px solid var(--app-border);
+    border-radius: .55rem;
+    min-width: 0;
+    padding: .7rem .8rem;
+}
+
+.mcc-tournament-detail-list dt {
+    color: var(--app-muted);
+    font-size: .7rem;
+    font-weight: 750;
+    letter-spacing: .04em;
+    margin-bottom: .25rem;
+    text-transform: uppercase;
+}
+
+.mcc-tournament-detail-list dd {
+    color: var(--app-text);
+    font-weight: 650;
+    margin: 0;
+}
+
+.mcc-fixture-workflow {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-fixture-workflow .mcc-inline-form {
+    align-content: start;
+    background: var(--app-body-bg);
+    border: 1px solid var(--app-border);
+    border-radius: .55rem;
+    flex: none;
+    padding: .75rem;
+}
+
+.mcc-fixture-workflow .mcc-inline-form .form-control,
+.mcc-fixture-workflow .mcc-inline-form .mcc-button {
+    min-height: 40px;
+}
+
+@media (max-width: 991.98px) {
+    .mcc-fixture-workflow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 767.98px) {
     .mcc-tournament-detail-header {
         flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
     }
 
     .mcc-tournament-detail-header > .mcc-badge {
         margin-top: 0;
+    }
+
+    .mcc-fixture-detail-status {
+        align-items: flex-start;
+        justify-items: start;
     }
 
     .mcc-tournament-detail-list {
@@ -6334,6 +6729,10 @@ tr:last-child td {
 
     .mcc-tournament-detail-description {
         grid-column: auto;
+    }
+
+    .mcc-fixture-workflow {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -6344,6 +6743,15 @@ tr:last-child td {
     max-width: 100%;
     min-width: 0;
 }
+
+.mcc-tournament-fixtures-page .mcc-filter-card[hidden] {
+    display: none !important;
+}
+
+.mcc-tournament-fixtures-page .mcc-match-table-card {
+    margin-top: 0;
+}
+
 .mcc-match-form {
     display: grid;
     gap: 1rem;
@@ -6623,6 +7031,90 @@ tr:last-child td {
     flex-wrap: wrap;
     gap: .5rem;
 }
+
+.mcc-match-status-stack {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+.mcc-notification-list {
+    margin-top: 1rem;
+}
+
+.mcc-notification-items {
+    display: grid;
+    gap: .75rem;
+}
+
+.mcc-notification-item {
+    align-items: flex-start;
+    background: var(--app-body-bg);
+    border: 1px solid var(--app-border);
+    border-left: 3px solid var(--app-primary);
+    border-radius: .6rem;
+    display: grid;
+    gap: .85rem;
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    padding: .9rem 1rem;
+}
+
+.mcc-notification-item.is-read {
+    border-left-color: var(--app-border);
+}
+
+.mcc-notification-icon {
+    align-items: center;
+    background: rgba(132, 90, 223, .12);
+    border-radius: 50%;
+    color: var(--app-primary);
+    display: inline-flex;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.mcc-notification-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: .6rem;
+    justify-content: space-between;
+}
+
+.mcc-notification-heading h3 {
+    font-size: .98rem;
+    margin: 0;
+}
+
+.mcc-notification-content p {
+    color: var(--app-text);
+    margin: .35rem 0;
+    overflow-wrap: anywhere;
+}
+
+.mcc-notification-meta {
+    color: var(--app-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: .65rem;
+    gap: .75rem;
+}
+
+.mcc-notification-actions {
+    align-self: center;
+}
+
+@media (max-width: 700px) {
+    .mcc-notification-item {
+        grid-template-columns: 2.25rem minmax(0, 1fr);
+    }
+
+    .mcc-notification-actions {
+        grid-column: 2;
+    }
+}
+
 .mcc-match-actions .mcc-button {
     min-height: 34px;
     padding: .4rem .65rem;
@@ -10707,6 +11199,77 @@ tr:last-child td {
     opacity: .8
 }
 
+/* Sidebar spacing rhythm: keep navigation compact, readable, and consistent. */
+.mcc-sidebar {
+    padding: .9rem .75rem;
+}
+
+.mcc-brand {
+    gap: .55rem;
+    padding: 0 .15rem .35rem;
+}
+
+.mcc-sidebar-label {
+    padding: .55rem .6rem .4rem;
+}
+
+.mcc-sidebar-nav {
+    gap: .35rem;
+}
+
+.mcc-nav-group {
+    gap: .1rem;
+}
+
+.mcc-nav-group-label {
+    padding: .45rem .6rem .25rem;
+}
+
+.mcc-nav-link,
+.mcc-nav-group-toggle {
+    min-height: 38px;
+    padding: .5rem .6rem;
+}
+
+.mcc-nav-link,
+.mcc-nav-group-toggle {
+    gap: .6rem;
+}
+
+.mcc-nav-group-items {
+    gap: .08rem;
+    padding-left: .3rem;
+    background: #262b38;
+}
+
+.mcc-sidebar-footer {
+    gap: .35rem;
+    padding: .7rem .6rem 0;
+}
+
+@media (max-width: 991px) {
+    .mcc-sidebar {
+        padding: .75rem .6rem;
+    }
+
+    .mcc-nav-link,
+    .mcc-nav-group-toggle {
+        min-height: 40px;
+    }
+}
+
+@media (min-width: 992px) {
+    body.sidebar-collapsed .mcc-sidebar {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    body.sidebar-collapsed .mcc-brand {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
 .mcc-document-filter-card,
 .mcc-document-list-card,
 .mcc-document-summary-card,
@@ -14313,6 +14876,7 @@ tr:last-child td {
     display: grid;
     gap: .75rem;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1rem;
 }
 
 .mcc-equipment-assignment-item {
@@ -17775,5 +18339,261 @@ tr:last-child td {
 
     .mcc-fitness-player-page .mcc-detail-hero {
         gap: 1rem;
+    }
+}
+
+/* Topbar interaction polish. */
+.mcc-topbar-context {
+    align-items: center;
+    color: #243b67;
+    display: inline-flex;
+    gap: .5rem;
+    min-width: 0;
+}
+
+.mcc-topbar-context > span:last-child,
+.mcc-account-copy {
+    display: grid;
+    gap: .05rem;
+    min-width: 0;
+}
+
+.mcc-topbar-context strong,
+.mcc-topbar-context small,
+.mcc-account-copy strong,
+.mcc-account-copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-topbar-context strong,
+.mcc-account-copy strong {
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.mcc-topbar-context small,
+.mcc-account-copy small {
+    color: var(--app-muted);
+    font-size: .62rem;
+}
+
+.mcc-topbar-context-icon {
+    align-items: center;
+    background: #eaf2ff;
+    border: 1px solid #d2e2f7;
+    border-radius: 9px;
+    color: #1464d2;
+    display: inline-flex;
+    flex: 0 0 2rem;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.mcc-topbar-notifications {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e8f1;
+    border-radius: 50%;
+    color: #53627a;
+    display: inline-flex;
+    height: 2.2rem;
+    justify-content: center;
+    text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+    width: 2.2rem;
+}
+
+.mcc-topbar-notifications:hover,
+.mcc-topbar-notifications:focus-visible {
+    background: #eef5ff;
+    border-color: #c9d9ef;
+    color: var(--app-primary);
+}
+
+.mcc-topbar-collapse {
+    color: #53627a;
+    display: inline-flex;
+    margin: 0;
+    padding: .45rem .55rem;
+}
+
+.mcc-topbar-collapse:hover,
+.mcc-topbar-collapse:focus-visible {
+    background: #eef5ff;
+    color: var(--app-primary);
+}
+
+@media (max-width: 991px) {
+    .mcc-topbar-collapse {
+        display: none;
+    }
+}
+
+.mcc-account-copy strong {
+    color: #32425f;
+    max-width: 190px;
+}
+
+.mcc-account-copy small {
+    max-width: 190px;
+}
+
+@media (max-width: 700px) {
+    .mcc-topbar-context {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .mcc-topbar-context > span:last-child {
+        max-width: 145px;
+    }
+
+    .mcc-topbar-context small,
+    .mcc-account-copy small {
+        display: none;
+    }
+
+    .mcc-account-copy strong {
+        max-width: 112px;
+    }
+}
+
+/* Final dashboard polish: keep summary cards balanced at common desktop widths. */
+.mcc-dashboard {
+    display: grid;
+    gap: 1rem;
+}
+
+.mcc-dashboard .dashboard-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mcc-dashboard .dashboard-kpi-label {
+    line-height: 1.25;
+    white-space: normal;
+}
+
+.mcc-dashboard .dashboard-kpi {
+    min-height: 122px;
+}
+
+.mcc-dashboard .dashboard-hero-filters > button,
+.mcc-dashboard .dashboard-hero-filters > a {
+    align-self: end;
+    transform: translateY(-.45rem);
+}
+
+.mcc-dashboard .dashboard-section-heading {
+    align-items: center;
+}
+
+@media (min-width: 1450px) {
+    .mcc-dashboard .dashboard-kpi-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .mcc-dashboard .dashboard-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-dashboard .dashboard-hero-filters > button,
+    .mcc-dashboard .dashboard-hero-filters > a {
+        transform: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-dashboard .dashboard-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Topbar polish: keep context, date, and account controls visually grouped. */
+.mcc-topbar {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    box-shadow: 0 1px 0 rgba(32, 67, 119, .04);
+    gap: .75rem;
+    height: 70px;
+    padding-left: 1.35rem;
+    padding-right: 1.35rem;
+}
+
+.mcc-active-branch-selector {
+    background: #f4f8ff;
+    border: 1px solid #dbe7f7;
+    border-radius: 9px;
+    margin-right: .35rem;
+    padding: .25rem;
+}
+
+.mcc-active-branch-selector select {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    font-size: .78rem;
+    font-weight: 600;
+    min-height: 34px;
+}
+
+.mcc-active-branch-selector select:focus {
+    border-color: var(--app-primary);
+}
+
+.mcc-topbar-date {
+    background: #f6f8fc;
+    border: 1px solid #e2e8f1;
+    border-radius: 999px;
+    color: #5d6b80;
+    font-size: .72rem;
+    margin-right: .25rem;
+    padding: .45rem .7rem;
+}
+
+.mcc-account summary {
+    background: #fff;
+    border: 1px solid #e2e8f1;
+    border-radius: 999px;
+    padding: .25rem .55rem .25rem .3rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.mcc-account summary:hover,
+.mcc-account[open] summary {
+    border-color: #c9d9ef;
+    box-shadow: 0 3px 10px rgba(32, 67, 119, .08);
+}
+
+.mcc-account summary::after {
+    color: var(--app-muted);
+    content: '▾';
+    font-size: .7rem;
+    margin-left: .25rem;
+}
+
+.mcc-avatar {
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #d6e2f1;
+}
+
+@media (max-width: 700px) {
+    .mcc-topbar {
+        gap: .45rem;
+        height: auto;
+        min-height: 64px;
+        padding-left: .85rem;
+        padding-right: .85rem;
+    }
+
+    .mcc-active-branch-selector {
+        margin-right: 0;
+    }
+
+    .mcc-account-email {
+        max-width: 125px;
     }
 }

@@ -2,6 +2,7 @@
 
 $routes->group('tournaments', ['filter' => 'auth'], static function ($routes): void {
     $routes->get('/', '\\App\\Modules\\Tournaments\\Controllers\\Browser::index', ['filter' => 'permission:tournament.view']);
+    $routes->get('fixtures', '\\App\\Modules\\Tournaments\\Controllers\\Browser::fixtureList', ['filter' => 'permission:tournament.view']);
     $routes->get('new', '\\App\\Modules\\Tournaments\\Controllers\\Browser::createPage', ['filter' => 'permission:tournament.create']);
     $routes->post('/', '\\App\\Modules\\Tournaments\\Controllers\\Browser::create', ['filter' => 'permission:tournament.create']);
     $routes->get('(:num)', '\\App\\Modules\\Tournaments\\Controllers\\Browser::showPage/$1', ['filter' => 'permission:tournament.view']);

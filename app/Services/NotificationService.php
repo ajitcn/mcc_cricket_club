@@ -9,6 +9,20 @@ use RuntimeException;
 
 final class NotificationService
 {
+    private const DEFAULT_CATEGORIES = [
+        'general',
+        'announcement',
+        'reminder',
+        'system',
+        'admission',
+        'attendance',
+        'training',
+        'match',
+        'payment',
+        'document',
+        'achievement',
+    ];
+
     public function list(array $filters = []): array
     {
         $this->allow('notification.view');
@@ -31,10 +45,64 @@ final class NotificationService
         ];
     }
 
+    /** @return array{branches: list<array<string, mixed>>, users: list<array<string, mixed>>, categories: list<string>, branch_optional: bool} */
+    public function createOptions(): array
+    {
+        $branches = array_values(array_filter(
+            service('branchContext')->authorizedBranches(true),
+            static fn (array $branch): bool => service('authorization')->can(
+                'notification.create',
+                (string) ($branch['id'] ?? 0),
+            ),
+        ));
+        $branchIds = array_values(array_map(
+            static fn (array $branch): int => (int) ($branch['id'] ?? 0),
+            $branches,
+        ));
+        if ($branchIds === []) {
+            return ['branches' => [], 'users' => [], 'categories' => ['general'], 'branch_optional' => false];
+        }
+
+        $users = Database::connect('default')->table('user_branches ub')
+            ->select('DISTINCT u.id, u.display_name, u.email, ub.branch_id', false)
+            ->join('users u', 'u.id = ub.user_id')
+            ->whereIn('ub.branch_id', $branchIds)
+            ->where('u.is_enabled', 1)
+            ->orderBy('u.display_name')
+            ->get()
+            ->getResultArray();
+
+        $existingCategories = array_values(array_filter(array_map(
+            static fn (array $row): string => trim((string) ($row['category'] ?? '')),
+            Database::connect('default')->table('notifications')->distinct()->select('category')->orderBy('category')->get()->getResultArray(),
+        )));
+        $categories = array_values(array_unique(array_merge(self::DEFAULT_CATEGORIES, $existingCategories)));
+        sort($categories);
+
+        return [
+            'branches' => $branches,
+            'users' => $users,
+            'categories' => $categories,
+            'branch_optional' => service('branchContext')->isSuperAdmin(),
+        ];
+    }
+
     public function create(array $input): int
     {
-        $branch = (int) ($input['branch_id'] ?? 0);
-        $this->allow('notification.create', $branch);
+        $rawBranch = trim((string) ($input['branch_id'] ?? ''));
+        $branch = $rawBranch === '' ? null : (int) $rawBranch;
+        $branchIds = $this->authorizedCreateBranches();
+        if ($branch === null) {
+            if (! service('branchContext')->isSuperAdmin()) {
+                throw new RuntimeException('Select an authorized branch.');
+            }
+        } elseif (! in_array($branch, $branchIds, true)) {
+            throw new RuntimeException('Invalid notification branch.');
+        }
+        $input['branch_id'] = $branch;
+        if (array_filter((array) ($input['recipient_user_ids'] ?? []), static fn ($value): bool => trim((string) $value) !== '') === []) {
+            $input['recipient_user_ids'] = $this->recipientsForBranches($branch === null ? $branchIds : [$branch]);
+        }
 
         return $this->persist($input, Database::connect('default'));
     }
@@ -101,7 +169,9 @@ final class NotificationService
     /** @param array<string, mixed> $input */
     private function persist(array $input, object $db): int
     {
-        $branch = (int) ($input['branch_id'] ?? 0);
+        $branch = ($input['branch_id'] ?? null) === null || ($input['branch_id'] ?? '') === ''
+            ? null
+            : (int) $input['branch_id'];
         $title = trim((string) ($input['title'] ?? ''));
         $body = trim((string) ($input['body'] ?? ''));
         $category = trim((string) ($input['category'] ?? ''));
@@ -109,8 +179,13 @@ final class NotificationService
         if ($title === '' || strlen($title) > 180 || $body === '' || $category === '' || $recipients === []) {
             throw new RuntimeException('Invalid notification.');
         }
+        $branchIds = $branch === null ? $this->authorizedCreateBranches() : [$branch];
         foreach ($recipients as $recipient) {
-            if ($db->table('user_branches')->where(['user_id' => $recipient, 'branch_id' => $branch])->countAllResults() === 0) {
+            $recipientQuery = $db->table('user_branches')->where('user_id', $recipient);
+            if ($branchIds !== []) {
+                $recipientQuery->whereIn('branch_id', $branchIds);
+            }
+            if ($recipientQuery->countAllResults() === 0) {
                 throw new RuntimeException('Invalid notification recipient.');
             }
         }
@@ -146,6 +221,38 @@ final class NotificationService
             throw new RuntimeException('Unable to create notification.');
         }
         return $id;
+    }
+
+    /** @return list<int> */
+    private function authorizedCreateBranches(): array
+    {
+        $branches = service('branchContext')->authorizedBranches(true);
+
+        return array_values(array_filter(array_map(
+            static fn (array $branch): int => (int) ($branch['id'] ?? 0),
+            $branches,
+        ), static fn (int $branchId): bool => $branchId > 0 && service('authorization')->can('notification.create', (string) $branchId)));
+    }
+
+    /** @param list<int> $branchIds @return list<int> */
+    private function recipientsForBranches(array $branchIds): array
+    {
+        if ($branchIds === []) {
+            return [];
+        }
+
+        $rows = Database::connect('default')->table('user_branches ub')
+            ->select('DISTINCT ub.user_id', false)
+            ->join('users u', 'u.id = ub.user_id')
+            ->whereIn('ub.branch_id', $branchIds)
+            ->where('u.is_enabled', 1)
+            ->get()
+            ->getResultArray();
+
+        return array_values(array_unique(array_map(
+            static fn (array $row): int => (int) ($row['user_id'] ?? 0),
+            $rows,
+        )));
     }
 
     /** @return list<int> */

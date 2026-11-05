@@ -30,7 +30,7 @@ $canDelete = (bool) ($canDelete ?? false);
                 <thead>
                     <tr>
                             <th scope="col">Equipment</th>
-                            <th scope="col">Quantity</th>
+                            <th scope="col">Stock</th>
                             <th scope="col">Branch</th>
                             <?php if ($canUpdate || $canDelete): ?>
                                 <th scope="col">Actions</th>
@@ -44,7 +44,12 @@ $canDelete = (bool) ($canDelete ?? false);
                                 <span class="mcc-table-primary-text"><?= esc($record['name']) ?></span>
                                 <span class="mcc-table-secondary-text">Equipment #<?= (int) $record['id'] ?></span>
                             </th>
-                            <td><span class="mcc-badge mcc-badge-info"><?= (int) $record['quantity'] ?> available</span></td>
+                            <td>
+                                <span class="mcc-table-stack">
+                                    <span><strong>Assigned:</strong> <?= (int) ($record['quantity_assigned'] ?? 0) ?></span>
+                                    <span class="mcc-table-secondary-text"><strong>Available:</strong> <?= (int) ($record['quantity_available'] ?? $record['quantity']) ?></span>
+                                </span>
+                            </td>
                             <td><span class="mcc-table-secondary-text"><?= esc($record['branch_name']) ?></span></td>
                             <?php if ($canUpdate || $canDelete): ?>
                                 <td data-label="Actions">

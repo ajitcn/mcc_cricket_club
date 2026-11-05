@@ -54,6 +54,7 @@ final class DashboardService
         $analytics = [
             'players' => [],
             'playersVisible' => false,
+            'ageGroups' => [],
             'batches' => [],
             'batchesVisible' => false,
             'coaching' => [],
@@ -97,6 +98,7 @@ final class DashboardService
             $analytics['playersVisible'] = true;
             $analytics['batches'] = $model->batchDistribution($branches);
             $analytics['batchesVisible'] = true;
+            $analytics['ageGroups'] = $model->ageGroupDistribution($branches);
         }
 
         if ($can('player.view') && $can('coach.view')) {

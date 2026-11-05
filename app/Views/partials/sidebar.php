@@ -45,7 +45,6 @@ $slug = static fn (string $label): string => 'mcc-nav-group-' . strtolower((stri
                 onerror="this.hidden = true"
             >
         </div>
-        <button class="mcc-sidebar-collapse" type="button" data-sidebar-collapse aria-controls="mcc-sidebar" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation"><i class="mcc-sidebar-collapse-icon fa-solid fa-chevron-left" aria-hidden="true"></i><span class="mcc-sidebar-control-label">Collapse</span></button>
     </div>
     <div class="mcc-sidebar-label">Main menu</div>
     <nav class="mcc-sidebar-nav">

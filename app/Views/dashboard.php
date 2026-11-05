@@ -68,8 +68,7 @@ $cards = array_values(array_filter(
 ));
 ?>
 <?= view('staff_header', [
-    'title' => 'Director Dashboard',
-    'pageSubtitle' => 'Complete overview of Players, Coaches, and coaching activity across authorized branches.',
+    'title' => 'Dashboard',
     'nav' => $nav,
     'message' => $message ?? null,
     'error' => $error ?? null,
@@ -77,13 +76,6 @@ $cards = array_values(array_filter(
 
 <div class="mcc-dashboard">
     <header class="dashboard-hero">
-        <div>
-            <p class="mcc-eyebrow">Director view</p>
-            <h1>Director Dashboard</h1>
-            <p class="dashboard-hero-copy">
-                A source-backed view of Players, Coaches, coaching activity, and upcoming sessions.
-            </p>
-        </div>
         <form method="get" action="<?= site_url('/') ?>" class="dashboard-hero-filters">
             <label>
                 <span>Month</span>
@@ -113,34 +105,6 @@ $cards = array_values(array_filter(
         <span class="dashboard-hero-date"><?= esc((string) ($contextDate ?? '')) ?></span>
     </header>
 
-    <details class="dashboard-surface dashboard-filters" aria-labelledby="dashboard-filters-heading">
-        <summary class="dashboard-section-heading dashboard-filter-summary">
-            <span>
-                <span class="mcc-eyebrow">Scope</span>
-                <strong id="dashboard-filters-heading">Dashboard filters</strong>
-            </span>
-            <span class="dashboard-section-note">MCC local time · Select to adjust</span>
-        </summary>
-        <p class="dashboard-filter-helper">Month, branch, and selected day controls are available in the header above. All date boundaries use MCC local time.</p>
-    </details>
-    <?php if (($unavailableMetrics ?? []) !== []): ?>
-        <section class="dashboard-surface dashboard-unavailable" aria-labelledby="dashboard-unavailable-heading">
-            <div class="dashboard-section-heading">
-                <div>
-                    <p class="mcc-eyebrow">Formula status</p>
-                    <h2 id="dashboard-unavailable-heading">Metrics not yet available</h2>
-                </div>
-            </div>
-            <div class="dashboard-status-list">
-                <?php foreach ($unavailableMetrics as $metric): ?>
-                    <div class="dashboard-status-row">
-                        <span><?= esc($metric) ?></span>
-                        <strong class="mcc-muted">Not available</strong>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </section>
-    <?php endif; ?>
     <?php if ($cards !== []): ?>
         <section class="dashboard-surface dashboard-summary" aria-labelledby="overview-heading">
             <div class="dashboard-section-heading">
@@ -245,6 +209,114 @@ $cards = array_values(array_filter(
             <?php endif; ?>
         </section>
     <?php endif; ?>
+
+    <?php
+    $visualGroup = (int) ($coachingAnalytics['group'] ?? 0);
+    $visualPersonal = (int) ($coachingAnalytics['personal'] ?? 0);
+    $visualCoachingTotal = $visualGroup + $visualPersonal;
+    $visualBatchRows = is_array($analytics['batches'] ?? null) ? $analytics['batches'] : [];
+    $visualBatchMax = 0;
+    foreach ($visualBatchRows as $visualBatch) {
+        $visualBatchMax = max($visualBatchMax, (int) ($visualBatch['total'] ?? 0));
+    }
+    $visualTrialRows = is_array($analytics['trials'] ?? null) ? $analytics['trials'] : [];
+    $visualTrialMax = max(1, ...array_map('intval', array_values($visualTrialRows)));
+    $visualBranchRows = is_array($analytics['branches'] ?? null) ? $analytics['branches'] : [];
+    $visualBranchMax = 0;
+    foreach ($visualBranchRows as $visualBranch) {
+        $visualBranchMax = max($visualBranchMax, (int) ($visualBranch['players'] ?? 0));
+    }
+    ?>
+    <section class="dashboard-visual-grid" style="order: 4;" aria-label="Dashboard visual summaries">
+        <article class="dashboard-surface dashboard-chart-card">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="mcc-eyebrow">Coaching mix</p>
+                    <h2>Session type distribution</h2>
+                </div>
+            </div>
+            <?php if ($visualCoachingTotal > 0): ?>
+                <?php $visualGroupPercent = (int) round($visualGroup / $visualCoachingTotal * 100); ?>
+                <div class="dashboard-donut-summary">
+                    <span class="dashboard-donut-chart" style="--dashboard-group-percent: <?= $visualGroupPercent ?>%;" aria-label="<?= $visualGroupPercent ?> percent group coaching"></span>
+                    <div class="dashboard-chart-legend">
+                        <span><i class="dashboard-chart-dot dashboard-chart-dot-group"></i>Group <strong><?= $visualGroup ?></strong></span>
+                        <span><i class="dashboard-chart-dot dashboard-chart-dot-personal"></i>Personal <strong><?= $visualPersonal ?></strong></span>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="dashboard-empty dashboard-empty-inline"><p>No session type data is available.</p></div>
+            <?php endif; ?>
+        </article>
+
+        <article class="dashboard-surface dashboard-chart-card">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="mcc-eyebrow">Batch distribution</p>
+                    <h2>Active players by batch</h2>
+                </div>
+            </div>
+            <?php if ($visualBatchRows !== []): ?>
+                <div class="dashboard-horizontal-bars">
+                    <?php foreach (array_slice($visualBatchRows, 0, 6) as $visualBatch): ?>
+                        <?php $visualBatchTotal = (int) ($visualBatch['total'] ?? 0); ?>
+                        <div class="dashboard-horizontal-bar-row">
+                            <span><?= esc((string) $visualBatch['batch_name']) ?></span>
+                            <i><b style="width: <?= $visualBatchMax > 0 ? (int) round($visualBatchTotal / $visualBatchMax * 100) : 0 ?>%;"></b></i>
+                            <strong><?= $visualBatchTotal ?></strong>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="dashboard-empty dashboard-empty-inline"><p>No batch distribution is available.</p></div>
+            <?php endif; ?>
+        </article>
+
+        <article class="dashboard-surface dashboard-chart-card">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="mcc-eyebrow">Pipeline</p>
+                    <h2>Trial activity</h2>
+                </div>
+            </div>
+            <?php if ($visualTrialRows !== []): ?>
+                <div class="dashboard-horizontal-bars dashboard-trial-bars">
+                    <?php foreach ($visualTrialRows as $visualTrialStatus => $visualTrialTotal): ?>
+                        <div class="dashboard-horizontal-bar-row">
+                            <span><?= esc($statusLabel((string) $visualTrialStatus)) ?></span>
+                            <i><b style="width: <?= (int) round((int) $visualTrialTotal / $visualTrialMax * 100) ?>%;"></b></i>
+                            <strong><?= (int) $visualTrialTotal ?></strong>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="dashboard-empty dashboard-empty-inline"><p>No trial activity is available.</p></div>
+            <?php endif; ?>
+        </article>
+
+        <article class="dashboard-surface dashboard-chart-card">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="mcc-eyebrow">Branch distribution</p>
+                    <h2>Active players by branch</h2>
+                </div>
+            </div>
+            <?php if ($visualBranchRows !== []): ?>
+                <div class="dashboard-horizontal-bars dashboard-branch-bars">
+                    <?php foreach ($visualBranchRows as $visualBranch): ?>
+                        <?php $visualBranchPlayers = (int) ($visualBranch['players'] ?? 0); ?>
+                        <div class="dashboard-horizontal-bar-row">
+                            <span><?= esc((string) ($visualBranch['branch_name'] ?? 'Branch')) ?></span>
+                            <i><b style="width: <?= $visualBranchMax > 0 ? (int) round($visualBranchPlayers / $visualBranchMax * 100) : 0 ?>%;"></b></i>
+                            <strong><?= $visualBranchPlayers ?></strong>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="dashboard-empty dashboard-empty-inline"><p>No branch distribution is available.</p></div>
+            <?php endif; ?>
+        </article>
+    </section>
 
     <div class="dashboard-primary-grid">
         <?php if (($sections['attentionVisible'] ?? false) === true): ?>
@@ -598,10 +670,22 @@ $cards = array_values(array_filter(
                     <h2 id="age-distribution-heading">Age-wise Player distribution</h2>
                 </div>
             </div>
-            <div class="dashboard-unavailable-panel">
-                <strong>Not available on this dashboard</strong>
-                <p>Age categories and DOB boundary rules are not approved for this view.</p>
-            </div>
+            <?php $ageGroupRows = is_array($analytics['ageGroups'] ?? null) ? $analytics['ageGroups'] : []; ?>
+            <?php if ($ageGroupRows !== []): ?>
+                <?php $ageGroupMax = max(1, ...array_map(static fn (array $row): int => (int) ($row['total'] ?? 0), $ageGroupRows)); ?>
+                <div class="dashboard-horizontal-bars dashboard-age-group-bars">
+                    <?php foreach ($ageGroupRows as $ageGroupRow): ?>
+                        <?php $ageGroupTotal = (int) ($ageGroupRow['total'] ?? 0); ?>
+                        <div class="dashboard-horizontal-bar-row">
+                            <span><?= esc((string) ($ageGroupRow['age_group'] ?? 'Not assigned')) ?></span>
+                            <i><b style="width: <?= (int) round($ageGroupTotal / $ageGroupMax * 100) ?>%;"></b></i>
+                            <strong><?= $ageGroupTotal ?></strong>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="dashboard-empty dashboard-empty-inline"><p>No active player age groups are available.</p></div>
+            <?php endif; ?>
         </section>
 
         <section class="dashboard-surface" aria-labelledby="coaching-batch-heading">

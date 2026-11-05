@@ -11,6 +11,14 @@ $statusTone = match ($status) {
     'cancelled' => 'danger',
     default => 'info',
 };
+$resultValue = strtolower((string) ($match['result'] ?? ''));
+$resultTone = match ($resultValue) {
+    'won' => 'success',
+    'lost' => 'danger',
+    'draw' => 'warning',
+    'no_result' => 'neutral',
+    default => 'info',
+};
 $startsLocal = (string) ($match['starts_at_local'] ?? '');
 $endsLocal = (string) ($match['ends_at_local'] ?? '');
 $datePart = static function (string $value): string {
@@ -121,14 +129,30 @@ $pageActions .= '</div>';
                 <dt>Tournament</dt><dd><?= esc($match['tournament_name'] ?? 'Unavailable') ?></dd>
                 <dt>Match number</dt><dd><?= ($match['match_number'] ?? null) !== null ? '#' . (int) $match['match_number'] : 'Not assigned' ?></dd>
                 <dt>Fixture</dt><dd><?= esc($match['fixture_details'] ?? 'Unavailable') ?></dd>
-                <dt>Result</dt><dd><?= esc($match['result'] ?? 'Unavailable') ?></dd>
+                <dt>Result</dt>
+                <dd>
+                    <?php if ($resultValue !== ''): ?>
+                        <span class="mcc-badge mcc-badge-<?= esc($resultTone) ?>">
+                            <?= esc(ucfirst(str_replace('_', ' ', $resultValue))) ?>
+                        </span>
+                    <?php else: ?>
+                        <span class="mcc-muted">Not recorded</span>
+                    <?php endif; ?>
+                </dd>
             </dl>
         </section>
 
         <section class="mcc-card mcc-detail-card" aria-labelledby="match-result-heading">
             <div class="mcc-card-heading"><div><span class="mcc-eyebrow">Outcome</span><h2 id="match-result-heading">Result and notes</h2></div></div>
             <dl class="mcc-detail-list">
-                <dt>Score summary</dt><dd><?= esc($match['score_summary'] ?? 'Not recorded') ?></dd>
+                <dt>Score summary</dt>
+                <dd>
+                    <?php if (($match['score_summary'] ?? '') !== ''): ?>
+                        <span class="mcc-badge mcc-badge-neutral">Score: <?= esc((string) $match['score_summary']) ?></span>
+                    <?php else: ?>
+                        <span class="mcc-muted">Not recorded</span>
+                    <?php endif; ?>
+                </dd>
                 <dt>Coach remarks</dt><dd><?= esc($match['coach_remarks'] ?? 'No remarks recorded') ?></dd>
             </dl>
         </section>

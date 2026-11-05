@@ -123,6 +123,14 @@ $pageActions = '<div class="mcc-page-actions">'
                             'postponed' => 'warning',
                             default => 'info',
                         };
+                        $resultValue = strtolower((string) ($match['result'] ?? ''));
+                        $resultTone = match ($resultValue) {
+                            'won' => 'success',
+                            'lost' => 'danger',
+                            'draw' => 'warning',
+                            'no_result' => 'neutral',
+                            default => 'info',
+                        };
                         ?>
                         <tr>
                             <th scope="row" class="mcc-match-opponent" data-label="Matchup">
@@ -154,7 +162,19 @@ $pageActions = '<div class="mcc-page-actions">'
                                     <span class="mcc-table-secondary-text">Coach: <?= esc($match['coach_name'] ?? 'Not assigned') ?></span>
                                 </div>
                             </td>
-                            <td data-label="Status"><span class="mcc-badge mcc-badge-<?= esc($statusTone) ?>"><?= esc(ucfirst($status)) ?></span></td>
+                            <td data-label="Status">
+                                <div class="mcc-match-status-stack">
+                                <span class="mcc-badge mcc-badge-<?= esc($statusTone) ?>"><?= esc(ucfirst($status)) ?></span>
+                                <?php if ($resultValue !== ''): ?>
+                                    <span class="mcc-badge mcc-badge-<?= esc($resultTone) ?>">
+                                        <?= esc(ucfirst(str_replace('_', ' ', $resultValue))) ?>
+                                    </span>
+                                <?php endif; ?>
+                                <?php if (($match['score_summary'] ?? '') !== ''): ?>
+                                    <span class="mcc-badge mcc-badge-neutral">Score: <?= esc((string) $match['score_summary']) ?></span>
+                                <?php endif; ?>
+                                </div>
+                            </td>
                             <td data-label="Actions">
                                 <div class="mcc-session-action-menu" data-session-actions>
                                     <button

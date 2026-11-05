@@ -10,6 +10,13 @@ $assignmentItems = [];
 foreach (($assignment['items'] ?? []) as $assignmentItem) {
     $assignmentItems[(int) ($assignmentItem['equipment_id'] ?? 0)] = (int) ($assignmentItem['quantity_assigned'] ?? 0);
 }
+$oldEquipment = old('equipment', []);
+$oldEquipment = is_array($oldEquipment) ? $oldEquipment : [];
+foreach ($oldEquipment as $equipmentId => $quantity) {
+    if ((int) $quantity > 0) {
+        $assignmentItems[(int) $equipmentId] = (int) $quantity;
+    }
+}
 
 $selectedBranch = (string) old('branch_id', $assignment['branch_id'] ?? '');
 $selectedCoach = (string) old('coach_user_id', $assignment['coach_user_id'] ?? '');
@@ -94,21 +101,26 @@ $formAction = $isEdit
         <section class="mcc-equipment-assignment-section" aria-labelledby="equipment-items-heading">
             <div class="mcc-section-heading">
                 <h3 id="equipment-items-heading">Equipment issued</h3>
-                <p>Enter the quantity for each item. Leave items not being issued at zero.</p>
+                <p>Search and select equipment to add it with quantity 1. You can adjust or remove items below.</p>
             </div>
 
             <?php if ($equipment !== []): ?>
-                <div class="mcc-equipment-assignment-grid" data-equipment-assignment-items>
-                    <?php foreach ($equipment as $item): ?>
-                        <article class="mcc-equipment-assignment-item" data-branch-id="<?= (int) $item['branch_id'] ?>">
-                            <div class="mcc-equipment-assignment-item-heading">
-                                <label for="equipment-<?= (int) $item['id'] ?>"><?= esc((string) $item['name']) ?></label>
-                                <span class="mcc-badge mcc-badge-muted">Available: <?= (int) $item['quantity'] ?></span>
-                            </div>
-                            <input class="form-control" id="equipment-<?= (int) $item['id'] ?>" name="equipment[<?= (int) $item['id'] ?>]" type="number" min="0" max="<?= (int) $item['quantity'] ?>" value="<?= esc((string) old('equipment.' . (int) $item['id'], $assignmentItems[(int) $item['id']] ?? '0')) ?>" inputmode="numeric">
-                        </article>
-                    <?php endforeach; ?>
+                <div class="mcc-form-field mcc-equipment-picker-field">
+                    <label for="equipment-picker">Add equipment</label>
+                    <select class="form-control btSelect" id="equipment-picker" multiple data-bt-select
+                        data-bt-select-placeholder="Choose equipment"
+                        data-bt-select-search-placeholder="Search equipment">
+                        <?php foreach ($equipment as $item): ?>
+                            <option value="<?= (int) $item['id'] ?>"
+                                data-branch-id="<?= (int) $item['branch_id'] ?>"
+                                data-available="<?= (int) $item['quantity'] ?>"
+                                <?= array_key_exists((int) $item['id'], $assignmentItems) ? 'selected' : '' ?>>
+                                <?= esc((string) $item['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
+                <div class="mcc-equipment-assignment-grid" data-equipment-assignment-items></div>
             <?php else: ?>
                 <div class="mcc-empty-state" role="status">No equipment inventory is available in the authorized branches.</div>
             <?php endif; ?>
@@ -125,9 +137,11 @@ $formAction = $isEdit
     (() => {
         const branch = document.getElementById('assignment-branch');
         const coach = document.getElementById('assignment-coach');
-        const items = document.querySelectorAll('[data-equipment-assignment-items] [data-branch-id]');
+        const picker = document.getElementById('equipment-picker');
+        const itemList = document.querySelector('[data-equipment-assignment-items]');
+        const quantities = <?= json_encode($assignmentItems, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
-        if (!branch || !coach) {
+        if (!branch || !coach || !picker || !itemList) {
             return;
         }
 
@@ -144,12 +158,114 @@ $formAction = $isEdit
                 }
             });
 
-            items.forEach((item) => {
-                item.hidden = Boolean(branchId) && item.dataset.branchId !== branchId;
+            picker.querySelectorAll('option[data-branch-id]').forEach((option) => {
+                const visible = !branchId || option.dataset.branchId === branchId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (!visible && option.selected) {
+                    option.selected = false;
+                    delete quantities[option.value];
+                }
+            });
+
+            renderItems();
+        };
+
+        const renderItems = () => {
+            const selected = Array.from(picker.selectedOptions);
+            itemList.replaceChildren();
+
+            selected.forEach((option) => {
+                const id = option.value;
+                const available = Number(option.dataset.available || 0);
+                const article = document.createElement('article');
+                article.className = 'mcc-equipment-assignment-item';
+                article.dataset.branchId = option.dataset.branchId || '';
+
+                const heading = document.createElement('div');
+                heading.className = 'mcc-equipment-assignment-item-heading';
+                const label = document.createElement('span');
+                label.className = 'mcc-table-primary-text';
+                label.textContent = option.textContent.trim();
+                const availableBadge = document.createElement('span');
+                availableBadge.className = 'mcc-badge mcc-badge-muted';
+                availableBadge.textContent = `Available: ${available}`;
+                heading.append(label, availableBadge);
+
+                const input = document.createElement('input');
+                input.className = 'form-control';
+                input.type = 'number';
+                input.min = '1';
+                input.max = String(available);
+                input.inputMode = 'numeric';
+                input.name = `equipment[${id}]`;
+                input.value = String(Number(quantities[id] || 1));
+                input.setAttribute('aria-label', `Quantity for ${option.textContent.trim()}`);
+                input.addEventListener('input', () => {
+                    quantities[id] = input.value;
+                });
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'mcc-button mcc-button-secondary mcc-button-small';
+                remove.textContent = 'Remove';
+                remove.addEventListener('click', () => {
+                    option.selected = false;
+                    delete quantities[id];
+                    picker.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                article.append(heading, input, remove);
+                itemList.append(article);
             });
         };
 
-        branch.addEventListener('change', filterByBranch);
+        const clearSelectedEquipment = () => {
+            picker.querySelectorAll('option').forEach((option) => {
+                option.selected = false;
+            });
+
+            Object.keys(quantities).forEach((id) => {
+                delete quantities[id];
+            });
+
+            const wrapper = picker.closest('.mcc-bt-select');
+            const toggle = wrapper?.querySelector('.mcc-bt-select-toggle');
+            if (toggle) {
+                toggle.textContent = picker.dataset.btSelectPlaceholder || 'Choose equipment';
+                toggle.title = '';
+            }
+
+            wrapper?.querySelectorAll('.mcc-bt-select-option').forEach((label) => {
+                label.classList.remove('is-selected', 'selected', 'checked');
+                const input = label.querySelector('input');
+                if (input) {
+                    input.checked = false;
+                    input.removeAttribute('aria-checked');
+                }
+            });
+
+            const count = wrapper?.querySelector('.mcc-bt-select-count');
+            if (count) {
+                count.textContent = '0 selected';
+            }
+
+            filterByBranch();
+        };
+
+        let lastBranchId = branch.value;
+        branch.addEventListener('change', () => {
+            lastBranchId = branch.value;
+            clearSelectedEquipment();
+        });
+
+        window.setInterval(() => {
+            if (branch.value !== lastBranchId) {
+                lastBranchId = branch.value;
+                clearSelectedEquipment();
+            }
+        }, 150);
+        picker.addEventListener('change', renderItems);
         filterByBranch();
     })();
 </script>

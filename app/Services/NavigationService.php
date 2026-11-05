@@ -141,14 +141,22 @@ final class NavigationService
                 'label' => 'Attendance',
                 'items' => [
                     $this->item('attendance.view', 'Attendance', 'attendance', 'attendance', 'implemented', 'check'),
-                    $this->planned('Alerts', 'check'),
                 ],
             ],
             [
                 'label' => 'Competitions',
                 'items' => [
                     $this->item('match.view', 'Matches', 'matches', 'matches', 'implemented', 'calendar'),
-                    $this->item('tournament.view', 'Tournaments', 'tournaments', 'tournaments', 'implemented', 'calendar'),
+                    $this->item(
+                        'tournament.view',
+                        'Tournaments',
+                        'tournaments',
+                        'tournaments',
+                        'implemented',
+                        'calendar',
+                        ['tournaments/fixtures'],
+                    ),
+                    $this->item('tournament.view', 'Fixtures', 'tournaments/fixtures', 'tournaments/fixtures', 'implemented', 'calendar'),
                     $this->item('opponent.view', 'Opponents', 'matches/opponents', 'matches/opponents', 'implemented', 'users'),
                 ],
             ],
@@ -170,9 +178,6 @@ final class NavigationService
                 'label' => 'Communication',
                 'items' => [
                     $this->item('notification.view', 'Notifications', 'notifications', 'notifications', 'implemented', 'inbox'),
-                    $this->planned('Announcements', 'inbox'),
-                    $this->planned('Events', 'calendar'),
-                    $this->planned('Expiring Documents', 'inbox'),
                 ],
             ],
             [
@@ -191,7 +196,6 @@ final class NavigationService
                     $this->item('rbac.manage', 'Lead Sources', 'admin/lead-sources', 'admin', 'implemented', 'inbox'),
                     $this->item('rbac.manage', 'Lead Statuses', 'admin/lead-statuses', 'admin', 'implemented', 'check'),
                     $this->item('audit.view', 'Audit Logs', 'admin/audit', 'admin', 'implemented', 'check'),
-                    $this->planned('Settings', 'settings'),
                 ],
             ],
         ];

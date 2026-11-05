@@ -121,6 +121,25 @@ final class DashboardModel extends Model
             ->getResultArray();
     }
 
+    /** @param list<int> $branches */
+    public function ageGroupDistribution(array $branches): array
+    {
+        if ($branches === []) {
+            return [];
+        }
+
+        return $this->db->table('players p')
+            ->select("COALESCE(NULLIF(ag.name, ''), NULLIF(a.age_group, ''), 'Not assigned') AS age_group, COUNT(DISTINCT p.id) AS total", false)
+            ->join('admissions a', 'a.id = p.admission_id', 'left')
+            ->join('admission_age_groups ag', 'ag.id = a.age_group_id', 'left')
+            ->whereIn('p.branch_id', $branches)
+            ->where('p.status', 'active')
+            ->groupBy("COALESCE(NULLIF(ag.name, ''), NULLIF(a.age_group, ''), 'Not assigned')", false)
+            ->orderBy('age_group', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
+
     /**
      * Return active Player and assigned Coach totals for each authorized branch.
      * Each identity is counted once within its owning branch.

@@ -53,15 +53,27 @@ $renderValue = static function (mixed $value) use (&$renderValue, $labelFor, $se
 <?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
 
 <main class="container py-4 mcc-tournament-detail">
-    <header class="mcc-tournament-detail-header">
+    <section class="mcc-card mcc-detail-hero mcc-fixture-detail-hero" aria-labelledby="fixture-heading">
         <div>
             <span class="mcc-eyebrow">Tournament fixture</span>
-            <div class="mcc-muted mcc-fixture-reference">Match #<?= ($fixture['match_number'] ?? null) !== null ? (int) $fixture['match_number'] : (int) $fixtureId ?></div>
-            <h1><?= esc($fixture['home_team'] ?? 'Home team') ?> <span class="mcc-fixture-vs">V/S</span> <?= esc($fixture['away_team'] ?? 'Away team') ?></h1>
-            <p><?= esc($tournament['name'] ?? 'Tournament') ?> · Fixture #<?= (int) ($fixture['fixture_number'] ?? 0) ?></p>
+            <h2 id="fixture-heading">
+                <span><?= esc($fixture['home_team'] ?? 'Home team') ?></span>
+                <span class="mcc-fixture-vs">V/S</span>
+                <span><?= esc($fixture['away_team'] ?? 'Away team') ?></span>
+            </h2>
+            <div class="mcc-muted mcc-fixture-reference">
+                Match #<?= ($fixture['match_number'] ?? null) !== null ? (int) $fixture['match_number'] : (int) $fixtureId ?>
+            </div>
+            <div class="mcc-detail-badges" aria-label="Fixture references">
+                <span class="mcc-badge mcc-badge-info"><?= esc($tournament['name'] ?? 'Tournament') ?></span>
+                <span class="mcc-badge mcc-badge-neutral">Fixture #<?= (int) ($fixture['fixture_number'] ?? 0) ?></span>
+            </div>
         </div>
-        <span class="mcc-badge <?= $statusClass ?>"><?= esc(ucfirst($status)) ?></span>
-    </header>
+        <div class="mcc-fixture-detail-status">
+            <span class="mcc-eyebrow">Fixture status</span>
+            <span class="mcc-badge <?= $statusClass ?>"><?= esc(ucfirst($status)) ?></span>
+        </div>
+    </section>
 
     <?php if ($message = session('message')): ?>
         <div class="mcc-alert mcc-alert-success" role="status"><?= esc($message) ?></div>
@@ -71,7 +83,12 @@ $renderValue = static function (mixed $value) use (&$renderValue, $labelFor, $se
     <?php endif ?>
 
     <section class="mcc-card mcc-tournament-detail-card" aria-labelledby="fixture-summary-heading">
-        <div class="mcc-card-heading"><h2 id="fixture-summary-heading">Fixture summary</h2></div>
+        <div class="mcc-card-heading">
+            <div>
+                <span class="mcc-eyebrow">Fixture overview</span>
+                <h2 id="fixture-summary-heading">Fixture summary</h2>
+            </div>
+        </div>
         <dl class="mcc-detail-list mcc-tournament-detail-list">
             <div><dt>Tournament</dt><dd><?= esc($tournament['name'] ?? 'Not available') ?></dd></div>
             <div><dt>Round</dt><dd><?= esc($fixture['round'] ?? 'Not assigned') ?></dd></div>
@@ -84,7 +101,12 @@ $renderValue = static function (mixed $value) use (&$renderValue, $labelFor, $se
     </section>
 
     <section class="mcc-card mcc-tournament-detail-card" aria-labelledby="fixture-teams-heading">
-        <div class="mcc-card-heading"><h2 id="fixture-teams-heading">Teams</h2></div>
+        <div class="mcc-card-heading">
+            <div>
+                <span class="mcc-eyebrow">Match-up</span>
+                <h2 id="fixture-teams-heading">Teams</h2>
+            </div>
+        </div>
         <dl class="mcc-detail-list mcc-tournament-detail-list">
             <div><dt>Team 1</dt><dd><?= esc($fixture['home_team'] ?? 'Not assigned') ?></dd></div>
             <div><dt>Team 2</dt><dd><?= esc($fixture['away_team'] ?? 'Not assigned') ?></dd></div>
@@ -92,7 +114,12 @@ $renderValue = static function (mixed $value) use (&$renderValue, $labelFor, $se
     </section>
 
     <section class="mcc-card mcc-tournament-detail-card" aria-labelledby="fixture-schedule-heading">
-        <div class="mcc-card-heading"><h2 id="fixture-schedule-heading">Schedule and location</h2></div>
+        <div class="mcc-card-heading">
+            <div>
+                <span class="mcc-eyebrow">Schedule and assignment</span>
+                <h2 id="fixture-schedule-heading">Schedule and location</h2>
+            </div>
+        </div>
         <dl class="mcc-detail-list mcc-tournament-detail-list">
             <div><dt>Match date</dt><dd><?= esc(($fixture['match_date'] ?? '') !== '' ? mcc_user_date($fixture['match_date']) : 'Not scheduled') ?></dd></div>
             <?php
@@ -112,7 +139,12 @@ $renderValue = static function (mixed $value) use (&$renderValue, $labelFor, $se
     </section>
 
     <section class="mcc-card mcc-tournament-detail-card" aria-labelledby="fixture-result-heading">
-        <div class="mcc-card-heading"><h2 id="fixture-result-heading">Result</h2></div>
+        <div class="mcc-card-heading">
+            <div>
+                <span class="mcc-eyebrow">Outcome</span>
+                <h2 id="fixture-result-heading">Result</h2>
+            </div>
+        </div>
         <dl class="mcc-detail-list mcc-tournament-detail-list">
             <div><dt>Result reference</dt><dd><?= ($fixture['match_id'] ?? null) !== null ? 'Match #' . (int) $fixture['match_id'] : 'Not recorded' ?></dd></div>
             <div><dt>Match result</dt><dd><?= esc($fixture['match_result'] ?? 'Not recorded') ?></dd></div>

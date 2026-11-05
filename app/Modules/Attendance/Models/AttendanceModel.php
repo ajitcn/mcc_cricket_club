@@ -9,6 +9,161 @@ final class AttendanceModel extends Model
     protected $returnType = 'array';
     protected $allowedFields = ['session_id', 'player_id', 'branch_id', 'status', 'recorded_by', 'recorded_at', 'version', 'created_at', 'updated_at'];
 
+    public function attendanceRows(
+        array $filters,
+        array $branchIds,
+        int $limit,
+        int $offset,
+        ?int $coachUserId = null
+    ): array {
+        if ($branchIds === []) {
+            return [];
+        }
+
+        return $this->attendanceBuilder($filters, $branchIds, $coachUserId)
+            ->orderBy('a.recorded_at', 'DESC')
+            ->orderBy('a.id', 'DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResultArray();
+    }
+
+    public function countAttendanceRows(
+        array $filters,
+        array $branchIds,
+        ?int $coachUserId = null
+    ): int {
+        if ($branchIds === []) {
+            return 0;
+        }
+
+        return (int) $this->attendanceBuilder($filters, $branchIds, $coachUserId)
+            ->countAllResults();
+    }
+
+    /**
+     * Return attendance totals grouped by status for the active filters.
+     *
+     * @return array<string, int>
+     */
+    public function attendanceStatusCounts(
+        array $filters,
+        array $branchIds,
+        ?int $coachUserId = null
+    ): array {
+        if ($branchIds === []) {
+            return [];
+        }
+
+        $rows = $this->attendanceBuilder($filters, $branchIds, $coachUserId)
+            ->select('a.status, COUNT(*) AS total', false)
+            ->groupBy('a.status')
+            ->get()
+            ->getResultArray();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[strtoupper((string) $row['status'])] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    public function attendanceFilterOptions(array $branchIds, ?int $coachUserId = null): array
+    {
+        if ($branchIds === []) {
+            return ['branches' => [], 'batches' => [], 'coaches' => []];
+        }
+
+        $builder = $this->db->table('sessions s')
+            ->select('DISTINCT s.branch_id, b.name AS branch_name, s.batch_id, ba.name AS batch_name, s.coach_user_id, cu.display_name AS coach_name', false)
+            ->join('branches b', 'b.id = s.branch_id')
+            ->join('batches ba', 'ba.id = s.batch_id', 'left')
+            ->join('users cu', 'cu.id = s.coach_user_id', 'left')
+            ->whereIn('s.branch_id', $branchIds);
+        if ($coachUserId !== null) {
+            $builder->where('s.coach_user_id', $coachUserId);
+        }
+
+        $rows = $builder->orderBy('b.name', 'ASC')->get()->getResultArray();
+        $branches = [];
+        $batches = [];
+        $coaches = [];
+        foreach ($rows as $row) {
+            $branches[(int) $row['branch_id']] = (string) $row['branch_name'];
+            if ($row['batch_id'] !== null) {
+                $batches[(int) $row['batch_id']] = (string) $row['batch_name'];
+            }
+            if ($row['coach_user_id'] !== null) {
+                $coaches[(int) $row['coach_user_id']] = (string) $row['coach_name'];
+            }
+        }
+
+        $batchBuilder = $this->db->table('batches')
+            ->select('id, name')
+            ->orderBy('name', 'ASC');
+
+        $batchRows = $batchBuilder->get()->getResultArray();
+        foreach ($batchRows as $batchRow) {
+            $batches[(int) $batchRow['id']] = (string) $batchRow['name'];
+        }
+
+        return ['branches' => $branches, 'batches' => $batches, 'coaches' => $coaches];
+    }
+
+    private function attendanceBuilder(array $filters, array $branchIds, ?int $coachUserId = null): object
+    {
+        $builder = $this->db->table('attendance a')
+            ->select(
+                'a.id, a.status, a.recorded_at, a.updated_at, a.version, '
+                . 'a.player_id, pe.full_name AS player_name, s.id AS session_id, '
+                . 's.starts_at, s.ends_at, s.status AS session_status, s.batch_id, '
+                . 'b.name AS branch_name, ba.name AS batch_name, '
+                . 'cu.display_name AS coach_name, ru.display_name AS recorded_by_name'
+            )
+            ->join('sessions s', 's.id = a.session_id')
+            ->join('branches b', 'b.id = a.branch_id AND b.id = s.branch_id')
+            ->join('batches ba', 'ba.id = s.batch_id', 'left')
+            ->join('players p', 'p.id = a.player_id AND p.branch_id = a.branch_id')
+            ->join('persons pe', 'pe.id = p.person_id')
+            ->join('users cu', 'cu.id = s.coach_user_id', 'left')
+            ->join('users ru', 'ru.id = a.recorded_by', 'left')
+            ->whereIn('a.branch_id', $branchIds);
+
+        if ($coachUserId !== null) {
+            $builder->where('s.coach_user_id', $coachUserId);
+        }
+        if (! empty($filters['branch_id'])) {
+            $builder->where('a.branch_id', (int) $filters['branch_id']);
+        }
+        if (! empty($filters['batch_id'])) {
+            $builder->where('s.batch_id', (int) $filters['batch_id']);
+        }
+        if (! empty($filters['coach_user_id'])) {
+            $builder->where('s.coach_user_id', (int) $filters['coach_user_id']);
+        }
+        if (! empty($filters['session_id'])) {
+            $builder->where('a.session_id', (int) $filters['session_id']);
+        }
+        if (! empty($filters['attendance_status'])) {
+            $builder->where('a.status', (string) $filters['attendance_status']);
+        }
+        if (! empty($filters['player'])) {
+            $builder->groupStart()
+                ->like('pe.full_name', (string) $filters['player'])
+                ->orLike('a.player_id', (string) $filters['player'])
+                ->groupEnd();
+        }
+        if (! empty($filters['recorded_from'])) {
+            $builder->where('a.recorded_at >=', (string) $filters['recorded_from'] . ' 00:00:00');
+        }
+        if (! empty($filters['recorded_to'])) {
+            $builder->where('a.recorded_at <', date('Y-m-d', strtotime((string) $filters['recorded_to'] . ' +1 day')) . ' 00:00:00');
+        }
+
+        return $builder;
+    }
+
     public function sessionRows(
         array $filters,
         array $branchIds,

@@ -13,24 +13,20 @@ final class Attendance extends StaffController
     {
         try {
             $attendance = service('attendance');
-            $result = $attendance->sessionPage($this->request->getGet());
-            $options = $attendance->sessionFilterOptions();
-            $period = (string) ($this->request->getGet('period') ?: 'monthly');
-            $reportDate = $this->request->getGet('report_date');
+            $result = $attendance->attendancePage($this->request->getGet());
+            $options = $attendance->attendanceFilterOptions();
 
             return view('App\Modules\Attendance\Views\index', [
                 'sessions' => $result['rows'],
                 'total' => $result['total'],
                 'page' => $result['page'],
                 'pages' => $result['pages'],
+                'statusCounts' => $result['statusCounts'],
                 'branchOptions' => $options['branches'],
                 'batchOptions' => $options['batches'],
-                'batchesByBranch' => $options['batchesByBranch'] ?? [],
+                'coachOptions' => $options['coaches'],
                 'filters' => $this->request->getGet(),
                 'attendanceStatuses' => $attendance->statuses(),
-                'reportingPeriods' => $attendance->reportingPeriods(),
-                'attendanceMetrics' => $attendance->metrics($period, is_string($reportDate) ? $reportDate : null),
-                'attendanceAlerts' => $attendance->alerts($period, is_string($reportDate) ? $reportDate : null),
                 'nav' => $this->navigation(),
                 'error' => session()->getFlashdata('error'),
                 'message' => session()->getFlashdata('message'),

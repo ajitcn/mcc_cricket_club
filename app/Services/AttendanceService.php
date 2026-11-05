@@ -14,6 +14,7 @@ use Throwable;
 final class AttendanceService
 {
     private const SESSIONS_PER_PAGE = 20;
+    private const ATTENDANCE_PER_PAGE = 25;
     public const STATUSES = ['PRESENT', 'ABSENT', 'LEAVE', 'MEDICAL', 'LATE', 'RAIN_CANCELLED', 'COACH_CANCELLED'];
 
     public function statuses(): array
@@ -64,6 +65,55 @@ final class AttendanceService
             $this->authorizedBranchIds(),
             $this->strictCoachActorId()
         );
+    }
+
+    public function attendancePage(array $filters = []): array
+    {
+        $model = new AttendanceModel();
+        $branchIds = $this->authorizedBranchIds();
+        $coachScopeUserId = $this->strictCoachActorId();
+        $page = $this->pageNumber($filters['page'] ?? 1);
+        $queryFilters = $this->attendanceFilters($filters);
+        $total = $model->countAttendanceRows($queryFilters, $branchIds, $coachScopeUserId);
+        $pages = max(1, (int) ceil($total / self::ATTENDANCE_PER_PAGE));
+        $page = min($page, $pages);
+
+        return [
+            'rows' => $model->attendanceRows(
+                $queryFilters,
+                $branchIds,
+                self::ATTENDANCE_PER_PAGE,
+                ($page - 1) * self::ATTENDANCE_PER_PAGE,
+                $coachScopeUserId
+            ),
+            'total' => $total,
+            'page' => $page,
+            'pages' => $pages,
+            'perPage' => self::ATTENDANCE_PER_PAGE,
+            'statusCounts' => $model->attendanceStatusCounts(
+                $queryFilters,
+                $branchIds,
+                $coachScopeUserId
+            ),
+        ];
+    }
+
+    public function attendanceFilterOptions(): array
+    {
+        return (new AttendanceModel())->attendanceFilterOptions(
+            $this->authorizedBranchIds(),
+            $this->strictCoachActorId()
+        );
+    }
+
+    private function attendanceFilters(array $filters): array
+    {
+        $allowed = [
+            'branch_id', 'batch_id', 'coach_user_id', 'session_id', 'attendance_status',
+            'player', 'recorded_from', 'recorded_to',
+        ];
+
+        return array_intersect_key($filters, array_flip($allowed));
     }
     public function roster(int $sessionId): array
     {

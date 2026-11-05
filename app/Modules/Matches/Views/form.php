@@ -17,6 +17,7 @@ $selectedStartTime = (string) old('starts_time', $startLocal === '' ? '' : subst
 $selectedEndDate = (string) old('ends_date', $endLocal === '' ? '' : substr($endLocal, 0, 10));
 $selectedEndTime = (string) old('ends_time', $endLocal === '' ? '' : substr($endLocal, 11, 5));
 $selectedScore = (string) old('score_summary', $match['score_summary'] ?? '');
+$selectedResult = (string) old('result', $match['result'] ?? '');
 $selectedRemarks = (string) old('coach_remarks', $match['coach_remarks'] ?? '');
 $selectedCorrectionReason = (string) old('correction_reason', '');
 $selectedSquad = array_map('intval', (array) old('player_ids', array_column($match['players'] ?? [], 'player_id')));
@@ -235,6 +236,16 @@ $pageActions = '<div class="mcc-page-actions">'
                 </div>
             </div>
             <div class="mcc-form-grid mcc-form-grid-two">
+                <div class="mcc-form-field">
+                    <label for="match-result">Match result <span class="mcc-muted">(optional)</span></label>
+                    <select id="match-result" class="form-control" name="result">
+                        <option value="">Choose result</option>
+                        <?php foreach (['won' => 'Won', 'lost' => 'Lost', 'draw' => 'Draw', 'no_result' => 'No Result'] as $value => $label): ?>
+                            <option value="<?= esc($value) ?>" <?= $selectedResult === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (! empty($fieldErrors['result'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['result']) ?></p><?php endif; ?>
+                </div>
                 <div class="mcc-form-field">
                     <label for="match-score">Score or result summary <span class="mcc-muted">(optional)</span></label>
                     <input id="match-score" class="form-control" name="score_summary" maxlength="255" value="<?= esc($selectedScore) ?>">

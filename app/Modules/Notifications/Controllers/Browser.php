@@ -14,7 +14,23 @@ final class Browser extends StaffController
     {
         return $this->page('App\\Modules\\Notifications\\Views\\index', 'Notifications', [
             'result' => service('notification')->list($this->request->getGet()),
+            'create_options' => service('notification')->createOptions(),
         ]);
+    }
+
+    public function create(): ResponseInterface
+    {
+        try {
+            $data = $this->request->getPost();
+            unset($data[csrf_token()]);
+            service('notification')->create($data);
+
+            return redirect()->to('/notifications')->with('message', 'Notification sent successfully.');
+        } catch (Throwable $exception) {
+            return redirect()->to('/notifications')
+                ->withInput()
+                ->with('error', $this->safe($exception));
+        }
     }
 
     public function read(int $id): ResponseInterface

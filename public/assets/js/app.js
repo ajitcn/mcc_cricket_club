@@ -42,8 +42,13 @@
             var arrow = collapse.querySelector('.mcc-sidebar-collapse-icon');
 
             if (arrow) {
-                arrow.classList.toggle('fa-chevron-right', collapsed);
-                arrow.classList.toggle('fa-chevron-left', !collapsed);
+                if (collapse.classList.contains('mcc-topbar-collapse')) {
+                    arrow.classList.remove('fa-chevron-right', 'fa-chevron-left');
+                    arrow.classList.add('fa-bars');
+                } else {
+                    arrow.classList.toggle('fa-chevron-right', collapsed);
+                    arrow.classList.toggle('fa-chevron-left', !collapsed);
+                }
             }
 
             if (persist) {
@@ -6177,6 +6182,61 @@
         modal.dataset.initialized = 'true';
     }
 
+    function initNotificationModal() {
+        var modal = document.querySelector('[data-notification-modal]');
+        var opener = document.querySelector('[data-notification-modal-open]');
+        if (!modal || !opener || modal.dataset.initialized === 'true') {
+            return;
+        }
+
+        var branch = modal.querySelector('[data-notification-branch]');
+        var recipients = modal.querySelector('[name="recipient_user_ids[]"]');
+        var close = function () {
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('mcc-modal-open');
+        };
+        var filterRecipients = function () {
+            if (!branch || !recipients) {
+                return;
+            }
+            var branchId = branch.value;
+            recipients.querySelectorAll('option[data-branch-id]').forEach(function (option) {
+                var visible = !branchId || option.dataset.branchId === branchId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+                if (!visible && option.selected) {
+                    option.selected = false;
+                }
+            });
+            recipients.dispatchEvent(new Event('bt-select-refresh'));
+        };
+
+        opener.addEventListener('click', function () {
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('mcc-modal-open');
+            if (branch) {
+                branch.focus();
+            }
+        });
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal || event.target.closest('[data-notification-modal-close]')) {
+                close();
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !modal.hidden) {
+                close();
+            }
+        });
+        if (branch) {
+            branch.addEventListener('change', filterRecipients);
+        }
+        filterRecipients();
+        modal.dataset.initialized = 'true';
+    }
+
     function initPerformanceAccordion() {
         var items = document.querySelectorAll('.mcc-performance-accordion-item');
 
@@ -6594,6 +6654,7 @@
         initAttendanceFormFeedback();
         initDevelopmentForms();
         initSessionFeedbackModal();
+        initNotificationModal();
         initPerformanceAccordion();
         initPerformanceHelpTooltips();
         initPerformanceFormFilters();
