@@ -114,7 +114,8 @@ final class AdminService
         $this->guard();
         $model = (new AdminUserModel())
             ->select(
-                'id,email,display_name,is_enabled,failed_login_count,session_version,locked_until,last_login_at,created_at,updated_at',
+                'users.id,users.email,users.display_name,users.is_enabled,users.failed_login_count,'
+                . 'users.session_version,users.locked_until,users.last_login_at,users.created_at,users.updated_at',
             )
             ->orderBy('display_name');
         if (service('branchContext')->isBranchAdminContext()) {
