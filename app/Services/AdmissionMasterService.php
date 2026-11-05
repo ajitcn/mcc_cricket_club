@@ -41,7 +41,7 @@ final class AdmissionMasterService
         }
 
         $query
-            ->where('branch_id', null)
+            ->where($definition['table'] . '.branch_id', null)
             ->orderBy('is_active', 'DESC')
             ->orderBy('display_order', 'ASC')
             ->orderBy('name', 'ASC');
