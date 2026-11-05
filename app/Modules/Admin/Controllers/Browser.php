@@ -225,9 +225,15 @@ final class Browser extends StaffController
     {
         try {
             service('admin')->updateUser($id, $this->request->getPost());
-            return redirect()->to('/admin/users/' . $id)->with('message', 'User updated.');
+            return redirect()->to('/admin/users')->with('message', 'User updated.');
         } catch (Throwable $e) {
-            return redirect()->back()->withInput()->with('error', $this->adminSafe($e));
+            $error = $e->getMessage() === 'Invalid user details.'
+                ? 'Enter a valid display name and email. Leave the new password blank to keep the current password, or enter at least 16 characters.'
+                : $this->adminSafe($e);
+
+            return redirect()->to('/admin/users/' . $id . '/edit')
+                ->withInput()
+                ->with('error', $error);
         }
     }
     public function setEnabled(int $id): ResponseInterface|string
