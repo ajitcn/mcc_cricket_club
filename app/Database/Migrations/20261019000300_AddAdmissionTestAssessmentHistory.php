@@ -10,7 +10,7 @@ final class AddAdmissionTestAssessmentHistory extends Migration
 {
     public function up(): void
     {
-        $this->forge->addColumn('admission_tests', [
+        $fields = [
             'batting_mark' => [
                 'type' => 'TINYINT',
                 'constraint' => 2,
@@ -47,7 +47,18 @@ final class AddAdmissionTestAssessmentHistory extends Migration
                 'unsigned' => true,
                 'null' => true,
             ],
-        ]);
+        ];
+        $missingFields = [];
+
+        foreach ($fields as $name => $definition) {
+            if (! $this->db->fieldExists($name, 'admission_tests')) {
+                $missingFields[$name] = $definition;
+            }
+        }
+
+        if ($missingFields !== []) {
+            $this->forge->addColumn('admission_tests', $missingFields);
+        }
 
         if ($this->db->tableExists('admission_test_submission_history')) {
             return;
