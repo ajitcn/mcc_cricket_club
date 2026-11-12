@@ -94,18 +94,31 @@ final class AddDocumentPolicyFoundation extends Migration
             $this->forge->addColumn('documents', $add);
         }
 
-        $this->db->query(
-            'ALTER TABLE documents ADD INDEX documents_policy_status_index '
-            . '(status, verification_status, scanner_status, expires_on)'
-        );
-        $this->db->query(
-            'ALTER TABLE documents ADD INDEX documents_version_index '
-            . '(previous_version_id, version_number)'
-        );
+        if (! $this->indexExists('documents_policy_status_index')) {
+            $this->db->query(
+                'ALTER TABLE documents ADD INDEX documents_policy_status_index '
+                . '(status, verification_status, scanner_status, expires_on)'
+            );
+        }
+        if (! $this->indexExists('documents_version_index')) {
+            $this->db->query(
+                'ALTER TABLE documents ADD INDEX documents_version_index '
+                . '(previous_version_id, version_number)'
+            );
+        }
     }
 
     public function down(): void
     {
         // Forward-only: verification, scan, and version history must be retained.
+    }
+
+    private function indexExists(string $indexName): bool
+    {
+        $escapedName = $this->db->escape($indexName);
+
+        return $this->db->query(
+            'SHOW INDEX FROM documents WHERE Key_name = ' . $escapedName
+        )->getNumRows() > 0;
     }
 }
