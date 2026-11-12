@@ -21,10 +21,30 @@ final class CreateLeadConfigurationTables extends Migration
         $this->forge->addUniqueKey('name', 'uq_lead_statuses_name');
         $this->forge->createTable('lead_statuses', true);
         $now = date('Y-m-d H:i:s');
-        $this->db->query("INSERT INTO lead_sources (name, is_active, sort_order, created_at, updated_at) SELECT DISTINCT source, 1, 0, ?, ? FROM leads",
-    [$now, $now]);
-        $this->db->query("INSERT INTO lead_statuses (name, is_active, sort_order, created_at, updated_at) SELECT DISTINCT status, 1, 0, ?, ? FROM leads",
-    [$now, $now]);
+        $this->db->query(
+            "INSERT INTO lead_sources (name, is_active, sort_order, created_at, updated_at)
+             SELECT DISTINCT l.source, 1, 0, ?, ?
+             FROM leads l
+             WHERE l.source IS NOT NULL
+               AND l.source <> ''
+               AND NOT EXISTS (
+                   SELECT 1 FROM lead_sources existing_source
+                   WHERE existing_source.name = l.source
+               )",
+            [$now, $now]
+        );
+        $this->db->query(
+            "INSERT INTO lead_statuses (name, is_active, sort_order, created_at, updated_at)
+             SELECT DISTINCT l.status, 1, 0, ?, ?
+             FROM leads l
+             WHERE l.status IS NOT NULL
+               AND l.status <> ''
+               AND NOT EXISTS (
+                   SELECT 1 FROM lead_statuses existing_status
+                   WHERE existing_status.name = l.status
+               )",
+            [$now, $now]
+        );
     }
     public function down(): void
     {
