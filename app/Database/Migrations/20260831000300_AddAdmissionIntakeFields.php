@@ -27,14 +27,23 @@ final class AddAdmissionIntakeFields extends Migration
         if ($missing !== []) {
             $this->forge->addColumn('admissions', $missing);
         }
-        if ($this->db->tableExists('batches')) {
+        if ($this->db->tableExists('batches') && ! $this->indexExists('admissions_batch_id_index')) {
             $this->db->query('ALTER TABLE admissions ADD INDEX admissions_batch_id_index (batch_id)');
         }
-        if ($this->db->tableExists('trials')) {
+        if ($this->db->tableExists('trials') && ! $this->indexExists('admissions_trial_id_index')) {
             $this->db->query('ALTER TABLE admissions ADD INDEX admissions_trial_id_index (trial_id)');
         }
     }
     public function down(): void
     {
+    }
+
+    private function indexExists(string $indexName): bool
+    {
+        $escapedName = $this->db->escape($indexName);
+
+        return $this->db->query(
+            'SHOW INDEX FROM admissions WHERE Key_name = ' . $escapedName
+        )->getNumRows() > 0;
     }
 }
