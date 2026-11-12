@@ -45,38 +45,58 @@ final class ReportService
         $queries = [
             'players' => [
                 'table' => 'players p',
-                'select' => 'p.id, pe.full_name, p.status, b.name AS branch_name, p.created_at',
+                'select' => "a.admission_number, pe.full_name, pe.email, pe.phone, p.status, b.name AS branch_name,
+                    COALESCE(NULLIF(ag.name, ''), NULLIF(a.age_group, '')) AS age_group,
+                    (SELECT ba.name FROM player_batch_assignments pba
+                        INNER JOIN batches ba ON ba.id = pba.batch_id
+                        WHERE pba.player_id = p.id AND pba.effective_to IS NULL
+                        ORDER BY pba.effective_from DESC LIMIT 1) AS batch_name,
+                    (SELECT u.display_name FROM users u WHERE u.id = a.coach_user_id LIMIT 1) AS group_coach_name,
+                    (SELECT u.display_name FROM users u WHERE u.id = a.personal_coach_user_id LIMIT 1) AS personal_coach_name,
+                    (SELECT COUNT(*) FROM player_contacts pc WHERE pc.player_id = p.id) AS contact_count,
+                    p.created_at, p.updated_at",
                 'joins' => [
                     ['persons pe', 'pe.id = p.person_id'],
                     ['branches b', 'b.id = p.branch_id'],
+                    ['admissions a', 'a.id = p.admission_id', 'left'],
+                    ['admission_age_groups ag', 'ag.id = a.age_group_id', 'left'],
                 ],
                 'date' => 'p.created_at',
                 'alias' => 'p',
             ],
             'admissions' => [
                 'table' => 'admissions a',
-                'select' => 'a.id, a.admission_number, a.applicant_full_name AS full_name, a.status, b.name AS branch_name, a.created_at',
+                'select' => 'a.admission_number, a.applicant_full_name AS full_name, a.applicant_email, a.applicant_phone, a.parent_mobile, a.gender, a.age, a.age_group, a.playing_role, a.status, b.name AS branch_name, ba.name AS batch_name, a.coaching_type, cg.display_name AS group_coach_name, cp.display_name AS personal_coach_name, a.admission_date, a.joining_date, a.total_taxable_fee, a.tax_rate, a.calculated_tax_amount, a.total_including_tax, a.installment_plan, a.hostel_payment_plan, a.created_at, a.updated_at',
                 'joins' => [
                     ['branches b', 'b.id = a.branch_id'],
+                    ['batches ba', 'ba.id = a.batch_id', 'left'],
+                    ['users cg', 'cg.id = a.coach_user_id', 'left'],
+                    ['users cp', 'cp.id = a.personal_coach_user_id', 'left'],
                 ],
                 'date' => 'a.created_at',
                 'alias' => 'a',
             ],
             'attendance' => [
                 'table' => 'attendance a',
-                'select' => 'a.id, pe.full_name AS player_name, b.name AS branch_name, s.starts_at, a.status, a.recorded_at',
+                'select' => 'ad.admission_number, pe.full_name AS player_name, b.name AS branch_name, ba.name AS batch_name, ag.name AS age_group_name, g.name AS ground_name, u.display_name AS coach_name, ru.display_name AS recorded_by_name, s.session_type, s.description AS session_notes, s.status AS session_status, s.starts_at, s.ends_at, a.status, a.recorded_at',
                 'joins' => [
                     ['sessions s', 's.id = a.session_id AND a.branch_id = s.branch_id'],
                     ['players p', 'p.id = a.player_id'],
                     ['persons pe', 'pe.id = p.person_id'],
+                    ['admissions ad', 'ad.id = p.admission_id', 'left'],
                     ['branches b', 'b.id = s.branch_id'],
+                    ['batches ba', 'ba.id = s.batch_id', 'left'],
+                    ['admission_age_groups ag', 'ag.id = s.age_group_id', 'left'],
+                    ['grounds g', 'g.id = s.ground_id AND g.branch_id = s.branch_id', 'left'],
+                    ['users u', 'u.id = s.coach_user_id', 'left'],
+                    ['users ru', 'ru.id = a.recorded_by', 'left'],
                 ],
                 'date' => 'a.recorded_at',
                 'alias' => 'a',
             ],
             'sessions' => [
                 'table' => 'sessions s',
-                'select' => 's.id, b.name AS branch_name, ba.name AS batch_name, u.display_name AS coach_name, s.status, s.starts_at, s.ends_at',
+                'select' => 'b.name AS branch_name, ba.name AS batch_name, u.display_name AS coach_name, s.session_type, s.status, s.description, s.starts_at, s.ends_at',
                 'joins' => [
                     ['branches b', 'b.id = s.branch_id'],
                     ['batches ba', 'ba.id = s.batch_id', 'left'],
@@ -87,9 +107,11 @@ final class ReportService
             ],
             'matches' => [
                 'table' => 'matches m',
-                'select' => 'm.id, b.name AS branch_name, m.opponent, m.status, m.result, m.starts_at',
+                'select' => 'cm.display_name AS coach_name, b.name AS branch_name, g.name AS ground_name, m.your_team, m.opponent, m.match_category, m.status, m.result, m.score_summary, m.coach_remarks, m.starts_at, m.ends_at',
                 'joins' => [
                     ['branches b', 'b.id = m.branch_id'],
+                    ['grounds g', 'g.id = m.ground_id AND g.branch_id = m.branch_id', 'left'],
+                    ['users cm', 'cm.id = m.coach_user_id', 'left'],
                 ],
                 'date' => 'm.starts_at',
                 'alias' => 'm',

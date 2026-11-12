@@ -1,8 +1,8 @@
 <?php
 
+$documentStatus = strtolower((string) ($document['status'] ?? 'active'));
 $verificationStatus = strtoupper((string) ($document['verification_status'] ?? 'PENDING'));
 $scannerStatus = strtoupper((string) ($document['scanner_status'] ?? 'QUARANTINED'));
-$documentStatus = strtolower((string) ($document['status'] ?? 'active'));
 $verificationClass = match ($verificationStatus) {
     'VERIFIED' => 'mcc-badge-success',
     'REJECTED' => 'mcc-badge-danger',
@@ -87,41 +87,6 @@ $historyLabel = static function (string $key): string {
         <a class="mcc-button mcc-button-secondary" href="<?= site_url('documents/' . (int) $document['id'] . '/preview') ?>">Preview</a>
         <a class="mcc-button mcc-button-secondary" href="<?= site_url('documents/' . (int) $document['id'] . '/download') ?>">Secure download</a>
     </div>
-</section>
-
-<section class="mcc-card mcc-document-verification-card" aria-labelledby="verification-heading">
-    <div class="mcc-card-heading">
-        <div>
-            <p class="mcc-eyebrow">Review state</p>
-            <h2 id="verification-heading">Verification and scanner state</h2>
-        </div>
-    </div>
-    <dl class="mcc-detail-grid">
-        <div><dt>Verification</dt><dd><span class="mcc-badge mcc-status-badge <?= esc($verificationClass) ?>"><?= esc(ucwords(strtolower($verificationStatus))) ?></span></dd></div>
-        <div><dt>Scanner</dt><dd><span class="mcc-badge mcc-status-badge <?= esc($scannerClass) ?>"><?= esc(ucwords(strtolower($scannerStatus))) ?></span></dd></div>
-        <div><dt>Scanner note</dt><dd><?= esc((string) ($document['scanner_reason'] ?? 'No scanner note available.')) ?></dd></div>
-        <div><dt>Verification reason</dt><dd><?= esc((string) ($document['verification_reason'] ?? 'No verification reason recorded.')) ?></dd></div>
-    </dl>
-    <?php if (! empty($can_verify)): ?>
-        <form class="mcc-form-grid mcc-document-verification-form" method="post" action="<?= site_url('documents/' . (int) $document['id'] . '/verify') ?>">
-            <?= csrf_field() ?>
-            <div class="mcc-form-group">
-                <label for="verification-status">Verification state</label>
-                <select class="form-control" id="verification-status" name="verification_status" required>
-                    <?php foreach (['PENDING', 'VERIFIED', 'REJECTED'] as $state): ?>
-                        <option value="<?= esc($state) ?>" <?= $verificationStatus === $state ? 'selected' : '' ?>><?= esc(ucwords(strtolower($state))) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="mcc-form-group">
-                <label for="verification-reason">Reason</label>
-                <textarea class="form-control" id="verification-reason" name="verification_reason" rows="3"><?= esc((string) old('verification_reason', '')) ?></textarea>
-            </div>
-            <div class="mcc-form-actions">
-                <button class="mcc-button mcc-button-primary" type="submit">Save verification</button>
-            </div>
-        </form>
-    <?php endif; ?>
 </section>
 
 <section class="mcc-card mcc-document-history-card" aria-labelledby="history-heading">

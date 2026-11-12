@@ -29,6 +29,8 @@ $hasAwardFilters = trim((string) ($filters['search'] ?? '')) !== ''
     || trim((string) ($filters['recipient_type'] ?? '')) !== ''
     || trim((string) ($filters['status'] ?? '')) !== ''
     || trim((string) ($filters['branch_id'] ?? '')) !== ''
+    || trim((string) ($filters['date_from'] ?? '')) !== ''
+    || trim((string) ($filters['date_to'] ?? '')) !== ''
     || $includeArchived;
 $pageActions = '<div class="mcc-page-actions">
     <button class="mcc-button mcc-button-secondary" type="button" data-filter-toggle
@@ -39,11 +41,10 @@ $pageActions = '<div class="mcc-page-actions">
     </button>
     ' . ($authorization->can('achievement.create') ? '<a class="mcc-button mcc-button-primary" href="' . site_url('achievements/awards/new') . '">Create Award</a>' : '') . '
     <a class="mcc-button mcc-button-secondary" href="' . site_url('achievements') . '">Achievement Catalog</a>
-    ' . (! $includeArchived ? '<a class="mcc-button mcc-button-secondary" href="' . site_url('achievements/awards?history=1') . '">View history</a>' : '') . '
 </div>';
 ?>
 <?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
-<main class="container py-4 mcc-achievements-page">
+<div class="mcc-achievements-page" id="main-content">
     <section id="award-filters" class="mcc-card mcc-achievement-filter-card" aria-labelledby="award-filters-heading" <?= $hasAwardFilters ? '' : 'hidden' ?>>
         <div class="mcc-card-heading">
             <div>
@@ -52,7 +53,7 @@ $pageActions = '<div class="mcc-page-actions">
             </div>
             <a class="mcc-button mcc-button-secondary" href="<?= site_url('achievements/awards') ?>">Clear filters</a>
         </div>
-        <form method="get" action="<?= site_url('achievements/awards') ?>" class="mcc-form-grid mcc-achievement-filter-form">
+        <form method="get" action="<?= site_url('achievements/awards') ?>" class="mcc-form-grid mcc-achievement-filter-form mcc-award-filter-form">
             <div class="mcc-form-field">
                 <label for="award-search">Search</label>
                 <input class="form-control" id="award-search" name="search" type="search" value="<?= esc($filters['search'] ?? '') ?>" placeholder="Title, recipient, or branch">
@@ -92,16 +93,25 @@ $pageActions = '<div class="mcc-page-actions">
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div class="mcc-form-field">
+                <label for="award-date-from">Created from</label>
+                <input class="form-control" id="award-date-from" name="date_from" inputmode="numeric"
+                    placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-format="d-m-Y"
+                    data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($filters['date_from'] ?? null)) ?>">
+            </div>
+            <div class="mcc-form-field">
+                <label for="award-date-to">Created to</label>
+                <input class="form-control" id="award-date-to" name="date_to" inputmode="numeric"
+                    placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-format="d-m-Y"
+                    data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($filters['date_to'] ?? null)) ?>">
+            </div>
             <div class="mcc-form-actions mcc-form-field-wide">
-                <label class="mcc-checkbox-label" for="award-history">
-                    <input id="award-history" name="history" type="checkbox" value="1" <?= $includeArchived ? 'checked' : '' ?>> Include archived awards
-                </label>
                 <button class="mcc-button mcc-button-primary" type="submit">Apply filters</button>
             </div>
         </form>
     </section>
 
-    <section class="mcc-card" aria-labelledby="award-list-heading">
+    <section class="mcc-card mcc-scheduling-card mcc-achievement-results-card" aria-labelledby="award-list-heading">
         <div class="mcc-card-heading">
             <div>
                 <span class="mcc-eyebrow">Authorized award records</span>
@@ -136,6 +146,7 @@ $pageActions = '<div class="mcc-page-actions">
                             $isArchived = (int) ($award['is_archived'] ?? 0) === 1;
                             $branchId = (string) ($award['branch_id'] ?? '');
                             $awardUrl = 'achievements/awards/' . (int) $award['id'];
+                            $actionsId = 'award-actions-' . (int) $award['id'];
                             $recipientType = ($award['recipient_type'] ?? '') === 'coach' ? 'Coach' : 'Player';
                             $recipientName = $recipientType === 'Coach' ? ($award['coach_name'] ?? 'Unavailable') : ($award['player_name'] ?? 'Unavailable');
                             ?>
@@ -147,9 +158,33 @@ $pageActions = '<div class="mcc-page-actions">
                                 <td data-label="Status"><span class="mcc-badge mcc-badge-<?= esc($isArchived ? 'warning' : ($statusTones[$status] ?? 'neutral')) ?>"><?= esc($isArchived ? 'Archived' : ($statusLabels[$status] ?? 'Unknown')) ?></span></td>
                                 <td data-label="Created"><time datetime="<?= esc((string) ($award['created_at'] ?? '')) ?>"><?= esc($formatDate($award['created_at'] ?? null)) ?></time></td>
                                 <td data-label="Actions" class="mcc-award-actions">
-                                    <a class="mcc-button mcc-button-secondary" href="<?= site_url($awardUrl) ?>">View</a>
-                                    <?php if (! $isArchived && $status === 'draft' && $authorization->can('achievement.update', $branchId)): ?>
-                                        <a class="mcc-button mcc-button-secondary" href="<?= site_url($awardUrl . '/edit') ?>">Edit draft</a>
+                                    <div class="mcc-session-action-menu" data-session-actions>
+                                        <button class="mcc-button mcc-button-secondary" type="button"
+                                            data-session-actions-toggle aria-expanded="false" aria-haspopup="true"
+                                            aria-controls="<?= esc($actionsId) ?>">
+                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                            Actions
+                                        </button>
+                                        <div class="mcc-session-action-dropdown" id="<?= esc($actionsId) ?>"
+                                            data-session-actions-menu hidden>
+                                    <a href="<?= esc(site_url($awardUrl)) ?>">
+                                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                        View award
+                                    </a>
+                                    <?php if (! $isArchived && in_array($status, ['draft', 'approved'], true) && ($authorization->can('achievement.update', $branchId) || $authorization->can('achievement.create', $branchId))): ?>
+                                        <a href="<?= esc(site_url($awardUrl . '/edit')) ?>">
+                                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                            Edit award
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if ($authorization->can('achievement.update', $branchId) || $authorization->can('achievement.create', $branchId)): ?>
+                                        <form method="post" action="<?= site_url($awardUrl . '/delete') ?>" onsubmit="return confirm('Permanently delete this award? This cannot be undone.');">
+                                            <?= csrf_field() ?>
+                                            <button type="submit">
+                                                <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                                Delete award
+                                            </button>
+                                        </form>
                                     <?php endif; ?>
                                     <?php if (! $isArchived && $status === 'draft' && $authorization->can('achievement.approve', $branchId)): ?>
                                         <form method="post" action="<?= site_url($awardUrl . '/approve') ?>">
@@ -207,6 +242,8 @@ $pageActions = '<div class="mcc-page-actions">
                                             <button class="mcc-button mcc-button-primary" type="submit">Restore</button>
                                         </form>
                                     <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -228,5 +265,5 @@ $pageActions = '<div class="mcc-page-actions">
             <?php endif; ?>
         <?php endif; ?>
     </section>
-</main>
+</div>
 <?= view('staff_footer') ?>

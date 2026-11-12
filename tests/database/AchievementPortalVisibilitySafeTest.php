@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 /** Contract coverage for portal visibility without mutating the persistent test database. */
 final class AchievementPortalVisibilitySafeTest extends TestCase
 {
-    public function testPortalVisibilityUsesPublishedPlayerAwardsAndBranchRelationship(): void
+    public function testPortalVisibilityUsesFinalPlayerAwardsAndBranchRelationship(): void
     {
         $service = file_get_contents(ROOTPATH . 'app/Services/PortalAuthService.php');
 
         self::assertIsString($service);
-        self::assertStringContainsString("where('aa.status', 'published')", $service);
+        self::assertStringContainsString("whereIn('aa.status', ['approved', 'published'])", $service);
         self::assertStringContainsString("where('aa.recipient_type', 'player')", $service);
         self::assertStringContainsString('whereIn(\'aa.player_id\', $playerIds)', $service);
         self::assertStringContainsString("where('aa.branch_id = p.branch_id', null, false)", $service);

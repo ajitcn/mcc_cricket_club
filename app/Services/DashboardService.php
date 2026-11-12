@@ -61,6 +61,7 @@ final class DashboardService
             'coachingVisible' => false,
             'coachingByBranch' => [],
             'coachingByBatch' => [],
+            'workload' => [],
             'branches' => [],
             'branchesVisible' => false,
             'coaches' => [],
@@ -187,6 +188,7 @@ final class DashboardService
         if ($can('session.update')) {
             $periodStartUtc = $periodStart->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
             $nowUtc = $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+            $eliteSessions = $model->countEliteSessionsForPeriod($branches, $periodStartUtc, $periodEndUtc);
             $upcomingSessions = $model->upcomingSessionsForPeriod(
                 $branches,
                 $periodStartUtc,
@@ -222,20 +224,42 @@ final class DashboardService
             $analytics['coaching'] = [
                 'group' => $model->countGroupSessionsForPeriod($branches, $periodStartUtc, $periodEndUtc),
                 'personal' => $model->countPersonalSessionsForPeriod($branches, $periodStartUtc, $periodEndUtc),
+                'elite' => $eliteSessions,
             ];
             $coachingDistribution = $model->coachingDistribution($branches, $periodStartUtc, $periodEndUtc);
             $analytics['coachingByBranch'] = $coachingDistribution['by_branch'];
+            $admissionCoaching = $model->admissionCoachingDistribution($branches);
+            foreach ($admissionCoaching as $branchId => $counts) {
+                if (! isset($analytics['coachingByBranch'][$branchId])) {
+                    $analytics['coachingByBranch'][$branchId] = $counts;
+                }
+            }
+            if ((int) ($analytics['coaching']['group'] ?? 0)
+                + (int) ($analytics['coaching']['personal'] ?? 0)
+                + (int) ($analytics['coaching']['elite'] ?? 0) === 0
+            ) {
+                $analytics['coaching']['group'] = array_sum(array_column($admissionCoaching, 'group'));
+                $analytics['coaching']['personal'] = array_sum(array_column($admissionCoaching, 'personal'));
+                $analytics['coaching']['elite'] = array_sum(array_column($admissionCoaching, 'elite'));
+            }
             $analytics['coachingByBatch'] = $coachingDistribution['by_batch'];
+            if ($analytics['coachingByBatch'] === []) {
+                $analytics['coachingByBatch'] = $model->admissionCoachingByBatch($branches);
+            }
+            $analytics['workload'] = $model->coachWorkload(
+                $branches,
+                $periodStartUtc,
+                $periodEndUtc
+            );
             $analytics['coachingVisible'] = true;
             $sections['sessions'] = $upcomingSessions;
 
             $cards[] = [
                 'label' => 'Elite Coaching',
-                'value' => 'Not available',
-                'description' => 'Not available on this dashboard',
+                'value' => $eliteSessions,
+                'description' => 'Explicit Elite sessions in the selected period',
                 'icon' => 'fa-star',
-                'url' => null,
-                'unavailable' => true,
+                'url' => 'sessions',
             ];
         }
 
@@ -323,10 +347,7 @@ final class DashboardService
             'selectedDate' => $selectedDate,
             'unavailableMetrics' => [
                 'Medical metrics — Not available on this dashboard',
-                'Elite coaching - Not available on this dashboard',
-                'Age-group distribution - Not available on this dashboard',
                 'Coach availability - Not available on this dashboard',
-                'Coach workload - Not available on this dashboard',
                 'Performance/KPI - Not available on this dashboard',
             ],
         ];

@@ -16,21 +16,6 @@ $statusMeta = static function (string $status): array {
     };
 };
 
-$verificationMeta = static function (string $status): array {
-    return match (strtoupper($status)) {
-        'VERIFIED' => ['label' => 'Verified', 'class' => 'mcc-badge-success'],
-        'REJECTED' => ['label' => 'Rejected', 'class' => 'mcc-badge-danger'],
-        default => ['label' => 'Pending', 'class' => 'mcc-badge-warning'],
-    };
-};
-
-$scannerMeta = static function (string $status): array {
-    return match (strtoupper($status)) {
-        'CLEAN' => ['label' => 'Clean', 'class' => 'mcc-badge-success'],
-        'FAILED' => ['label' => 'Failed', 'class' => 'mcc-badge-danger'],
-        default => ['label' => 'Quarantined', 'class' => 'mcc-badge-warning'],
-    };
-};
 ?>
 <?= view('staff_header', [
     'title' => 'Documents',
@@ -122,9 +107,7 @@ $scannerMeta = static function (string $status): array {
                         <th scope="col">Related record</th>
                         <th scope="col">Branch</th>
                         <th scope="col">Document type</th>
-                        <th scope="col">Verification</th>
-                        <th scope="col">Scanner</th>
-                        <th scope="col">Version</th>
+                        <th scope="col">Status</th>
                         <th scope="col">Expiry</th>
                         <th scope="col">Uploaded</th>
                         <th scope="col">Available actions</th>
@@ -134,8 +117,6 @@ $scannerMeta = static function (string $status): array {
                     <?php foreach ($documents as $document): ?>
                         <?php
                         $status = $statusMeta((string) ($document['status'] ?? ''));
-                        $verification = $verificationMeta((string) ($document['verification_status'] ?? 'PENDING'));
-                        $scanner = $scannerMeta((string) ($document['scanner_status'] ?? 'QUARANTINED'));
                         $type = ucwords(str_replace('_', ' ', (string) ($document['document_type'] ?? 'Document')));
                         ?>
                         <tr>
@@ -144,9 +125,11 @@ $scannerMeta = static function (string $status): array {
                             </th>
                             <td><?= esc((string) ($document['branch_name'] ?? 'Authorized branch')) ?></td>
                             <td><?= esc($type) ?></td>
-                            <td><span class="mcc-badge mcc-status-badge <?= esc($verification['class']) ?>"><?= esc($verification['label']) ?></span></td>
-                            <td><span class="mcc-badge mcc-status-badge <?= esc($scanner['class']) ?>"><?= esc($scanner['label']) ?></span></td>
-                            <td>v<?= (int) ($document['version_number'] ?? 1) ?></td>
+                            <td>
+                                <div class="mcc-document-status-stack">
+                                    <span class="mcc-badge mcc-status-badge <?= esc($status['class']) ?>"><?= esc($status['label']) ?></span>
+                                </div>
+                            </td>
                             <td>
                                 <?php if (! empty($document['expires_on'])): ?>
                                     <?= esc(mcc_user_date($document['expires_on'], 'Not set')) ?>

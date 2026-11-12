@@ -8,7 +8,14 @@ $coach = is_array($coach ?? null) ? $coach : [];
     'nav' => $nav,
     'message' => $message,
     'error' => $error,
+    'pageActions' => '<div class="mcc-page-actions">
+        <a class="mcc-button mcc-button-secondary" href="' . ($isEdit ? site_url('coaches/' . (int) $coach['id']) : site_url('coaches')) . '">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span class="mcc-button-label">Back</span>
+        </a>
+    </div>',
 ]) ?>
+<main class="mcc-coach-form-page">
 <section class="mcc-card mcc-coach-form-card" aria-labelledby="coach-form-heading">
     <div class="mcc-card-heading">
         <div>
@@ -24,6 +31,10 @@ $coach = is_array($coach ?? null) ? $coach : [];
         class="mcc-coach-form"
     >
         <div class="mcc-coach-form-fields">
+            <div class="mcc-coach-form-section-title">
+                <span class="mcc-eyebrow">Account</span>
+                <h3>Coach account</h3>
+            </div>
             <?php if (!$isEdit): ?>
                 <div class="mcc-coach-field">
                     <label for="coach-user">Coach user</label>
@@ -37,10 +48,17 @@ $coach = is_array($coach ?? null) ? $coach : [];
                     </select>
                 </div>
             <?php else: ?>
-                <p class="mcc-help">
-                    <?= esc($coach['display_name']) ?> · <?= esc($coach['email']) ?>
-                </p>
+                <div class="mcc-coach-field mcc-form-field-full">
+                    <label>Coach user</label>
+                    <p class="mcc-help">
+                        <?= esc($coach['display_name']) ?> · <?= esc($coach['email']) ?>
+                    </p>
+                </div>
             <?php endif; ?>
+            <div class="mcc-coach-form-section-title">
+                <span class="mcc-eyebrow">Expertise</span>
+                <h3>Professional details</h3>
+            </div>
             <div class="mcc-coach-field">
                 <label for="specialization">Specialization</label>
                 <input class="form-control" id="specialization" name="specialization" maxlength="150" value="<?= esc((string) ($coach['specialization'] ?? '')) ?>">
@@ -49,17 +67,17 @@ $coach = is_array($coach ?? null) ? $coach : [];
                 <label for="experience-years">Experience</label>
                 <input class="form-control" id="experience-years" name="experience_years" type="text" maxlength="150" value="<?= esc((string) ($coach['experience_years'] ?? '')) ?>">
             </div>
-            <div class="mcc-coach-field">
+            <div class="mcc-coach-field mcc-form-field-full">
                 <label for="qualification">Qualification</label>
                 <textarea class="form-control" id="qualification" name="qualification" rows="3" maxlength="10000"><?= esc((string) ($coach['qualification'] ?? '')) ?></textarea>
             </div>
-            <div class="mcc-coach-field">
+            <div class="mcc-coach-field mcc-form-field-full">
                 <label for="certifications">Certifications</label>
                 <textarea class="form-control" id="certifications" name="certifications" rows="3" maxlength="10000"><?= esc((string) ($coach['certifications'] ?? '')) ?></textarea>
             </div>
-            <div class="mcc-coach-field">
-                <label for="availability">Availability notes</label>
-                <textarea class="form-control" id="availability" name="availability" rows="3" maxlength="10000"><?= esc((string) ($coach['availability'] ?? '')) ?></textarea>
+            <div class="mcc-coach-form-section-title">
+                <span class="mcc-eyebrow">Profile</span>
+                <h3>Status and audit</h3>
             </div>
             <div class="mcc-coach-field">
                 <label for="is-active">Profile status</label>
@@ -84,4 +102,5 @@ $coach = is_array($coach ?? null) ? $coach : [];
         </div>
     </form>
 </section>
+</main>
 <?= view('staff_footer') ?>

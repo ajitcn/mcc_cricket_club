@@ -115,7 +115,7 @@ final class SessionManagementContractTest extends TestCase
         self::assertStringContainsString('nl2br(esc((string) $session[\'description\']))', $detail);
         self::assertStringContainsString('description', $service);
         self::assertStringContainsString('Choose session type', $create);
-        self::assertStringContainsString('One-to-One', $create);
+        self::assertStringContainsString('Personal', $create);
         self::assertStringContainsString('Group', $create);
         self::assertStringContainsString('session_type', $service);
         self::assertStringContainsString('Invalid session type.', $service);

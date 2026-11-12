@@ -96,9 +96,31 @@ final class Browser extends StaffController
 
             $rows = $result['rows'];
             if ($rows !== []) {
-                fputcsv($handle, array_keys($rows[0]));
+                $dateFields = [
+                    'created_at',
+                    'updated_at',
+                    'recorded_at',
+                    'admission_date',
+                    'joining_date',
+                    'starts_at',
+                    'ends_at',
+                ];
+                $headers = array_keys($rows[0]);
+                $labels = array_map(
+                    static fn(string $header): string => ucwords(str_replace('_', ' ', $header)),
+                    $headers
+                );
+                fputcsv($handle, $labels);
+
                 foreach ($rows as $row) {
-                    fputcsv($handle, $row);
+                    $values = [];
+                    foreach ($headers as $header) {
+                        $value = $row[$header] ?? null;
+                        $values[] = in_array($header, $dateFields, true)
+                            ? mcc_user_datetime($value !== null ? (string) $value : null, '')
+                            : $value;
+                    }
+                    fputcsv($handle, $values);
                 }
             }
 
@@ -108,11 +130,11 @@ final class Browser extends StaffController
 
             return $this->response
                 ->setHeader('Content-Type', 'text/csv; charset=utf-8')
+                ->setBody("\xEF\xBB\xBF" . $csv)
                 ->setHeader(
                     'Content-Disposition',
                     'attachment; filename="' . $type . '-report.csv"'
-                )
-                ->setBody($csv);
+                );
         } catch (Throwable $exception) {
             return $this->response
                 ->setStatusCode($exception->getMessage() === 'Forbidden' ? 403 : 400)

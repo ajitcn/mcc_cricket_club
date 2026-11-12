@@ -14,7 +14,7 @@ $recipientName = $award['recipient_type'] === 'player'
     ? ($award['player_name'] ?? 'Unavailable')
     : ($award['coach_name'] ?? 'Unavailable');
 $authorization = service('authorization');
-$canUpdate = $authorization->can('achievement.update', $branchId);
+$canUpdate = $authorization->can('achievement.update', $branchId) || $authorization->can('achievement.create', $branchId);
 $canApprove = $authorization->can('achievement.approve', $branchId);
 $canPublish = $authorization->can('achievement.publish', $branchId);
 $canRevoke = $authorization->can('achievement.revoke', $branchId);
@@ -23,22 +23,18 @@ $canRestore = $authorization->can('achievement.restore', $branchId);
 $canGenerateCertificate = $authorization->can('achievement.certificate.generate', $branchId);
 $canDownloadCertificate = $authorization->can('achievement.certificate.download', $branchId);
 $awardUrl = 'achievements/awards/' . (int) ($award['id'] ?? 0);
+$pageActions = '<div class="mcc-page-actions">
+    <a class="mcc-button mcc-button-secondary" href="' . esc(site_url('achievements/awards')) . '">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Back to awards
+    </a>'
+    . ($canUpdate && in_array($status, ['draft', 'approved'], true) && ! $isArchived
+        ? '<a class="mcc-button mcc-button-primary" href="' . esc(site_url($awardUrl . '/edit')) . '"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit award</a>'
+        : '')
+    . '</div>';
 ?>
-<?= view('staff_header', ['title' => $title]) ?>
-<main class="container py-4 mcc-achievements-page">
-    <div class="mcc-page-heading">
-        <div>
-            <span class="mcc-eyebrow">Achievement award</span>
-            <h1><?= esc($award['achievement_title'] ?? 'Achievement award') ?></h1>
-        </div>
-        <div class="mcc-page-actions">
-            <a class="mcc-button mcc-button-secondary" href="<?= site_url('achievements/awards') ?>">Back to awards</a>
-            <?php if ($canUpdate && $status === 'draft' && ! $isArchived): ?>
-                <a class="mcc-button mcc-button-primary" href="<?= site_url($awardUrl . '/edit') ?>">Edit draft</a>
-            <?php endif; ?>
-        </div>
-    </div>
-
+<?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
+<div class="mcc-achievements-page mcc-achievement-award-detail-page">
     <?php if (! empty($error)): ?>
         <div class="mcc-alert mcc-alert-danger" role="alert"><?= esc($error) ?></div>
     <?php endif; ?>
@@ -46,7 +42,7 @@ $awardUrl = 'achievements/awards/' . (int) ($award['id'] ?? 0);
         <div class="mcc-alert mcc-alert-success" role="status"><?= esc($message) ?></div>
     <?php endif; ?>
 
-    <section class="mcc-card" aria-labelledby="award-heading">
+    <section class="mcc-card mcc-scheduling-card" aria-labelledby="award-heading">
         <div class="mcc-card-heading">
             <div>
                 <span class="mcc-eyebrow">Award record</span>
@@ -59,19 +55,13 @@ $awardUrl = 'achievements/awards/' . (int) ($award['id'] ?? 0);
                 <?php endif; ?>
             </div>
         </div>
-        <dl class="mcc-detail-list">
-            <dt>Achievement</dt>
-            <dd><?= esc($award['achievement_title'] ?? 'Unavailable') ?></dd>
-            <dt>Recipient</dt>
-            <dd><?= esc($recipientName) ?></dd>
-            <dt>Recipient type</dt>
-            <dd><?= esc(ucfirst((string) ($award['recipient_type'] ?? 'Unavailable'))) ?></dd>
-            <dt>Branch</dt>
-            <dd><?= esc($award['branch_name'] ?? 'Unavailable') ?></dd>
-            <dt>Nomination note</dt>
-            <dd><?= esc($award['nomination_note'] ?? 'Not provided') ?></dd>
-            <dt>Revision</dt>
-            <dd><?= (int) ($award['version'] ?? 1) ?></dd>
+        <dl class="mcc-detail-grid mcc-achievement-award-detail-grid">
+            <div><dt>Achievement</dt><dd><?= esc($award['achievement_title'] ?? 'Unavailable') ?></dd></div>
+            <div><dt>Recipient</dt><dd><?= esc($recipientName) ?></dd></div>
+            <div><dt>Recipient type</dt><dd><?= esc(ucfirst((string) ($award['recipient_type'] ?? 'Unavailable'))) ?></dd></div>
+            <div><dt>Branch</dt><dd><?= esc($award['branch_name'] ?? 'Unavailable') ?></dd></div>
+            <div class="mcc-detail-grid-wide"><dt>Nomination note</dt><dd><?= esc($award['nomination_note'] ?? 'Not provided') ?></dd></div>
+            <div><dt>Revision</dt><dd><?= (int) ($award['version'] ?? 1) ?></dd></div>
         </dl>
     </section>
 
@@ -155,5 +145,5 @@ $awardUrl = 'achievements/awards/' . (int) ($award['id'] ?? 0);
             </form>
         </section>
     <?php endif; ?>
-</main>
+</div>
 <?= view('staff_footer') ?>

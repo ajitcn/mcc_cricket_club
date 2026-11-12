@@ -37,6 +37,12 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
         ['label' => 'Coach Feedback'],
     ],
     'pageActions' => '<div class="mcc-page-actions">
+        <button class="mcc-button mcc-button-secondary" type="button"
+            data-filter-toggle aria-controls="player-feedback-filters"
+            aria-expanded="false">
+            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+            <span class="mcc-button-label">Show Filters</span>
+        </button>
         <a class="mcc-button mcc-button-primary" href="' . esc(site_url('player-feedback/new')) . '">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
             Add Feedback
@@ -45,17 +51,11 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
             <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
             Annual Feedback Report
         </a>
-        <button class="mcc-button mcc-button-secondary" type="button"
-            data-filter-toggle aria-controls="player-feedback-filters"
-            aria-expanded="false">
-            <i class="fa-solid fa-filter" aria-hidden="true"></i>
-            Filters
-        </button>
     </div>',
 ]) ?>
 
-<section class="mcc-player-feedback-page">
-    <section id="player-feedback-filters" class="mcc-card" hidden
+<div class="mcc-player-feedback-page">
+    <section id="player-feedback-filters" class="mcc-card mcc-scheduling-card" hidden
         aria-labelledby="player-feedback-filters-heading">
         <div class="mcc-card-heading">
             <div>
@@ -65,14 +65,14 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
         </div>
         <form method="get" action="<?= esc(site_url('player-feedback')) ?>"
             class="row mcc-player-filter-grid">
-            <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+            <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                 <label for="feedback-player">Player name or ID</label>
                 <input class="form-control" id="feedback-player" name="player"
                     type="search" maxlength="100"
                     placeholder="Search by Player name or ID"
                     value="<?= esc((string) ($filters['player'] ?? '')) ?>">
             </div>
-            <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+            <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                 <label for="feedback-coach">Coach</label>
                 <select class="form-control" id="feedback-coach" name="coach_id">
                     <option value="">All coaches</option>
@@ -85,7 +85,7 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                 </select>
             </div>
             <?php if (count($branches) > 1): ?>
-                <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+                <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                     <label for="feedback-branch">Branch</label>
                     <select class="form-control" id="feedback-branch" name="branch_id">
                         <option value="">All authorized branches</option>
@@ -98,13 +98,13 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                     </select>
                 </div>
             <?php endif; ?>
-            <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+            <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                 <label for="feedback-year-filter">Year</label>
                 <input class="form-control" id="feedback-year-filter" name="year"
                     type="number" min="2000" max="2100"
                     value="<?= esc((string) ($filters['year'] ?? '')) ?>">
             </div>
-            <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+            <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                 <label for="feedback-quarter-filter">Feedback period</label>
                 <select class="form-control" id="feedback-quarter-filter" name="quarter">
                     <option value="">All periods</option>
@@ -117,11 +117,18 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                 </select>
             </div>
             <?php foreach (['created_from' => 'Created from', 'created_to' => 'Created to'] as $field => $label): ?>
-                <div class="col-12 col-md-6 col-lg-4 mb-2 mcc-player-filter-field">
+                <div class="col-12 col-md-6 col-lg-3 mb-2 mcc-player-filter-field">
                     <label for="feedback-<?= esc($field) ?>"><?= esc($label) ?></label>
                     <input class="form-control" id="feedback-<?= esc($field) ?>"
-                        name="<?= esc($field) ?>" type="date"
-                        value="<?= esc((string) ($filters[$field] ?? '')) ?>">
+                        name="<?= esc($field) ?>" type="text"
+                        inputmode="numeric"
+                        placeholder="DD-MM-YYYY"
+                        autocomplete="off"
+                        data-mcc-date-picker
+                        data-mcc-date-picker-no-toggle
+                        data-mcc-date-format="d-m-Y"
+                        data-mcc-date-submit-format="Y-m-d"
+                        value="<?= esc(mcc_user_date_input($filters[$field] ?? null)) ?>">
                 </div>
             <?php endforeach; ?>
             <div class="col-12 mt-2 text-right">
@@ -138,16 +145,18 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
         </form>
     </section>
 
-    <section class="mcc-card mcc-detail-card" aria-labelledby="player-feedback-heading">
-        <div class="mcc-card-heading">
+    <section class="mcc-card mcc-scheduling-card mcc-player-feedback-results-card" aria-labelledby="player-feedback-heading">
+        <div class="mcc-session-summary">
             <div>
-                <span class="mcc-eyebrow">Coach workspace</span>
-                <h2 id="player-feedback-heading">Coach–Student/Parent Feedbacks</h2>
+                <span class="mcc-eyebrow">Quarterly feedback</span>
+                <h2 id="player-feedback-heading">Coach Feedback</h2>
             </div>
-            <span class="mcc-muted">
+            <div class="mcc-session-summary-meta">
+                <span class="mcc-muted">
                 <?= (int) ($result['total'] ?? 0) ?>
                 result<?= (int) ($result['total'] ?? 0) === 1 ? '' : 's' ?>
-            </span>
+                </span>
+            </div>
         </div>
 
         <?php if ($feedbacks === []): ?>
@@ -290,6 +299,6 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
             </nav>
         <?php endif; ?>
     </section>
-</section>
+</div>
 
 <?= view('staff_footer') ?>

@@ -36,7 +36,7 @@ $fieldErrors = is_array($fieldErrors) ? $fieldErrors : [];
 $fieldError = static fn(string $field): string => (string) ($fieldErrors[$field] ?? '');
 $status = strtolower((string) ($session['status'] ?? 'unknown'));
 $sessionType = match ((string) ($session['session_type'] ?? '')) {
-    'one_to_one' => 'One-to-One',
+    'one_to_one' => 'Personal',
     'group' => 'Group',
     'elite' => 'Elite',
     default => 'Not set',

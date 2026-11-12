@@ -83,9 +83,9 @@ final class DashboardRoutesTest extends CIUnitTestCase
         self::assertSame(200, $response->response()->getStatusCode());
         self::assertStringContainsString('Coaching-type distribution', $response->getBody());
         self::assertStringContainsString('Coach list', $response->getBody());
-        self::assertStringContainsString('Age-group distribution - Not available on this dashboard', $response->getBody());
+        self::assertStringContainsString('Age-wise Player distribution', $response->getBody());
         self::assertStringContainsString('dashboard-director-grid', $response->getBody());
-        self::assertStringContainsString('dashboard-filter-summary', $response->getBody());
+        self::assertStringContainsString('dashboard-hero-filters', $response->getBody());
     }
 
     /** @param list<string> $permissions @param list<int> $branches */

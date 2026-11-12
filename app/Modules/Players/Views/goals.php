@@ -154,6 +154,7 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                         <?php foreach ($goals as $goal): ?>
                             <?php
                             $preview = trim((string) ($goal['description'] ?? ''));
+                            $playerReference = trim((string) ($goal['player_reference'] ?? ''));
                             $canManageGoal = service('authorization')->can(
                                 'player.goal.set',
                                 (string) ($goal['branch_id'] ?? 0),
@@ -166,7 +167,7 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                                             <?= esc((string) ($goal['player_name'] ?? 'Unnamed player')) ?>
                                         </strong>
                                         <span class="mcc-goal-table-value mcc-muted">
-                                            Player #<?= (int) ($goal['player_id'] ?? 0) ?>
+                                            #<?= esc($playerReference !== '' ? $playerReference : (string) ((int) ($goal['player_id'] ?? 0))) ?>
                                         </span>
                                         <span class="mcc-goal-table-value mcc-muted">
                                             Branch: <?= esc((string) ($goal['branch_name'] ?? 'Authorized branch')) ?>

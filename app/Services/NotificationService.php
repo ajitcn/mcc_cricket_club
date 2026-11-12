@@ -45,6 +45,37 @@ final class NotificationService
         ];
     }
 
+    /**
+     * Return the small notification projection used by the shared staff topbar.
+     * Recipient rows are the source of truth, so branch-wide notifications are
+     * already expanded to every authorized recipient at creation time.
+     *
+     * @return array{notifications: list<array<string, mixed>>, unread_count: int}
+     */
+    public function topbar(): array
+    {
+        $this->allow('notification.view');
+        $db = Database::connect('default');
+        $userId = $this->actor();
+        $base = $db->table('notification_recipients nr')
+            ->join('notifications n', 'n.id = nr.notification_id')
+            ->where('nr.recipient_user_id', $userId);
+        $unreadCount = (int) (clone $base)
+            ->where('nr.read_at IS NULL', null, false)
+            ->countAllResults();
+        $notifications = $base
+            ->select('n.id, n.title, n.body, n.category, n.created_at, nr.id AS recipient_id, nr.read_at')
+            ->orderBy('n.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        return [
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ];
+    }
+
     /** @return array{branches: list<array<string, mixed>>, users: list<array<string, mixed>>, categories: list<string>, branch_optional: bool} */
     public function createOptions(): array
     {

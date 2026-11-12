@@ -97,6 +97,29 @@ final class PortalDashboardUiContractTest extends TestCase
         self::assertStringContainsString("'portalType' => 'Parent'", $this->controller);
     }
 
+    public function testPortalDocumentsUseControlledDownloadAndProfileSectionsAreReadOnly(): void
+    {
+        self::assertStringContainsString('portalDocumentDownload', $this->controller);
+        self::assertStringContainsString('readPortalDocument', (string) file_get_contents(APPPATH . 'Services/PortalAuthService.php'));
+        self::assertStringContainsString('/download', $this->view);
+        self::assertStringContainsString('Profile and contact details', $this->view);
+        self::assertStringContainsString('Hostel and transport status', $this->view);
+        self::assertStringContainsString('portal users cannot edit official records directly', $this->view);
+        self::assertStringContainsString('Contact academy support', $this->view);
+        self::assertStringContainsString("portal_support_request_created", (string) file_get_contents(APPPATH . 'Services/PortalAuthService.php'));
+    }
+
+    public function testPortalDashboardKeepsPlayerDataWhenOptionalProgramOrTournamentLinksDiffer(): void
+    {
+        $service = (string) file_get_contents(APPPATH . 'Services/PortalAuthService.php');
+
+        self::assertStringContainsString("fieldExists('program_id', 'batches')", $service);
+        self::assertStringContainsString("tournament_fixtures", $service);
+        self::assertStringContainsString("match_players", $service);
+        self::assertStringContainsString('LOWER(d.document_type) NOT IN', $service);
+        self::assertStringContainsString('$db->escape($type)', $service);
+    }
+
     public function testDashboardKeepsRealLogoutFormAndCsrfProtection(): void
     {
         self::assertStringContainsString('action="<?= site_url(\'portal-logout\') ?>"', $this->view);

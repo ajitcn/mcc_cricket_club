@@ -183,6 +183,9 @@ $cards = array_values(array_filter(
                                         <span class="dashboard-branch-legend">
                                             <span><i class="dashboard-legend-dot dashboard-legend-group"></i>Group <?= esc((string) $branchGroup) ?></span>
                                             <span><i class="dashboard-legend-dot dashboard-legend-personal"></i>Personal <?= esc((string) $branchPersonal) ?></span>
+                                            <?php if ((int) ($branchCoaching['elite'] ?? 0) > 0): ?>
+                                                <span><i class="dashboard-legend-dot dashboard-legend-elite"></i>Elite <?= esc((string) $branchCoaching['elite']) ?></span>
+                                            <?php endif; ?>
                                         </span>
                                     </div>
                                 <?php else: ?>
@@ -213,7 +216,8 @@ $cards = array_values(array_filter(
     <?php
     $visualGroup = (int) ($coachingAnalytics['group'] ?? 0);
     $visualPersonal = (int) ($coachingAnalytics['personal'] ?? 0);
-    $visualCoachingTotal = $visualGroup + $visualPersonal;
+    $visualElite = (int) ($coachingAnalytics['elite'] ?? 0);
+    $visualCoachingTotal = $visualGroup + $visualPersonal + $visualElite;
     $visualBatchRows = is_array($analytics['batches'] ?? null) ? $analytics['batches'] : [];
     $visualBatchMax = 0;
     foreach ($visualBatchRows as $visualBatch) {
@@ -242,10 +246,13 @@ $cards = array_values(array_filter(
                     <div class="dashboard-chart-legend">
                         <span><i class="dashboard-chart-dot dashboard-chart-dot-group"></i>Group <strong><?= $visualGroup ?></strong></span>
                         <span><i class="dashboard-chart-dot dashboard-chart-dot-personal"></i>Personal <strong><?= $visualPersonal ?></strong></span>
+                        <span><i class="dashboard-chart-dot dashboard-chart-dot-elite"></i>Elite <strong><?= $visualElite ?></strong></span>
                     </div>
                 </div>
             <?php else: ?>
-                <div class="dashboard-empty dashboard-empty-inline"><p>No session type data is available.</p></div>
+                <div class="dashboard-empty dashboard-empty-inline">
+                    <p>Group 0 · Personal 0 · Elite 0</p>
+                </div>
             <?php endif; ?>
         </article>
 
@@ -583,34 +590,30 @@ $cards = array_values(array_filter(
                         <p class="mcc-eyebrow">Selected period</p>
                         <h2 id="coaching-distribution-heading">Coaching-type distribution</h2>
                     </div>
-                    <span class="dashboard-section-note">Session roster rule</span>
+                    <span class="dashboard-section-note">Selected period and current coaching selections</span>
                 </div>
-                <?php if ((int) ($coachingAnalytics['group'] ?? 0) + (int) ($coachingAnalytics['personal'] ?? 0) === 0): ?>
-                    <div class="dashboard-empty dashboard-empty-inline">
-                        <p>No group or personal coaching sessions are available for this period.</p>
-                    </div>
-                <?php else: ?>
-                    <?php
-                    $coachingTotal = (int) ($coachingAnalytics['group'] ?? 0)
-                        + (int) ($coachingAnalytics['personal'] ?? 0);
-                    ?>
-                    <div class="dashboard-distribution-list">
-                        <?php foreach ([
-                            'group' => ['label' => 'Group coaching', 'tone' => 'info'],
-                            'personal' => ['label' => 'Personal coaching', 'tone' => 'success'],
-                        ] as $key => $item): ?>
-                            <div class="dashboard-distribution-row">
-                                <span class="dashboard-distribution-label">
-                                    <?= view('components/badge', ['tone' => $item['tone'], 'label' => $item['label']]) ?>
-                                </span>
-                                <span class="dashboard-distribution-value">
-                                    <i aria-hidden="true"><b style="width: <?= $coachingTotal > 0 ? (int) round((int) ($coachingAnalytics[$key] ?? 0) / $coachingTotal * 100) : 0 ?>%;"></b></i>
-                                    <strong><?= esc((string) ($coachingAnalytics[$key] ?? 0)) ?></strong>
-                                </span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+                <?php
+                $coachingTotal = (int) ($coachingAnalytics['group'] ?? 0)
+                    + (int) ($coachingAnalytics['personal'] ?? 0)
+                    + (int) ($coachingAnalytics['elite'] ?? 0);
+                ?>
+                <div class="dashboard-distribution-list">
+                    <?php foreach ([
+                        'group' => ['label' => 'Group coaching', 'tone' => 'info'],
+                        'personal' => ['label' => 'Personal coaching', 'tone' => 'success'],
+                        'elite' => ['label' => 'Elite coaching', 'tone' => 'warning'],
+                    ] as $key => $item): ?>
+                        <div class="dashboard-distribution-row">
+                            <span class="dashboard-distribution-label">
+                                <?= view('components/badge', ['tone' => $item['tone'], 'label' => $item['label']]) ?>
+                            </span>
+                            <span class="dashboard-distribution-value">
+                                <i aria-hidden="true"><b style="width: <?= $coachingTotal > 0 ? (int) round((int) ($coachingAnalytics[$key] ?? 0) / $coachingTotal * 100) : 0 ?>%;"></b></i>
+                                <strong><?= esc((string) ($coachingAnalytics[$key] ?? 0)) ?></strong>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </section>
         <?php endif; ?>
 
@@ -718,7 +721,7 @@ $cards = array_values(array_filter(
                                     <th scope="row"><?= esc((string) $batch['batch_name']) ?></th>
                                     <td><?= esc((string) $batch['group']) ?></td>
                                     <td><?= esc((string) $batch['personal']) ?></td>
-                                    <td><span class="mcc-muted">Not available</span></td>
+                                    <td><?= esc((string) ($batch['elite'] ?? 0)) ?></td>
                                     <td><strong><?= esc((string) $batch['total']) ?></strong></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -785,18 +788,44 @@ $cards = array_values(array_filter(
         <?php endif; ?>
     </section>
 
-    <section class="dashboard-surface dashboard-workload-unavailable" aria-labelledby="workload-heading">
+    <?php $workloadRows = is_array($analytics['workload'] ?? null) ? $analytics['workload'] : []; ?>
+    <?php if ($workloadRows !== []): ?>
+    <section class="dashboard-surface dashboard-workload" aria-labelledby="workload-heading">
         <div class="dashboard-section-heading">
             <div>
                 <p class="mcc-eyebrow">Coach operations</p>
                 <h2 id="workload-heading">Coach workload overview</h2>
             </div>
+            <span class="dashboard-section-note">Session counts for the selected period</span>
         </div>
-        <div class="dashboard-unavailable-panel">
-            <strong>Not available on this dashboard</strong>
-            <p>No approved workload unit, weighting, or denominator exists for this view.</p>
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table dashboard-workload-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Coach</th>
+                        <th scope="col">Branch</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Scheduled</th>
+                        <th scope="col">Active</th>
+                        <th scope="col">Completed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($workloadRows as $row): ?>
+                        <tr>
+                            <th scope="row"><?= esc((string) ($row['coach_name'] ?? 'Assigned coach')) ?></th>
+                            <td><?= esc((string) ($row['branch_name'] ?? 'Branch unavailable')) ?></td>
+                            <td><strong><?= (int) ($row['session_count'] ?? 0) ?></strong></td>
+                            <td><?= (int) ($row['scheduled_count'] ?? 0) ?></td>
+                            <td><?= (int) ($row['active_count'] ?? 0) ?></td>
+                            <td><?= (int) ($row['completed_count'] ?? 0) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </section>
+    <?php endif; ?>
 
     <section class="dashboard-surface dashboard-upcoming" aria-labelledby="upcoming-heading">
         <div class="dashboard-section-heading">
@@ -822,9 +851,12 @@ $cards = array_values(array_filter(
             </div>
         <?php else: ?>
             <div class="dashboard-upcoming-groups">
-                <div class="dashboard-upcoming-group">
+                <div class="dashboard-upcoming-group dashboard-upcoming-group-sessions">
                     <div class="dashboard-subsection-heading">
-                        <h3>Sessions</h3>
+                        <div>
+                            <h3>Sessions</h3>
+                            <span class="dashboard-upcoming-count"><?= esc((string) count($sessions)) ?> scheduled</span>
+                        </div>
                         <?php if ($sessions !== []): ?>
                             <a href="<?= site_url('sessions') ?>">View schedule</a>
                         <?php endif; ?>
@@ -850,9 +882,12 @@ $cards = array_values(array_filter(
                     <?php endif; ?>
                 </div>
 
-                <div class="dashboard-upcoming-group">
+                <div class="dashboard-upcoming-group dashboard-upcoming-group-trials">
                     <div class="dashboard-subsection-heading">
-                        <h3>Trials</h3>
+                        <div>
+                            <h3>Trials</h3>
+                            <span class="dashboard-upcoming-count"><?= esc((string) count($trials)) ?> scheduled</span>
+                        </div>
                         <?php if ($trials !== []): ?>
                             <a href="<?= site_url('crm/trials') ?>">View trials</a>
                         <?php endif; ?>
@@ -878,9 +913,12 @@ $cards = array_values(array_filter(
                     <?php endif; ?>
                 </div>
 
-                <div class="dashboard-upcoming-group">
+                <div class="dashboard-upcoming-group dashboard-upcoming-group-matches">
                     <div class="dashboard-subsection-heading">
-                        <h3>Matches</h3>
+                        <div>
+                            <h3>Matches</h3>
+                            <span class="dashboard-upcoming-count"><?= esc((string) count($matches)) ?> scheduled</span>
+                        </div>
                         <?php if ($matches !== []): ?>
                             <a href="<?= site_url('matches') ?>">View matches</a>
                         <?php endif; ?>
@@ -888,27 +926,38 @@ $cards = array_values(array_filter(
                     <?php if ($matches === []): ?>
                         <p class="dashboard-muted-empty">No upcoming matches.</p>
                     <?php else: ?>
-                        <div class="dashboard-activity-list">
+                        <div class="dashboard-table-wrap dashboard-upcoming-match-table-wrap">
+                            <table class="dashboard-table dashboard-upcoming-match-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Date / time</th>
+                                        <th scope="col">Match</th>
+                                        <th scope="col">Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                             <?php foreach ($matches as $item): ?>
-                                <a class="dashboard-activity-row dashboard-activity-card dashboard-activity-link" href="<?= site_url('matches') ?>">
-                                    <span class="dashboard-activity-date">
-<?= esc($formatDate($item['starts_at'] ?? null, 'd-m-Y', true)) ?>
-                                        <b><?= esc($formatDate($item['starts_at'] ?? null, 'h:i A', true)) ?></b>
-                                    </span>
-                                    <span class="dashboard-activity-copy">
-                                        <strong><?= esc($item['opponent'] ?? 'Scheduled match') ?></strong>
-                                        <small><?= esc($item['match_type'] ?? 'Match') ?></small>
-                                    </span>
-                                    <span class="dashboard-activity-type">Match</span>
-                                </a>
+                                    <tr>
+                                        <td>
+                                            <?= esc($formatDate($item['starts_at'] ?? null, 'd-m-Y', true)) ?><br>
+                                            <span class="dashboard-table-muted"><?= esc($formatDate($item['starts_at'] ?? null, 'h:i A', true)) ?></span>
+                                        </td>
+                                        <td><a href="<?= site_url('matches') ?>"><?= esc($item['opponent'] ?? 'Scheduled match') ?></a></td>
+                                        <td><span class="dashboard-activity-type">Match</span></td>
+                                    </tr>
                             <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
                     <?php endif; ?>
                 </div>
 
-                <div class="dashboard-upcoming-group">
+                <div class="dashboard-upcoming-group dashboard-upcoming-group-tournaments">
                     <div class="dashboard-subsection-heading">
-                        <h3>Tournament activity</h3>
+                        <div>
+                            <h3>Tournament activity</h3>
+                            <span class="dashboard-upcoming-count"><?= esc((string) count($tournaments)) ?> scheduled</span>
+                        </div>
                         <?php if ($tournaments !== []): ?>
                             <a href="<?= site_url('tournaments') ?>">View tournaments</a>
                         <?php endif; ?>

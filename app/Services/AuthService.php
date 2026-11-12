@@ -252,6 +252,33 @@ final class AuthService
         session()->destroy();
     }
 
+    public function updatePassword(string $currentPassword, string $newPassword, string $confirmation): void
+    {
+        if ($newPassword === '' || strlen($newPassword) < 12 || strlen($newPassword) > 1024 || $newPassword !== $confirmation) {
+            throw new \RuntimeException('Invalid password.');
+        }
+        if ($currentPassword === '' || $currentPassword === $newPassword) {
+            throw new \RuntimeException('Invalid password change.');
+        }
+
+        $user = $this->user();
+        $userId = (int) ($user['id'] ?? 0);
+        $record = $userId > 0 ? (new UserModel())->find($userId) : null;
+        if (! is_array($record) || ! password_verify($currentPassword, (string) $record['password_hash'])) {
+            throw new \RuntimeException('Current password is incorrect.');
+        }
+
+        $nextVersion = (int) $record['session_version'] + 1;
+        (new UserModel())->update($userId, [
+            'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
+            'session_version' => $nextVersion,
+            'failed_login_count' => 0,
+            'locked_until' => null,
+        ]);
+        session()->set('session_version', $nextVersion);
+        service('auditPersistence')->record($userId, 'password_changed', 'user', (string) $userId, null);
+    }
+
     private function isLocked(mixed $until): bool
     {
         return is_string($until) && $until !== '' && strtotime($until) > time();

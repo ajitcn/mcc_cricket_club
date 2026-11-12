@@ -186,7 +186,7 @@ $skillAreas = [
                         Batch <span class="mcc-form-optional">(optional)</span>
                     </label>
                     <select
-                        class="form-control btSelect"
+                        class="form-control"
                         id="batch-id"
                         name="batch_id"
                         data-bt-select
@@ -502,7 +502,7 @@ $skillAreas = [
                         data-session-skill-option
                         data-bt-select
                         data-bt-select-placeholder="Choose skill"
-                        data-bt-select-search-placeholder="Search skills"
+                        data-bt-select-search-placeholder="Search skills / shots"
                         aria-describedby="skill-option-error"
                         disabled
                     >

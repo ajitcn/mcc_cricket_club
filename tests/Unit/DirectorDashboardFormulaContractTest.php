@@ -54,7 +54,7 @@ final class DirectorDashboardFormulaContractTest extends TestCase
         self::assertStringContainsString('Branch totals', $view);
         self::assertStringContainsString('Active Coaches', $view);
         self::assertStringContainsString('branch_id', $view);
-        self::assertStringContainsString('dashboard-unavailable', $view);
+        self::assertStringContainsString('dashboard-workload', $view);
         self::assertStringContainsString('Not available', $view);
         self::assertStringContainsString('Medical metrics — Not available on this dashboard', $service);
         self::assertStringContainsString('unavailableMetrics', $view);
@@ -67,8 +67,8 @@ final class DirectorDashboardFormulaContractTest extends TestCase
         self::assertStringContainsString('Coach schedule', $view);
         self::assertStringContainsString('Coach workload overview', $view);
         self::assertStringContainsString('Profile specialization not available', $view);
-        self::assertStringContainsString('dashboard-filter-summary', $view);
-        self::assertStringContainsString("'title' => 'Director Dashboard'", $view);
+        self::assertStringContainsString('dashboard-hero-filters', $view);
+        self::assertStringContainsString("'title' => 'Dashboard'", $view);
         self::assertStringContainsString('dashboard-kpi-icon', $view);
         self::assertStringContainsString('dashboard-director-grid', file_get_contents(ROOTPATH . 'public/assets/css/app.css'));
         self::assertStringNotContainsString('medical_conditions', strtolower($service));

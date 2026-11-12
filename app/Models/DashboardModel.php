@@ -92,6 +92,42 @@ final class DashboardModel extends Model
             ->getResultArray();
     }
 
+    /**
+     * Return transparent session-count workload by authorized coach.
+     * No weighting or productivity formula is applied here.
+     *
+     * @param list<int> $branches
+     */
+    public function coachWorkload(
+        array $branches,
+        string $periodStartUtc,
+        string $periodEndUtc
+    ): array {
+        if ($branches === [] || $periodStartUtc >= $periodEndUtc) {
+            return [];
+        }
+
+        return $this->db->table('sessions s')
+            ->select(
+                's.coach_user_id, u.display_name AS coach_name, b.name AS branch_name, '
+                . 'COUNT(*) AS session_count, '
+                . "SUM(CASE WHEN s.status = 'scheduled' THEN 1 ELSE 0 END) AS scheduled_count, "
+                . "SUM(CASE WHEN s.status = 'active' THEN 1 ELSE 0 END) AS active_count, "
+                . "SUM(CASE WHEN s.status = 'completed' THEN 1 ELSE 0 END) AS completed_count"
+            )
+            ->join('users u', 'u.id = s.coach_user_id')
+            ->join('branches b', 'b.id = s.branch_id')
+            ->whereIn('s.branch_id', $branches)
+            ->whereIn('s.status', ['scheduled', 'active', 'completed'])
+            ->where('s.starts_at >=', $periodStartUtc)
+            ->where('s.starts_at <', $periodEndUtc)
+            ->groupBy(['s.coach_user_id', 'u.display_name', 'b.name'])
+            ->orderBy('session_count', 'DESC')
+            ->orderBy('u.display_name', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
+
     /** @param list<int> $branches */
     public function batchDistribution(array $branches): array
     {
@@ -251,6 +287,107 @@ final class DashboardModel extends Model
             ];
             $result['by_batch'][$batchKey][$type]++;
             $result['by_batch'][$batchKey]['total']++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Provide a branch-level coaching-type fallback from Admission selections
+     * when the selected period has no rostered sessions yet.
+     *
+     * @param list<int> $branches
+     * @return array<int, array{group: int, personal: int, elite: int}>
+     */
+    public function admissionCoachingDistribution(array $branches): array
+    {
+        $result = [];
+        if ($branches === []) {
+            return $result;
+        }
+
+        foreach ($branches as $branchId) {
+            $result[(int) $branchId] = ['group' => 0, 'personal' => 0, 'elite' => 0];
+        }
+
+        $rows = $this->db->table('admissions')
+            ->select('branch_id, coaching_type')
+            ->whereIn('branch_id', $branches)
+            ->whereNotIn('status', ['CANCELLED'])
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $row) {
+            $branchId = (int) ($row['branch_id'] ?? 0);
+            if ($branchId < 1) {
+                continue;
+            }
+            $result[$branchId] ??= ['group' => 0, 'personal' => 0, 'elite' => 0];
+            $raw = trim((string) ($row['coaching_type'] ?? ''));
+            $types = $raw === '' ? [] : json_decode($raw, true);
+            $types = is_array($types) ? $types : preg_split('/\s*,\s*/', $raw);
+            foreach ((array) $types as $type) {
+                $normalized = strtolower(trim((string) $type));
+                if (str_contains($normalized, 'group')) {
+                    $result[$branchId]['group']++;
+                } elseif (str_contains($normalized, 'personal') || str_contains($normalized, 'one-to-one')) {
+                    $result[$branchId]['personal']++;
+                } elseif (str_contains($normalized, 'elite')) {
+                    $result[$branchId]['elite']++;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Return Admission coaching selections grouped by the independent Batch.
+     * This keeps the dashboard useful before a session roster is recorded.
+     *
+     * @param list<int> $branches
+     * @return array<string, array{batch_name: string, group: int, personal: int, elite: int, total: int}>
+     */
+    public function admissionCoachingByBatch(array $branches): array
+    {
+        $result = [];
+        if ($branches === []) {
+            return $result;
+        }
+
+        $rows = $this->db->table('admissions a')
+            ->select('a.batch_id, ba.name AS batch_name, a.coaching_type')
+            ->join('batches ba', 'ba.id = a.batch_id', 'left')
+            ->whereIn('a.branch_id', $branches)
+            ->whereNotIn('a.status', ['CANCELLED'])
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $row) {
+            $key = (string) ($row['batch_id'] ?? 'unassigned');
+            $result[$key] ??= [
+                'batch_name' => (string) ($row['batch_name'] ?? 'Batch not assigned'),
+                'group' => 0,
+                'personal' => 0,
+                'elite' => 0,
+                'total' => 0,
+            ];
+            $raw = trim((string) ($row['coaching_type'] ?? ''));
+            $types = $raw === '' ? [] : json_decode($raw, true);
+            $types = is_array($types) ? $types : preg_split('/\s*,\s*/', $raw);
+            foreach ((array) $types as $type) {
+                $normalized = strtolower(trim((string) $type));
+                $bucket = str_contains($normalized, 'group')
+                    ? 'group'
+                    : (str_contains($normalized, 'personal') || str_contains($normalized, 'one-to-one')
+                        ? 'personal'
+                        : (str_contains($normalized, 'elite') ? 'elite' : null));
+                if ($bucket === null) {
+                    continue;
+                }
+                $result[$key][$bucket]++;
+                $result[$key]['total']++;
+            }
         }
 
         return $result;
@@ -540,6 +677,30 @@ final class DashboardModel extends Model
             ->having('COUNT(DISTINCT p.id) =', 1, false)
             ->get()
             ->getNumRows();
+    }
+
+    /**
+     * Count explicitly classified Elite sessions in the selected period.
+     * Elite is a persisted session type and must not be inferred from roster size.
+     *
+     * @param list<int> $branches
+     */
+    public function countEliteSessionsForPeriod(
+        array $branches,
+        string $periodStartUtc,
+        string $periodEndUtc
+    ): int {
+        if ($branches === [] || $periodStartUtc >= $periodEndUtc) {
+            return 0;
+        }
+
+        return (int) $this->db->table('sessions s')
+            ->whereIn('s.branch_id', $branches)
+            ->whereIn('s.status', ['scheduled', 'active', 'completed'])
+            ->where('s.session_type', 'elite')
+            ->where('s.starts_at >=', $periodStartUtc)
+            ->where('s.starts_at <', $periodEndUtc)
+            ->countAllResults();
     }
 
     /** @param list<int> $branches */

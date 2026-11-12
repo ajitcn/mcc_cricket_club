@@ -9,11 +9,14 @@ $canDelete = (bool) ($canDelete ?? false);
     'pageActions' => '<a class="mcc-button mcc-button-primary" href="' . site_url('equipment/new') . '"><i class="fa-solid fa-plus" aria-hidden="true"></i> Create equipment</a>',
 ]) ?>
 <section class="mcc-card" aria-labelledby="equipment-list-heading">
-    <div class="mcc-card-heading">
+    <div class="mcc-session-summary" aria-live="polite">
         <div>
             <span class="mcc-eyebrow">Grounds &amp; Equipment</span>
             <h2 id="equipment-list-heading">Equipment inventory</h2>
-            <p class="mcc-card-subtitle">Equipment records in your authorized branch scope.</p>
+        </div>
+        <div class="mcc-session-summary-meta">
+            <span><strong><?= count($equipment) ?></strong> item<?= count($equipment) === 1 ? '' : 's' ?></span>
+            <span class="mcc-muted">Authorized branches</span>
         </div>
     </div>
 
@@ -30,7 +33,7 @@ $canDelete = (bool) ($canDelete ?? false);
                 <thead>
                     <tr>
                             <th scope="col">Equipment</th>
-                            <th scope="col">Stock</th>
+                            <th scope="col">Stock summary</th>
                             <th scope="col">Branch</th>
                             <?php if ($canUpdate || $canDelete): ?>
                                 <th scope="col">Actions</th>
@@ -44,13 +47,13 @@ $canDelete = (bool) ($canDelete ?? false);
                                 <span class="mcc-table-primary-text"><?= esc($record['name']) ?></span>
                                 <span class="mcc-table-secondary-text">Equipment #<?= (int) $record['id'] ?></span>
                             </th>
-                            <td>
-                                <span class="mcc-table-stack">
-                                    <span><strong>Assigned:</strong> <?= (int) ($record['quantity_assigned'] ?? 0) ?></span>
-                                    <span class="mcc-table-secondary-text"><strong>Available:</strong> <?= (int) ($record['quantity_available'] ?? $record['quantity']) ?></span>
+                            <td data-label="Stock summary">
+                                <span class="mcc-table-stack mcc-equipment-stock-summary">
+                                    <span class="mcc-badge mcc-badge-info">Assigned <?= (int) ($record['quantity_assigned'] ?? 0) ?></span>
+                                    <span class="mcc-badge mcc-badge-success">Available <?= (int) ($record['quantity_available'] ?? $record['quantity']) ?></span>
                                 </span>
                             </td>
-                            <td><span class="mcc-table-secondary-text"><?= esc($record['branch_name']) ?></span></td>
+                            <td data-label="Branch"><span class="mcc-table-secondary-text"><?= esc($record['branch_name']) ?></span></td>
                             <?php if ($canUpdate || $canDelete): ?>
                                 <td data-label="Actions">
                                     <div class="mcc-session-action-menu" data-session-actions>

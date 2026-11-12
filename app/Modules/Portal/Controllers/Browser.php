@@ -7,6 +7,7 @@ namespace App\Modules\Portal\Controllers;
 use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 use RuntimeException;
+use Throwable;
 
 final class Browser extends BaseController
 {
@@ -87,7 +88,7 @@ final class Browser extends BaseController
         return view('App\\Modules\\Portal\\Views\\dashboard', [
             'title' => 'Student dashboard',
             'portalType' => 'Student',
-            'dashboard' => service('portalAuth')->dashboard(),
+            'dashboard' => $this->safePortalDashboard(),
         ]);
     }
 
@@ -100,7 +101,7 @@ final class Browser extends BaseController
         return view('App\\Modules\\Portal\\Views\\dashboard', [
             'title' => 'Parent dashboard',
             'portalType' => 'Parent',
-            'dashboard' => service('portalAuth')->dashboard(),
+            'dashboard' => $this->safePortalDashboard(),
         ]);
     }
 
@@ -134,6 +135,11 @@ final class Browser extends BaseController
         return $this->portalSection('Student', 'tournaments', '/student-dashboard');
     }
 
+    public function studentFees(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'fees', '/student-dashboard');
+    }
+
     public function studentAttendance(): string|ResponseInterface
     {
         return $this->portalSection('Student', 'attendance', '/student-dashboard');
@@ -157,6 +163,46 @@ final class Browser extends BaseController
     public function studentProgress(): string|ResponseInterface
     {
         return $this->portalSection('Student', 'progress', '/student-dashboard');
+    }
+
+    public function studentAdmission(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'admission', '/student-dashboard');
+    }
+
+    public function studentRenewals(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'renewals', '/student-dashboard');
+    }
+
+    public function studentGoals(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'goals', '/student-dashboard');
+    }
+
+    public function studentSessionPlans(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'session-plans', '/student-dashboard');
+    }
+
+    public function studentFeedback(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'feedback', '/student-dashboard');
+    }
+
+    public function studentBatting(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'batting', '/student-dashboard');
+    }
+
+    public function studentBowling(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'bowling', '/student-dashboard');
+    }
+
+    public function studentFielding(): string|ResponseInterface
+    {
+        return $this->portalSection('Student', 'fielding', '/student-dashboard');
     }
 
     public function parentProfile(): string|ResponseInterface
@@ -189,6 +235,11 @@ final class Browser extends BaseController
         return $this->portalSection('Parent', 'tournaments', '/parent-dashboard');
     }
 
+    public function parentFees(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'fees', '/parent-dashboard');
+    }
+
     public function parentAttendance(): string|ResponseInterface
     {
         return $this->portalSection('Parent', 'attendance', '/parent-dashboard');
@@ -214,6 +265,46 @@ final class Browser extends BaseController
         return $this->portalSection('Parent', 'progress', '/parent-dashboard');
     }
 
+    public function parentAdmission(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'admission', '/parent-dashboard');
+    }
+
+    public function parentRenewals(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'renewals', '/parent-dashboard');
+    }
+
+    public function parentGoals(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'goals', '/parent-dashboard');
+    }
+
+    public function parentSessionPlans(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'session-plans', '/parent-dashboard');
+    }
+
+    public function parentFeedback(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'feedback', '/parent-dashboard');
+    }
+
+    public function parentBatting(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'batting', '/parent-dashboard');
+    }
+
+    public function parentBowling(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'bowling', '/parent-dashboard');
+    }
+
+    public function parentFielding(): string|ResponseInterface
+    {
+        return $this->portalSection('Parent', 'fielding', '/parent-dashboard');
+    }
+
     private function portalSection(string $portalType, string $page, string $fallback): string|ResponseInterface
     {
         if (strtolower((string) session('portal_account_type')) !== strtolower($portalType)) {
@@ -224,8 +315,41 @@ final class Browser extends BaseController
             'title' => $portalType . ' ' . ucfirst($page),
             'portalType' => $portalType,
             'portalPage' => $page,
-            'dashboard' => service('portalAuth')->dashboard(),
+            'dashboard' => $this->safePortalDashboard(),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function safePortalDashboard(): array
+    {
+        try {
+            return service('portalAuth')->dashboard();
+        } catch (Throwable $exception) {
+            log_message('error', 'Portal dashboard projection failed: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [
+                'type' => strtolower((string) session('portal_account_type')),
+                'players' => [],
+                'sessions' => [],
+                'attendance' => [],
+                'goals' => [],
+                'session_plans' => [],
+                'feedback' => [],
+                'performance' => [],
+                'matches' => [],
+                'tournaments' => [],
+                'fees' => [],
+                'documents' => [],
+                'consent' => [],
+                'profile' => [],
+                'hostel' => [],
+                'medical' => [],
+                'admissions' => [],
+                'renewals' => [],
+            ];
+        }
     }
 
     public function studentAchievements(): string|ResponseInterface
@@ -248,12 +372,114 @@ final class Browser extends BaseController
 
     private function portalAchievementsPage(string $portalType): string
     {
+        try {
+            $dashboard = $this->safePortalDashboard();
+        } catch (Throwable $exception) {
+            log_message('error', 'Portal dashboard projection failed for achievements page: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+            $dashboard = [
+                'type' => strtolower($portalType),
+                'players' => [],
+                'sessions' => [],
+                'attendance' => [],
+                'goals' => [],
+                'session_plans' => [],
+                'feedback' => [],
+                'performance' => [],
+                'matches' => [],
+                'tournaments' => [],
+                'fees' => [],
+                'documents' => [],
+                'consent' => [],
+                'profile' => [],
+                'hostel' => [],
+                'medical' => [],
+                'admissions' => [],
+                'renewals' => [],
+            ];
+        }
+
+        try {
+            $portalAwards = service('portalAuth')->publishedAchievements();
+        } catch (Throwable $exception) {
+            log_message('error', 'Portal achievements projection failed: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+            $portalAwards = [];
+        }
+
         return view('App\\Modules\\Portal\\Views\\dashboard', [
             'title' => $portalType . ' achievements',
             'portalType' => $portalType,
             'portalPage' => 'achievements',
-            'dashboard' => service('portalAuth')->dashboard(),
-            'portalAwards' => service('portalAuth')->publishedAchievements(),
+            'dashboard' => $dashboard,
+            'portalAwards' => $portalAwards,
         ]);
+    }
+
+    public function portalDocumentDownload(int $id): ResponseInterface
+    {
+        try {
+            $file = service('portalAuth')->readPortalDocument($id);
+            $document = $file['document'];
+            $mime = (string) ($document['mime_type'] ?? 'application/octet-stream');
+            $extension = match ($mime) {
+                'application/pdf' => 'pdf',
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                default => 'bin',
+            };
+
+            return $this->response
+                ->setHeader('Content-Type', $mime)
+                ->setHeader('Content-Length', (string) strlen($file['contents']))
+                ->setHeader('Content-Disposition', 'attachment; filename="mcc_document_' . (int) $document['id'] . '.' . $extension . '"')
+                ->setHeader('X-Content-Type-Options', 'nosniff')
+                ->setHeader('Cache-Control', 'private, no-store')
+                ->setBody($file['contents']);
+        } catch (\Throwable) {
+            return $this->response->setStatusCode(404)->setBody('Not found.');
+        }
+    }
+
+    public function portalPaymentReceipt(int $id): ResponseInterface|string
+    {
+        try {
+            $receipt = service('portalAuth')->readPortalPayment($id);
+            $download = $this->request->getGet('download') === '1';
+            if ($download) {
+                $pdf = service('portalAuth')->renderPortalPaymentReceiptPdf($receipt);
+                return $this->response
+                    ->setHeader('Content-Type', 'application/pdf')
+                    ->setHeader('Content-Length', (string) strlen($pdf))
+                    ->setHeader('Content-Disposition', 'attachment; filename="mcc_payment_receipt_' . $id . '.pdf"')
+                    ->setHeader('X-Content-Type-Options', 'nosniff')
+                    ->setHeader('Cache-Control', 'private, no-store')
+                    ->setBody($pdf);
+            }
+
+            return view('App\\Modules\\Portal\\Views\\payment_receipt', $receipt);
+        } catch (Throwable) {
+            return $this->response->setStatusCode(404)->setBody('Not found.');
+        }
+    }
+
+    public function createSupportRequest(): ResponseInterface
+    {
+        try {
+            service('portalAuth')->createSupportRequest($this->request->getPost());
+            return redirect()->back()->with('message', 'Your support request was submitted.');
+        } catch (\Throwable $exception) {
+            $message = match ($exception->getMessage()) {
+                'Authentication required.' => 'Please sign in again before sending a support request.',
+                'Enter a category, subject, and message.' => $exception->getMessage(),
+                'The support request is too long.' => $exception->getMessage(),
+                'Invalid linked Player.' => 'The selected Player is not linked to this account.',
+                default => 'The support request could not be submitted. Please try again later.',
+            };
+
+            return redirect()->back()->withInput()->with('error', $message);
+        }
     }
 }

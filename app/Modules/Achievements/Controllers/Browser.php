@@ -12,8 +12,28 @@ final class Browser extends StaffController
 {
     public function index(): string
     {
+        $filters = [
+            'branch_id' => trim((string) $this->request->getGet('branch_id')),
+            'category' => trim((string) $this->request->getGet('category')),
+            'status' => trim((string) $this->request->getGet('status')),
+        ];
+        $allAchievements = service('achievement')->list();
+
         return $this->page('App\\Modules\\Achievements\\Views\\index', 'Achievements', [
-            'achievements' => service('achievement')->list(),
+            'achievements' => service('achievement')->list('achievement.view', $filters),
+            'filters' => $filters,
+            'branches' => service('achievement')->availableBranches('achievement.view'),
+            'categories' => array_values(array_unique(array_filter(array_map(
+                static fn (array $achievement): string => trim((string) ($achievement['category'] ?? '')),
+                $allAchievements,
+            )))),
+        ]);
+    }
+
+    public function show(int $id): string
+    {
+        return $this->page('App\\Modules\\Achievements\\Views\\show', 'Achievement', [
+            'achievement' => service('achievement')->findForView($id),
         ]);
     }
 
@@ -38,6 +58,30 @@ final class Browser extends StaffController
         }
     }
 
+    public function editPage(int $id): string
+    {
+        $achievement = service('achievement')->findForEdit($id);
+
+        return $this->page('App\\Modules\\Achievements\\Views\\form', 'Edit Achievement', [
+            'achievement' => $achievement,
+            'branches' => service('achievement')->availableBranches('achievement.create'),
+            'isEdit' => true,
+        ]);
+    }
+
+    public function update(int $id): ResponseInterface
+    {
+        try {
+            service('achievement')->update($id, $this->request->getPost());
+
+            return redirect()->to('/achievements')->with('message', 'Achievement updated.');
+        } catch (Throwable $exception) {
+            return redirect()->to('/achievements/' . $id . '/edit')
+                ->withInput()
+                ->with('error', $this->safe($exception));
+        }
+    }
+
     public function awards(): string
     {
         $includeArchived = $this->request->getGet('history') === '1';
@@ -47,6 +91,8 @@ final class Browser extends StaffController
             'recipient_type' => trim((string) $this->request->getGet('recipient_type')),
             'status' => trim((string) $this->request->getGet('status')),
             'branch_id' => trim((string) $this->request->getGet('branch_id')),
+            'date_from' => trim((string) $this->request->getGet('date_from')),
+            'date_to' => trim((string) $this->request->getGet('date_to')),
         ];
         $allAwards = service('achievement')->awardList($includeArchived, $filters);
         $perPage = 10;
@@ -95,7 +141,7 @@ final class Browser extends StaffController
             $id = service('achievement')->createAward($this->request->getPost());
             return redirect()
                 ->to('/achievements/awards/' . $id)
-                ->with('message', 'Achievement draft created.');
+                ->with('message', 'Achievement award saved as final.');
         } catch (Throwable $exception) {
             $message = $this->awardError($exception);
             if ($message === null) {
@@ -169,8 +215,8 @@ final class Browser extends StaffController
             return $this->page('App\\Modules\\Achievements\\Views\\award_form', 'Edit Achievement draft', [
                 'award' => $award,
                 'achievements' => service('achievement')->activeAchievements(),
-                'branches' => service('achievement')->availableBranches('achievement.update'),
-                'recipients' => service('achievement')->recipientOptions('achievement.update'),
+                'branches' => service('achievement')->availableBranches('achievement.create'),
+                'recipients' => service('achievement')->recipientOptions('achievement.create'),
                 'isEdit' => true,
             ]);
         } catch (Throwable $exception) {
@@ -184,12 +230,23 @@ final class Browser extends StaffController
             service('achievement')->updateAward($id, $this->request->getPost());
             return redirect()
                 ->to('/achievements/awards/' . $id)
-                ->with('message', 'Achievement draft updated.');
+                ->with('message', 'Achievement award saved.');
         } catch (Throwable $exception) {
             return redirect()
                 ->to('/achievements/awards/' . $id . '/edit')
                 ->withInput()
                 ->with('error', $this->safe($exception));
+        }
+    }
+
+    public function deleteAward(int $id): ResponseInterface
+    {
+        try {
+            service('achievement')->deleteAward($id);
+
+            return redirect()->to('/achievements/awards')->with('message', 'Achievement award deleted permanently.');
+        } catch (Throwable $exception) {
+            return redirect()->to('/achievements/awards')->with('error', $this->safe($exception));
         }
     }
 
@@ -332,30 +389,7 @@ final class Browser extends StaffController
 
     public function reports(): ResponseInterface|string
     {
-        try {
-            $service = service('achievementReport');
-            $filters = $this->request->getGet();
-            $result = $service->run($filters);
-            $result['options'] = $service->options();
-
-            return $this->page(
-                'App\\Modules\\Achievements\\Views\\reports',
-                'Achievement reports',
-                ['result' => $result]
-            );
-        } catch (Throwable $exception) {
-            if (! in_array($exception->getMessage(), [
-                'Forbidden',
-                'Invalid Achievement report date filter.',
-                'Invalid Achievement report filter.',
-            ], true)) {
-                throw $exception;
-            }
-
-            return $this->response
-                ->setStatusCode($exception->getMessage() === 'Forbidden' ? 403 : 400)
-                ->setBody(esc($exception->getMessage()));
-        }
+        return redirect()->to('/achievements/awards');
     }
 
     public function reportsCsv(): ResponseInterface

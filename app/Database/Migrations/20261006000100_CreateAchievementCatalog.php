@@ -15,6 +15,7 @@ final class CreateAchievementCatalog extends Migration
     private const PERMISSIONS = [
         'achievement.view',
         'achievement.create',
+        'achievement.update',
     ];
 
     public function up(): void

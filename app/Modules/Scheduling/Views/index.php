@@ -25,6 +25,11 @@ $statusDefinitions = [
     'cancelled' => ['label' => 'Cancelled', 'class' => 'danger'],
     'postponed' => ['label' => 'Postponed', 'class' => 'warning'],
 ];
+$sessionTypeDefinitions = [
+    'one_to_one' => 'Personal',
+    'group' => 'Group',
+    'elite' => 'Elite',
+];
 $formatSessionDateTime = static function (?string $value): string {
     $value = trim((string) $value);
 
@@ -44,6 +49,7 @@ foreach ([
     'q' => 'Search',
     'date' => 'Date',
     'status' => 'Status',
+    'session_type' => 'Session type',
     'branch_id' => 'Branch',
     'batch_id' => 'Batch',
     'coach_user_id' => 'Coach',
@@ -118,6 +124,20 @@ foreach ([
                         <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>
                     >
                         <?= esc($definition['label']) ?>
+                    </option>
+                <?php endforeach ?>
+            </select>
+        </div>
+        <div class="col-12 col-md-3 mb-2">
+            <label for="session-type">Session type</label>
+            <select class="form-control" id="session-type" name="session_type">
+                <option value="">All session types</option>
+                <?php foreach ($sessionTypeDefinitions as $sessionType => $sessionTypeLabel): ?>
+                    <option
+                        value="<?= esc($sessionType) ?>"
+                        <?= ($filters['session_type'] ?? '') === $sessionType ? 'selected' : '' ?>
+                    >
+                        <?= esc($sessionTypeLabel) ?>
                     </option>
                 <?php endforeach ?>
             </select>
@@ -216,7 +236,7 @@ foreach ([
                         $status = strtolower(trim((string) ($session['status'] ?? '')));
                         $statusMeta = $statusDefinitions[$status] ?? ['label' => 'Unknown', 'class' => 'neutral'];
                         $sessionType = match ((string) ($session['session_type'] ?? '')) {
-                            'one_to_one' => 'One-to-One',
+                            'one_to_one' => 'Personal',
                             'group' => 'Group',
                             'elite' => 'Elite',
                             default => 'Not set',

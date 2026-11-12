@@ -19,9 +19,10 @@ final class Player360Service
         }
 
         $db = Database::connect('default');
+        $canViewAdmission = service('authorization')->can('admission.view', (string) $branchId);
 
         return [
-            'player' => $this->profile($player),
+            'player' => $this->profile($player, $canViewAdmission),
             'admission' => [
                 'admission_id' => $player['admission_id'],
                 'status' => $player['admission_status'],
@@ -44,15 +45,14 @@ final class Player360Service
                 'development' => $this->development($db, $playerId, $branchId),
                 'fitness' => $this->fitness($db, $playerId, $branchId),
                 'performance' => $this->performance($playerId, $branchId),
-                'high_performance' => $this->unavailable('High Performance source is not implemented.'),
-                'documents' => $this->unavailable('Document visibility is not approved for this view.'),
-                'medical' => $this->unavailable('Medical visibility is not approved for this view.'),
-                'derived_kpis' => $this->unavailable('No Player 360 KPI formula is approved.'),
+                'high_performance' => $this->unavailable('No high-performance records are available for this Player.'),
+                'documents' => $this->unavailable('No document records are available for this Player view.'),
+                'medical' => $this->unavailable('No medical records are available for this Player view.'),
             ],
         ];
     }
 
-    private function profile(array $player): array
+    private function profile(array $player, bool $canViewAdmission): array
     {
         return [
             'id' => $player['id'],
@@ -60,6 +60,11 @@ final class Player360Service
             'branch_name' => $player['branch_name'],
             'status' => $player['status'],
             'updated_at' => $player['updated_at'],
+            'admission_number' => $canViewAdmission ? ($player['admission_number'] ?? null) : null,
+            'admission_status' => $canViewAdmission ? ($player['admission_status'] ?? null) : null,
+            'admission_age_group' => $canViewAdmission ? ($player['admission_age_group'] ?? null) : null,
+            'group_coach_name' => $canViewAdmission ? ($player['group_coach_name'] ?? null) : null,
+            'personal_coach_name' => $canViewAdmission ? ($player['personal_coach_name'] ?? null) : null,
             'profile' => $player['profile'],
         ];
     }
@@ -173,9 +178,21 @@ final class Player360Service
 
     private function performance(int $playerId, int $branchId): array
     {
-        return $this->unavailable(
-            'Performance-derived formulas are unavailable until PF-01 through PF-06 are approved.'
-        );
+        if (! service('authorization')->can('performance.view', (string) $branchId)) {
+            return $this->unavailable('Performance permission is not available.');
+        }
+
+        try {
+            $performance = service('performance')->player($playerId);
+        } catch (RuntimeException) {
+            return $this->unavailable('No performance records are available for this Player.');
+        }
+
+        return [
+            'available' => true,
+            'rows' => $performance['rows'] ?? [],
+            'kpis' => $performance['kpis'] ?? [],
+        ];
     }
 
     private function unavailable(string $reason): array

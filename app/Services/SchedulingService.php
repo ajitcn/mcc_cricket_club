@@ -251,6 +251,25 @@ final class SchedulingService
         if ($branchId !== null) {
             $branchIds = in_array($branchId, $branchIds, true) ? [$branchId] : [];
         }
+
+        $db = Database::connect('default');
+        $skillOptions = [];
+        if ($db->tableExists('session_skill_options')) {
+            $skillQuery = $db->table('session_skill_options')
+                ->select('id, area, name, is_active, retired_at, display_order')
+                ->groupStart()
+                ->where('is_active !=', 0);
+            if ($selectedSkillOptionId !== null && $selectedSkillOptionId > 0) {
+                $skillQuery->orWhere('id', $selectedSkillOptionId);
+            }
+            $skillQuery->groupEnd();
+            $skillOptions = $skillQuery
+                ->orderBy('area', 'ASC')
+                ->orderBy('display_order', 'ASC')
+                ->get()
+                ->getResultArray();
+        }
+
         if ($branchIds === []) {
             return [
                 'branches' => [],
@@ -262,28 +281,11 @@ final class SchedulingService
                 'default_coach_user_id' => $this->defaultCoachUserId(),
                 'grounds' => [],
                 'players' => [],
-                'skillOptions' => [],
+                'skillOptions' => $skillOptions,
                 'needs_active_branch' => $needsActiveBranch,
             ];
         }
 
-        $db = Database::connect('default');
-        $skillOptions = [];
-        if ($db->tableExists('session_skill_options')) {
-            $skillQuery = $db->table('session_skill_options')
-                ->select('id, area, name, is_active, retired_at, display_order')
-                ->groupStart()
-                ->where('is_active', 1);
-            if ($selectedSkillOptionId !== null && $selectedSkillOptionId > 0) {
-                $skillQuery->orWhere('id', $selectedSkillOptionId);
-            }
-            $skillQuery->groupEnd();
-            $skillOptions = $skillQuery
-                ->orderBy('area', 'ASC')
-                ->orderBy('display_order', 'ASC')
-                ->get()
-                ->getResultArray();
-        }
         $branches = $db->table('branches')
             ->select('id, name')
             ->whereIn('id', $branchIds)

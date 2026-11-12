@@ -38,6 +38,51 @@ final class AdmissionPdfService
         return $this->convertHtmlToPdf($html);
     }
 
+    /** @param array<string, mixed> $payment */
+    public function renderPaymentReceipt(array $payment): string
+    {
+        $this->pages = [];
+        $this->images = [];
+        $this->startPage();
+
+        $this->drawRect(self::LEFT, self::PAGE_HEIGHT - 105, self::PAGE_WIDTH - self::LEFT - self::RIGHT, 65, self::BLUE, self::BLUE);
+        $logo = $this->registerImage(defined('ROOTPATH') ? ROOTPATH . 'public/assets/img/logo.png' : 'public/assets/img/logo.png');
+        if ($logo !== null) {
+            $this->drawImage($logo, self::LEFT + 10, self::PAGE_HEIGHT - 98, 48, 50);
+        }
+        $this->drawText('MUMBAI CRICKET CLUB', self::LEFT + 70, self::PAGE_HEIGHT - 65, 16, true, false, [1, 1, 1]);
+        $this->drawText('Payment receipt', self::LEFT + 70, self::PAGE_HEIGHT - 84, 9, false, false, [0.9, 0.95, 1]);
+
+        $fields = [
+            ['Admission', (string) ($payment['admission_number'] ?? 'Not available')],
+            ['Receipt number', (string) ($payment['receipt_number'] ?? 'Not provided')],
+            ['Payment date', (string) ($payment['payment_date'] ?? 'Not available')],
+            ['Payment type', ucfirst((string) ($payment['payment_type'] ?? 'Fee'))],
+            ['Payment method', (string) ($payment['payment_method'] ?? 'Not provided')],
+            ['Installment', (string) ($payment['year_label'] ?? '—') . ' - ' . (string) ($payment['installment_number'] ?? '—')],
+            ['Branch', (string) ($payment['branch_name'] ?? 'Not available')],
+            ['Reference', (string) ($payment['reference_number'] ?? 'Not provided')],
+        ];
+        $startY = self::PAGE_HEIGHT - 155;
+        foreach ($fields as $index => [$label, $value]) {
+            $column = $index % 2;
+            $row = intdiv($index, 2);
+            $x = self::LEFT + ($column === 0 ? 12 : 270);
+            $y = $startY - ($row * 58);
+            $this->drawText(strtoupper($label), $x, $y, 7, false, false, [0.38, 0.45, 0.56]);
+            $this->drawText($value, $x, $y - 15, 10, false, false, [0.14, 0.21, 0.33]);
+            $this->drawLine($x, $y - 27, $x + 235, $y - 27, [0.86, 0.89, 0.93]);
+        }
+
+        $this->drawRect(self::LEFT, 430, self::PAGE_WIDTH - self::LEFT - self::RIGHT, 68, self::PALE_BLUE, [0.82, 0.87, 0.94]);
+        $this->drawText('AMOUNT RECEIVED', self::LEFT + 14, 475, 8, false, false, [0.38, 0.45, 0.56]);
+        $this->drawText(number_format((float) ($payment['amount_received'] ?? 0), 2), self::LEFT + 14, 450, 16, true, false, self::BLUE);
+        $this->drawText('Generated from the MCC Cricket Club portal.', self::LEFT, 395, 8, false, false, [0.4, 0.47, 0.57]);
+        $this->finishPage();
+
+        return $this->buildPdf();
+    }
+
     private function convertHtmlToPdf(string $html): string
     {
         $document = new DOMDocument();

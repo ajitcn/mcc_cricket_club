@@ -20,6 +20,19 @@ $metrics = [
     'runs', 'balls_faced', 'dismissals', 'fours', 'sixes', 'wickets',
     'runs_conceded', 'legal_balls', 'catches', 'stumpings', 'run_outs',
 ];
+$metricTypes = [
+    'runs' => ['batting'],
+    'balls_faced' => ['batting'],
+    'dismissals' => ['batting'],
+    'fours' => ['batting'],
+    'sixes' => ['batting'],
+    'wickets' => ['bowling'],
+    'runs_conceded' => ['bowling'],
+    'legal_balls' => ['bowling'],
+    'catches' => ['fielding'],
+    'stumpings' => ['fielding'],
+    'run_outs' => ['fielding'],
+];
 ?>
 <?= view('staff_header', [
     'title' => $title,
@@ -78,6 +91,9 @@ $metrics = [
                     <label for="performance-record-type">Record type <span aria-hidden="true">*</span></label>
                     <select class="form-control" id="performance-record-type" name="record_type" required>
                         <option value="">Choose type</option>
+                        <?php if (! $editing): ?>
+                            <option value="all" <?= $value('record_type') === 'all' ? 'selected' : '' ?>>All types</option>
+                        <?php endif; ?>
                         <?php foreach (['batting', 'bowling', 'fielding'] as $type): ?>
                             <option value="<?= esc($type) ?>" <?= $value('record_type') === $type ? 'selected' : '' ?>><?= esc(ucfirst($type)) ?></option>
                         <?php endforeach; ?>
@@ -95,7 +111,18 @@ $metrics = [
             </div>
             <div class="mcc-session-create-grid mcc-performance-metrics-grid">
                 <?php foreach ($metrics as $metric): ?>
-                    <div class="mcc-session-form-field">
+                    <?php if ($metric === 'runs'): ?>
+                        <div class="mcc-performance-metric-group-title">Batting metrics</div>
+                    <?php elseif ($metric === 'wickets'): ?>
+                        <div class="mcc-performance-metric-group-title">Bowling metrics</div>
+                    <?php elseif ($metric === 'catches'): ?>
+                        <div class="mcc-performance-metric-group-title">Fielding metrics</div>
+                    <?php endif; ?>
+                    <div
+                        class="mcc-session-form-field"
+                        data-performance-metric
+                        data-performance-types="<?= esc(implode(',', $metricTypes[$metric] ?? [])) ?>"
+                    >
                         <label for="performance-<?= esc($metric) ?>"><?= esc(ucwords(str_replace('_', ' ', $metric))) ?> <span class="mcc-form-optional">(optional)</span></label>
                         <input class="form-control" id="performance-<?= esc($metric) ?>" name="<?= esc($metric) ?>" type="number" min="0" step="1" inputmode="numeric" value="<?= esc($value($metric)) ?>">
                     </div>

@@ -41,12 +41,22 @@ $displayTime = static function (?string $value): string {
 
     return $parsed === false ? $value : $parsed->format('h:i A');
 };
+$pageActions = '<div class="mcc-page-actions">
+    <a class="mcc-button mcc-button-secondary" href="' . esc(site_url('coaches')) . '">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Back to coaches
+    </a>'
+    . (service('authorization')->can('coach.update', (string) ($coach['branch_id'] ?? 0))
+        ? '<a class="mcc-button mcc-button-primary" href="' . esc(site_url('coaches/' . (int) $coach['id'] . '/edit')) . '"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit profile</a>'
+        : '')
+    . '</div>';
 ?>
 <?= view('staff_header', [
     'title' => 'Coach profile',
     'nav' => $nav,
     'message' => $message,
     'error' => $error,
+    'pageActions' => $pageActions,
 ]) ?>
 <div class="mcc-coach-profile-page">
 <section class="mcc-card mcc-detail-hero mcc-coach-profile-card" aria-labelledby="coach-heading">
@@ -57,18 +67,6 @@ $displayTime = static function (?string $value): string {
         <div class="mcc-detail-badges" aria-label="Coach status">
             <?= $statusBadge($activeCoach ? 'Active' : 'Inactive') ?>
         </div>
-    </div>
-    <div class="mcc-detail-actions" aria-label="Coach profile actions">
-        <?php if (service('authorization')->can('coach.update', (string) ($coach['branch_id'] ?? 0))): ?>
-            <a class="mcc-button mcc-button-primary" href="<?= site_url('coaches/' . (int) $coach['id'] . '/edit') ?>">
-                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                <span class="mcc-button-label">Edit profile</span>
-            </a>
-        <?php endif; ?>
-        <a class="mcc-button mcc-button-secondary" href="<?= site_url('coaches') ?>">
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-            <span class="mcc-button-label">Back to coaches</span>
-        </a>
     </div>
     <div class="mcc-detail-grid">
         <dl class="mcc-definition-list">
@@ -102,25 +100,52 @@ $displayTime = static function (?string $value): string {
 <?php if (($can_assign ?? false) && ($branches ?? []) !== []): ?>
 <section class="mcc-card mcc-coach-related-card" aria-labelledby="branch-assignment-heading">
     <div class="mcc-card-heading">
-        <h2 id="branch-assignment-heading">Branch assignments</h2>
+        <div>
+            <span class="mcc-eyebrow">Access scope</span>
+            <h2 id="branch-assignment-heading">Branch assignments</h2>
+        </div>
+        <span class="mcc-muted"><?= count($coach['branches']) ?> assigned</span>
     </div>
-    <div class="mcc-coach-form-fields">
-        <?php foreach ($branches as $branch): ?>
-            <?php $assigned = in_array((int) $branch['id'], array_map('intval', array_column($coach['branches'], 'id')), true); ?>
-            <form class="mcc-coach-form" method="post" action="<?= site_url('coaches/' . (int) $coach['id'] . '/branches') ?>">
-                <?= csrf_field() ?>
-                <input type="hidden" name="branch_id" value="<?= (int) $branch['id'] ?>">
-                <input type="hidden" name="action" value="<?= $assigned ? 'revoke' : 'assign' ?>">
-                <label>
-                    <?= esc($branch['name']) ?>
-                    <input name="reason" required maxlength="255" placeholder="Reason for change">
-                </label>
-                <button class="mcc-button <?= $assigned ? 'mcc-button-secondary' : 'mcc-button-primary' ?>" type="submit">
-                    <i class="fa-solid <?= $assigned ? 'fa-link-slash' : 'fa-link' ?>" aria-hidden="true"></i>
-                    <?= $assigned ? 'Remove assignment' : 'Assign branch' ?>
-                </button>
-            </form>
-        <?php endforeach; ?>
+    <div class="mcc-table-wrap">
+        <table class="mcc-table mcc-coach-branch-assignment-table">
+            <caption class="sr-only">Coach branch assignments</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Branch</th>
+                    <th scope="col">Current access</th>
+                    <th scope="col">Reason</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($branches as $branch): ?>
+                    <?php $assigned = in_array((int) $branch['id'], array_map('intval', array_column($coach['branches'], 'id')), true); ?>
+                    <tr>
+                        <th scope="row"><?= esc($branch['name']) ?></th>
+                        <td data-label="Current access">
+                            <span class="mcc-badge mcc-badge-<?= $assigned ? 'success' : 'neutral' ?>">
+                                <?= $assigned ? 'Assigned' : 'Not assigned' ?>
+                            </span>
+                        </td>
+                        <td data-label="Reason">
+                            <form id="branch-assignment-<?= (int) $branch['id'] ?>" method="post" action="<?= site_url('coaches/' . (int) $coach['id'] . '/branches') ?>">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="branch_id" value="<?= (int) $branch['id'] ?>">
+                                <input type="hidden" name="action" value="<?= $assigned ? 'revoke' : 'assign' ?>">
+                                <label class="sr-only" for="branch-reason-<?= (int) $branch['id'] ?>">Reason for <?= $assigned ? 'removing' : 'adding' ?> <?= esc($branch['name']) ?></label>
+                                <input class="form-control" id="branch-reason-<?= (int) $branch['id'] ?>" name="reason" required maxlength="255" placeholder="Reason for change">
+                            </form>
+                        </td>
+                        <td data-label="Action">
+                            <button class="mcc-button <?= $assigned ? 'mcc-button-secondary' : 'mcc-button-primary' ?>" type="submit" form="branch-assignment-<?= (int) $branch['id'] ?>">
+                                <i class="fa-solid <?= $assigned ? 'fa-link-slash' : 'fa-link' ?>" aria-hidden="true"></i>
+                                <?= $assigned ? 'Remove' : 'Assign' ?>
+                            </button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </section>
 <?php endif; ?>
@@ -166,7 +191,7 @@ $displayTime = static function (?string $value): string {
     </div>
 </section>
 <?php endif; ?>
-<?php if (($feedback_options ?? []) !== []): ?>
+<?php if (false && ($feedback_options ?? []) !== []): ?>
 <section class="mcc-card mcc-coach-related-card" aria-labelledby="feedback-heading">
     <div class="mcc-card-heading">
         <h2 id="feedback-heading">Player feedback rating</h2>
@@ -443,6 +468,7 @@ $displayTime = static function (?string $value): string {
         </div>
     <?php endif; ?>
 </section>
+<?php if (false): ?>
 <section class="mcc-card mcc-coach-related-card" aria-labelledby="availability-heading">
     <div class="mcc-card-heading">
         <h2 id="availability-heading">Availability</h2>
@@ -554,5 +580,6 @@ $displayTime = static function (?string $value): string {
         </div>
     <?php endif; ?>
 </section>
+<?php endif; ?>
 </div>
 <?= view('staff_footer') ?>

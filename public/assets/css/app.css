@@ -92,11 +92,20 @@
     display: none;
 }
 .mcc-bt-select-menu-portal {
+    box-sizing: border-box;
     max-width: min(300px, calc(100vw - 1rem));
     min-width: 0;
+    max-height: calc(100vh - 1rem);
+    overflow: hidden;
     position: fixed !important;
     width: auto;
     z-index: 10000 !important;
+}
+.mcc-bt-select-menu-portal .mcc-bt-select-options {
+    max-height: min(15rem, calc(100vh - 9rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 .mcc-bt-select-search {
     border: 1px solid var(--app-border);
@@ -537,6 +546,28 @@ button {
 }
 .mcc-account-menu form {
     margin: 0
+}
+
+.mcc-account-menu .mcc-button-link {
+    align-items: center;
+    border-radius: .4rem;
+    display: flex;
+    gap: .6rem;
+    justify-content: flex-start;
+    min-height: 2.25rem;
+    padding: .5rem .65rem;
+    text-align: left;
+    width: 100%;
+}
+
+.mcc-account-menu .mcc-button-link i {
+    color: var(--app-muted);
+    width: 1rem;
+}
+
+.mcc-account-menu .mcc-button-link:hover i,
+.mcc-account-menu .mcc-button-link:focus-visible i {
+    color: currentColor;
 }
 .mcc-content {
     flex: 1 0 auto;
@@ -1854,6 +1885,493 @@ tr:last-child td {
     }
 }
 
+/* Clean portal chrome: light navigation rail and compact utility bar. */
+.mcc-portal-body .mcc-portal-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5ebf3;
+    box-shadow: 0 2px 12px rgba(24, 52, 89, .05);
+    min-height: 68px;
+}
+
+.mcc-portal-body .mcc-portal-brand-copy strong,
+.mcc-portal-body .mcc-portal-topbar-context span {
+    color: #17365f;
+}
+
+.mcc-portal-body .mcc-portal-brand-copy small,
+.mcc-portal-body .mcc-portal-topbar-context small,
+.mcc-portal-body .mcc-portal-user-copy small {
+    color: #8492a5;
+}
+
+.mcc-portal-body .mcc-portal-sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e1e8f1;
+    color: #334c6b;
+    padding: 1rem .8rem;
+}
+
+.mcc-portal-body .mcc-portal-profile {
+    background: #f3f7fc;
+    border: 1px solid #e2ebf5;
+    margin-bottom: 1rem;
+}
+
+.mcc-portal-body .mcc-portal-profile strong,
+.mcc-portal-body .mcc-portal-navigation-label span {
+    color: #1d3d66;
+}
+
+.mcc-portal-body .mcc-portal-profile small,
+.mcc-portal-body .mcc-portal-navigation-label small {
+    color: #8192a8;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label {
+    border-bottom-color: #e5ebf3;
+}
+
+.mcc-portal-body .mcc-portal-nav {
+    gap: .15rem;
+}
+
+.mcc-portal-body .mcc-portal-nav-group {
+    color: #8c9aae;
+    margin-top: .9rem;
+}
+
+.mcc-portal-body .mcc-portal-nav a {
+    border-color: transparent;
+    color: #526984;
+    font-size: .8rem;
+}
+
+.mcc-portal-body .mcc-portal-nav a i {
+    color: #7891ae;
+}
+
+.mcc-portal-body .mcc-portal-nav a:hover {
+    background: #f1f6fc;
+    border-color: #dce8f5;
+    color: #1e5da5;
+    transform: none;
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active {
+    background: #e8f1ff;
+    border-color: #cfe1fa;
+    box-shadow: inset 3px 0 0 #2b73c8;
+    color: #1c5ea9;
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active i {
+    color: #236bc0;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer {
+    border-top-color: #e5ebf3;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button {
+    color: #62758e;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button:hover {
+    background: #f1f6fc;
+    color: #1c5ea9;
+}
+
+.mcc-portal-body .mcc-portal-main {
+    background: #f6f8fc;
+}
+
+/* Consistent individual portal page treatment. */
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) {
+    display: grid;
+    gap: 1rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-page-heading {
+    background: linear-gradient(135deg, #ffffff 0%, #f3f7fd 100%);
+    border: 1px solid #dce6f1;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(26, 62, 105, .06);
+    margin: 0;
+    min-height: 112px;
+    padding: 1.3rem 1.45rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-page-heading h1 {
+    color: #17385f;
+    font-size: clamp(1.5rem, 3vw, 2.15rem);
+    margin: .25rem 0 .35rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-section,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-welcome {
+    background: #ffffff;
+    border: 1px solid #dce6f1;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(26, 62, 105, .06);
+    padding: clamp(1rem, 2.5vw, 1.45rem);
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-section-heading {
+    border-bottom: 1px solid #e7eef6;
+    margin-bottom: .25rem;
+    padding-bottom: .85rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-section-heading h2 {
+    color: #17385f;
+    font-size: 1.12rem;
+    margin: .2rem 0 0;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-section-heading .mcc-eyebrow {
+    color: #3975c2;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-table-wrap {
+    border: 1px solid #e1e9f2;
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-table {
+    min-width: 560px;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-table th {
+    background: #f4f7fb;
+    color: #62758c;
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-empty-state,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-empty-state {
+    background: #f8fbff;
+    border: 1px dashed #c9d9eb;
+    border-radius: 13px;
+    color: #71839a;
+    padding: 1.15rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-schedule-list,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-record-list,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-activity-list {
+    display: grid;
+    gap: .65rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-schedule-list > article,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-record-list > article,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-activity-list > p {
+    background: #f8fbff;
+    border: 1px solid #e2eaf3;
+    border-radius: 12px;
+    margin: 0;
+    padding: .8rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list {
+    display: grid;
+    gap: .7rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list article {
+    align-items: center;
+    background: #f8fbff;
+    border: 1px solid #e1eaf4;
+    border-radius: 12px;
+    display: flex;
+    gap: .75rem;
+    justify-content: space-between;
+    padding: .8rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list article div {
+    min-width: 0;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list strong,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list strong {
+    color: #29496d;
+    font-size: .8rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-competition-list small {
+    color: #7a8da4;
+    font-size: .68rem;
+    margin-top: .2rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] #achievements {
+    background: linear-gradient(145deg, #ffffff 0%, #f7faff 100%);
+    border-color: #d6e4f3;
+    display: grid;
+    gap: 1rem;
+    max-width: 980px;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-section-description {
+    background: #edf5ff;
+    border-left: 3px solid #3b7bc7;
+    border-radius: 8px;
+    color: #56708f;
+    margin: 0;
+    padding: .75rem .9rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-list {
+    display: grid;
+    gap: .85rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item {
+    align-items: flex-start;
+    background: #ffffff;
+    border: 1px solid #dce7f2;
+    border-radius: 14px;
+    box-shadow: 0 5px 15px rgba(25, 65, 110, .05);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 1rem 1.1rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item > div {
+    min-width: 0;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item h3 {
+    color: #173b67;
+    font-size: 1rem;
+    margin: .3rem 0 .35rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item p {
+    color: #687d96;
+    font-size: .8rem;
+    line-height: 1.55;
+    margin: 0 0 .55rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item small {
+    color: #8193a9;
+    font-size: .7rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-meta i {
+    color: #4d83c5;
+    margin-right: .3rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item > .mcc-status-badge {
+    align-items: center;
+    display: inline-flex;
+    gap: .3rem;
+}
+
+.mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item > .mcc-status-badge {
+    flex: 0 0 auto;
+}
+
+.mcc-portal-main[data-portal-page="profile"] #consent {
+    display: grid;
+    gap: 1rem;
+}
+
+.mcc-portal-consent-grid {
+    display: grid;
+    gap: .8rem;
+}
+
+.mcc-portal-consent-card {
+    background: #f8fbff;
+    border: 1px solid #e1eaf4;
+    border-radius: 13px;
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: .9rem;
+}
+
+.mcc-portal-consent-card span,
+.mcc-portal-consent-card strong {
+    display: block;
+}
+
+.mcc-portal-consent-card span {
+    color: #7a8da4;
+    font-size: .66rem;
+    margin-bottom: .22rem;
+}
+
+.mcc-portal-consent-card strong {
+    color: #2a4b70;
+    font-size: .76rem;
+}
+
+@media (max-width: 760px) {
+    .mcc-portal-consent-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .mcc-portal-main[data-portal-page="achievements"] .mcc-portal-achievement-item {
+        display: grid;
+        gap: .7rem;
+    }
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-info-grid,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-coach-meta,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-academy-summary {
+    gap: .75rem;
+}
+
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-info-grid > div,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-coach-meta > div {
+    background: #f7fafe;
+    border: 1px solid #e6edf5;
+    border-radius: 11px;
+    padding: .75rem;
+}
+
+@media (max-width: 700px) {
+    .mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) .mcc-portal-page-heading {
+        align-items: flex-start;
+        min-height: 0;
+        padding: 1rem;
+    }
+}
+
+/* MCC portal chrome v3: explicit final theme overrides. */
+.mcc-portal-body .mcc-portal-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #d9e4f0 !important;
+    box-shadow: 0 3px 15px rgba(22, 54, 94, .08) !important;
+    height: 72px;
+}
+
+.mcc-portal-body .mcc-portal-sidebar {
+    background: #102e54 !important;
+    border-right: 0 !important;
+    box-shadow: 8px 0 22px rgba(9, 34, 65, .08);
+    width: 252px;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label span,
+.mcc-portal-body .mcc-portal-profile strong {
+    color: #ffffff !important;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label small,
+.mcc-portal-body .mcc-portal-profile small {
+    color: #a9c2df !important;
+}
+
+.mcc-portal-body .mcc-portal-profile {
+    background: rgba(255, 255, 255, .1) !important;
+    border-color: rgba(255, 255, 255, .16) !important;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label {
+    border-bottom-color: rgba(255, 255, 255, .14) !important;
+}
+
+.mcc-portal-body .mcc-portal-nav-group {
+    color: #8eadd1 !important;
+}
+
+.mcc-portal-body .mcc-portal-nav a {
+    color: #d1e0f1 !important;
+}
+
+.mcc-portal-body .mcc-portal-nav a i {
+    color: #95b8df !important;
+}
+
+.mcc-portal-body .mcc-portal-nav a:hover {
+    background: rgba(255, 255, 255, .1) !important;
+    border-color: rgba(255, 255, 255, .12) !important;
+    color: #ffffff !important;
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active {
+    background: #2b6fbd !important;
+    border-color: #4a8bd4 !important;
+    box-shadow: inset 3px 0 0 #b9dcff, 0 5px 12px rgba(3, 20, 44, .2) !important;
+    color: #ffffff !important;
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active i {
+    color: #ffffff !important;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer {
+    border-top-color: rgba(255, 255, 255, .14) !important;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button {
+    color: #c6d8ec !important;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button:hover {
+    background: rgba(255, 255, 255, .1) !important;
+    color: #ffffff !important;
+}
+
+.mcc-portal-body .mcc-portal-topbar-context {
+    background: #f5f8fc;
+    border: 1px solid #e0e9f3;
+    border-radius: 10px;
+    margin-left: .4rem;
+    padding: .38rem .7rem;
+}
+
+.mcc-portal-body .mcc-portal-topbar-context span {
+    font-size: .75rem;
+}
+
+.mcc-portal-body .mcc-portal-user-summary {
+    border-left: 0;
+    border-right: 1px solid #e0e8f2;
+    padding-right: .9rem;
+}
+
+.mcc-portal-body .mcc-portal-menu-toggle {
+    background: #e8f1ff !important;
+    border-color: #c9ddf5 !important;
+    color: #1e5ea9 !important;
+}
+
+@media (max-width: 991px) {
+    .mcc-portal-body .mcc-portal-sidebar {
+        width: min(290px, 88vw);
+    }
+}
+
 /* Shared UI rhythm: keep page actions, cards, filters, tables, and dialogs consistent. */
 .mcc-page-heading {
     align-items: flex-end;
@@ -2090,6 +2608,21 @@ tr:last-child td {
     gap: 1rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     margin: 0;
+}
+
+.mcc-achievement-award-card {
+    margin: 0;
+    padding: 1.2rem 1.35rem;
+}
+
+.mcc-achievement-award-card .mcc-card-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: 1rem;
+    padding-bottom: .75rem;
+}
+
+.mcc-achievement-award-card .mcc-card-heading h2 {
+    margin: .2rem 0 0;
 }
 
 .mcc-achievement-award-form .mcc-form-field {
@@ -4277,7 +4810,7 @@ tr:last-child td {
 
 .dashboard-upcoming {
     border: 1px solid var(--app-border);
-    padding: 1rem 1.1rem;
+    padding: 1.2rem;
 }
 
 .dashboard-calendar-actions {
@@ -4300,6 +4833,18 @@ tr:last-child td {
     padding: .95rem 1rem;
 }
 
+.dashboard-upcoming-group .dashboard-activity-card {
+    align-items: center;
+    min-height: 4.5rem;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.dashboard-upcoming-group .dashboard-activity-card:hover {
+    border-color: #b9cdeb;
+    box-shadow: 0 4px 12px rgba(30, 75, 135, .08);
+    transform: translateY(-1px);
+}
+
 .dashboard-activity-card:last-child {
     border-bottom: 1px solid var(--app-border);
 }
@@ -4308,13 +4853,131 @@ tr:last-child td {
     overflow-wrap: anywhere;
 }
 
+.dashboard-activity-match-summary {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    gap: .85rem;
+    min-width: 0;
+}
+
+.dashboard-upcoming-group-matches .dashboard-activity-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.dashboard-upcoming-match-table-wrap {
+    overflow-x: auto;
+}
+
+.dashboard-upcoming-match-table {
+    border-collapse: collapse;
+    min-width: 100%;
+    width: 100%;
+}
+
+.dashboard-upcoming-match-table th,
+.dashboard-upcoming-match-table td {
+    border-bottom: 1px solid var(--app-border);
+    padding: .65rem .5rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.dashboard-upcoming-match-table th {
+    color: var(--app-muted);
+    font-size: .62rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.dashboard-upcoming-match-table td {
+    font-size: .72rem;
+}
+
+.dashboard-upcoming-match-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.dashboard-upcoming-match-table a {
+    color: var(--app-text);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.dashboard-upcoming-match-table a:hover {
+    color: var(--app-primary);
+}
+
+.dashboard-table-muted {
+    color: var(--app-muted);
+    font-size: .66rem;
+}
+
+.dashboard-workload-table {
+    border-collapse: collapse;
+    min-width: 40rem;
+    width: 100%;
+}
+
+.dashboard-workload-table th,
+.dashboard-workload-table td {
+    border-bottom: 1px solid var(--app-border);
+    font-size: .72rem;
+    padding: .65rem .55rem;
+    text-align: left;
+}
+
+.dashboard-workload-table thead th {
+    color: var(--app-muted);
+    font-size: .62rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.dashboard-workload-table tbody tr:last-child th,
+.dashboard-workload-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
 .dashboard-upcoming-group {
     background: var(--app-card-bg);
     border: 1px solid var(--app-border);
     border-radius: 10px;
     box-shadow: none;
     min-width: 0;
-    padding: 1rem 1.1rem;
+    padding: 1.1rem 1.2rem;
+}
+
+.dashboard-upcoming-group-sessions {
+    border-top: 3px solid #2d76d8;
+}
+
+.dashboard-upcoming-group-trials {
+    border-top: 3px solid #1da56b;
+}
+
+.dashboard-upcoming-group-matches {
+    border-top: 3px solid #e48a24;
+}
+
+.dashboard-upcoming-group-tournaments {
+    border-top: 3px solid #8b5bd6;
+}
+
+.dashboard-upcoming-group-trials .dashboard-upcoming-count {
+    background: #ecfaf3;
+    color: #16734b;
+}
+
+.dashboard-upcoming-group-matches .dashboard-upcoming-count {
+    background: #fff5e8;
+    color: #a75b00;
+}
+
+.dashboard-upcoming-group-tournaments .dashboard-upcoming-count {
+    background: #f4efff;
+    color: #6b3ead;
 }
 
 .dashboard-upcoming-group .dashboard-activity-list {
@@ -4332,6 +4995,21 @@ tr:last-child td {
 
 .dashboard-subsection-heading h3 {
     font-size: .82rem;
+}
+
+.dashboard-subsection-heading > div {
+    min-width: 0;
+}
+
+.dashboard-upcoming-count {
+    background: #eef4ff;
+    border-radius: 999px;
+    color: #245aa8;
+    display: inline-flex;
+    font-size: .62rem;
+    font-weight: 700;
+    margin-top: .3rem;
+    padding: .2rem .5rem;
 }
 
 .dashboard-muted-empty {
@@ -4358,6 +5036,30 @@ tr:last-child td {
     flex: 0 0 auto;
     font-size: .7rem;
     white-space: nowrap;
+}
+
+.dashboard-upcoming-group .dashboard-activity-type {
+    align-self: flex-start;
+    background: #eef4ff;
+    border-radius: 999px;
+    font-size: .62rem;
+    font-weight: 700;
+    padding: .22rem .45rem;
+}
+
+.dashboard-upcoming-group-trials .dashboard-activity-type {
+    background: #ecfaf3;
+    color: #16734b;
+}
+
+.dashboard-upcoming-group-matches .dashboard-activity-type {
+    background: #fff5e8;
+    color: #a75b00;
+}
+
+.dashboard-upcoming-group-tournaments .dashboard-activity-type {
+    background: #f4efff;
+    color: #6b3ead;
 }
 
 .dashboard-activity-link {
@@ -4687,14 +5389,35 @@ tr:last-child td {
 }
 
 .mcc-report-table {
-    min-width: 720px;
+    min-width: 980px;
+    width: max-content;
+}
+
+.mcc-report-table th,
+.mcc-report-table td {
+    min-width: 110px;
+    padding-left: .9rem;
+    padding-right: .9rem;
+    vertical-align: top;
 }
 
 .mcc-report-table th {
     white-space: nowrap;
 }
 
-@media (max-width: 900px) {
+.mcc-report-table th:first-child,
+.mcc-report-table td:first-child {
+    min-width: 150px;
+}
+
+.mcc-report-cell-stack {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    line-height: 1.35;
+}
+
+@media (max-width: 991px) {
     .mcc-filter-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -4923,8 +5646,10 @@ tr:last-child td {
 }
 
 .mcc-dashboard .dashboard-hero {
+    align-items: center;
     background: linear-gradient(135deg, #edf5ff 0%, #ffffff 72%);
     box-shadow: 0 3px 12px rgba(20, 66, 128, .08);
+    gap: .8rem;
     min-height: 5.2rem;
 }
 
@@ -4967,11 +5692,31 @@ tr:last-child td {
     background: #f8fbff;
     border: 1px solid #dbe7f7;
     border-radius: .7rem;
+    margin-left: auto;
+    max-width: 100%;
     padding: .45rem;
 }
 
+.mcc-dashboard .dashboard-branch-card-grid {
+    align-items: stretch;
+}
+
+.mcc-dashboard .dashboard-branch-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.mcc-dashboard .dashboard-branch-card-detail {
+    margin-top: auto;
+}
+
+.mcc-dashboard .dashboard-branch-card-detail + .dashboard-branch-card-detail {
+    margin-top: .7rem;
+}
+
 .mcc-dashboard .dashboard-summary {
-    border-top: 3px solid #1464d2;
+    border-top: 0;
 }
 
 .mcc-dashboard .dashboard-section-heading h2,
@@ -5047,6 +5792,11 @@ tr:last-child td {
 
 .mcc-dashboard .dashboard-chart-dot-personal {
     background: #f5a623;
+}
+
+.mcc-dashboard .dashboard-chart-dot-elite,
+.mcc-dashboard .dashboard-legend-elite {
+    background: #7d4fd1;
 }
 
 .mcc-dashboard .dashboard-horizontal-bars {
@@ -5305,6 +6055,7 @@ tr:last-child td {
 
 .mcc-dashboard .dashboard-upcoming,
 .mcc-dashboard .dashboard-batch-distribution,
+.mcc-dashboard .dashboard-workload,
 .mcc-dashboard .dashboard-workload-unavailable,
 .mcc-dashboard .dashboard-recent {
     margin: 0;
@@ -5313,6 +6064,10 @@ tr:last-child td {
 @media (max-width: 1180px) {
     .mcc-dashboard .dashboard-kpi-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mcc-dashboard .dashboard-upcoming-groups {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .mcc-dashboard .dashboard-branch-card-grid,
@@ -7752,6 +8507,7 @@ tr:last-child td {
 .mcc-player-action-dropdown button,
 .mcc-player-action-dropdown a,
 .mcc-coach-action-dropdown button,
+.mcc-coach-action-dropdown a,
 .mcc-session-action-dropdown button,
 .mcc-session-action-dropdown a {
     align-items: center;
@@ -7768,6 +8524,7 @@ tr:last-child td {
 .mcc-player-action-dropdown button > i,
 .mcc-player-action-dropdown a > i,
 .mcc-coach-action-dropdown button > i,
+.mcc-coach-action-dropdown a > i,
 .mcc-session-action-dropdown button > i,
 .mcc-session-action-dropdown a > i {
     flex: 0 0 1rem;
@@ -7781,11 +8538,16 @@ tr:last-child td {
 .mcc-player-action-dropdown a:focus-visible,
 .mcc-coach-action-dropdown button:hover,
 .mcc-coach-action-dropdown button:focus-visible,
+.mcc-coach-action-dropdown a:hover,
+.mcc-coach-action-dropdown a:focus-visible,
 .mcc-session-action-dropdown button:hover,
 .mcc-session-action-dropdown button:focus-visible,
 .mcc-session-action-dropdown a:hover,
 .mcc-session-action-dropdown a:focus-visible {
     background: var(--app-page-bg);
+}
+.mcc-session-action-dropdown form {
+    margin: 0;
 }
 @media (max-width: 700px) {
     .mcc-player-action-dropdown {
@@ -7822,7 +8584,6 @@ tr:last-child td {
     min-height: 2.75rem;
     min-width: 0;
     overflow: hidden;
-    padding: .65rem .75rem;
     text-overflow: ellipsis;
     width: 100%;
 }
@@ -7918,7 +8679,9 @@ tr:last-child td {
 .mcc-player-360-index {
     display: grid;
     gap: 1rem;
+    max-width: 100%;
     min-width: 0;
+    overflow-x: clip;
 }
 
 .mcc-player-360-index > .mcc-card {
@@ -7946,6 +8709,51 @@ tr:last-child td {
     min-width: 0;
 }
 
+.mcc-player-360-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.mcc-player-360-table {
+    min-width: 100%;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.mcc-player-360-table th,
+.mcc-player-360-table td {
+    overflow-wrap: anywhere;
+    padding: .65rem .75rem;
+    vertical-align: middle;
+}
+
+.mcc-player-360-table th:first-child,
+.mcc-player-360-table td:first-child {
+    width: 22%;
+}
+
+.mcc-player-360-table th:nth-child(2),
+.mcc-player-360-table td:nth-child(2) {
+    width: 25%;
+}
+
+.mcc-player-360-table th:nth-child(3),
+.mcc-player-360-table td:nth-child(3) {
+    width: 25%;
+}
+
+.mcc-player-360-table th:nth-child(4),
+.mcc-player-360-table td:nth-child(4) {
+    width: 13%;
+}
+
+.mcc-player-360-table th:last-child,
+.mcc-player-360-table td:last-child {
+    text-align: right;
+    width: 15%;
+}
+
 .mcc-achievements-page {
     display: grid;
     gap: 1rem;
@@ -7955,6 +8763,234 @@ tr:last-child td {
 .mcc-achievements-page > .mcc-card {
     margin: 0;
     min-width: 0;
+}
+
+.mcc-achievements-page {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.mcc-achievement-results-card {
+    min-width: 0;
+    overflow: visible;
+}
+
+.mcc-achievement-results-card .mcc-card-heading {
+    align-items: center;
+    margin-bottom: .75rem;
+}
+
+.mcc-achievement-form-card {
+    margin: 0;
+    max-width: 72rem;
+}
+
+.mcc-achievement-form-card .mcc-card-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: 1rem;
+    padding-bottom: .7rem;
+}
+
+.mcc-achievement-filter-card[hidden] {
+    display: none !important;
+}
+
+.mcc-achievement-filter-card {
+    margin: 0;
+    overflow: visible;
+    padding: 1.25rem 1.35rem;
+}
+
+.mcc-achievement-filter-card .mcc-card-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin: 0 0 1rem;
+    padding: 0 0 .75rem;
+}
+
+.mcc-achievement-filter-card .mcc-card-heading h2 {
+    margin: .2rem 0 0;
+}
+
+.mcc-achievement-filter-form {
+    align-items: end;
+    display: grid;
+    gap: .85rem 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    margin: 0;
+}
+
+.mcc-achievement-filter-form .mcc-form-field {
+    display: grid;
+    gap: .35rem;
+    min-width: 0;
+}
+
+.mcc-achievement-filter-form .mcc-form-field label {
+    font-size: .76rem;
+    font-weight: 600;
+}
+
+.mcc-achievement-filter-form .form-control {
+    min-height: 2.65rem;
+}
+
+.mcc-achievement-filter-form .mcc-form-actions {
+    gap: .5rem;
+    padding: 0;
+}
+
+.mcc-award-filter-form {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 800px) {
+    .mcc-award-filter-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-award-filter-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mcc-award-filter-form .mcc-form-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+}
+
+.mcc-award-filter-form .mcc-checkbox-label {
+    margin-right: auto;
+}
+
+@media (max-width: 800px) {
+    .mcc-achievement-filter-form,
+    .mcc-award-filter-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-achievement-filter-form .mcc-form-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-achievement-filter-form,
+    .mcc-award-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-achievement-filter-form .mcc-form-actions {
+        grid-column: auto;
+    }
+}
+
+.mcc-achievement-form-card .mcc-form-grid {
+    display: grid;
+    gap: 1rem 1.15rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.mcc-achievement-form-card .mcc-form-field {
+    min-width: 0;
+}
+
+.mcc-achievement-form-card .mcc-form-field-wide,
+.mcc-achievement-form-card .mcc-form-actions,
+.mcc-achievement-form-card .mcc-alert {
+    grid-column: 1 / -1;
+}
+
+.mcc-achievement-form-card .mcc-form-actions {
+    justify-content: flex-end;
+    margin-top: .25rem;
+    padding: 0;
+}
+
+@media (max-width: 700px) {
+    .mcc-achievement-form-card .mcc-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-achievement-form-card .mcc-form-field-wide,
+    .mcc-achievement-form-card .mcc-form-actions,
+    .mcc-achievement-form-card .mcc-alert {
+        grid-column: auto;
+    }
+}
+
+.mcc-achievement-table {
+    min-width: 620px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.mcc-achievement-table th,
+.mcc-achievement-table td {
+    overflow-wrap: anywhere;
+    padding: .65rem .75rem;
+    vertical-align: middle;
+}
+
+.mcc-achievement-table thead th {
+    background: var(--app-surface-muted, #f7f8fa);
+    color: var(--app-muted);
+    font-size: .7rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.mcc-achievement-awards-table {
+    min-width: 860px;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.mcc-award-action-menu {
+    display: inline-flex;
+    position: relative;
+    z-index: 1200;
+}
+
+.mcc-award-action-menu[open] {
+    z-index: 1300;
+}
+
+.mcc-achievement-awards-table tbody tr:has(.mcc-award-action-menu[open]) {
+    position: relative;
+    z-index: 1250;
+}
+
+.mcc-award-action-menu .mcc-detail-action-dropdown {
+    display: grid;
+    gap: .35rem;
+    min-width: 15rem;
+    padding: .5rem;
+    right: 0;
+    z-index: 50000;
+}
+
+.mcc-award-action-menu .mcc-detail-action-dropdown a,
+.mcc-award-action-menu .mcc-detail-action-dropdown form {
+    width: 100%;
+}
+
+.mcc-award-action-menu .mcc-detail-action-dropdown a {
+    align-items: center;
+    display: flex;
+    gap: .5rem;
+    padding: .55rem .65rem;
+}
+
+.mcc-award-action-menu .mcc-detail-action-dropdown form {
+    display: grid;
+    gap: .35rem;
 }
 
 .mcc-achievement-filter-card[hidden] {
@@ -7969,6 +9005,8 @@ tr:last-child td {
 
 .mcc-player-360-detail > .mcc-card {
     margin: 0;
+    min-width: 0;
+    overflow: visible;
 }
 
 .mcc-player-360-hero {
@@ -7976,6 +9014,16 @@ tr:last-child td {
     display: flex;
     gap: 1rem;
     justify-content: space-between;
+    padding: 1rem 1.15rem;
+}
+
+.mcc-player-360-hero .mcc-card-heading {
+    align-items: center;
+    display: flex;
+    flex: 1 1 auto;
+    gap: 1rem;
+    justify-content: space-between;
+    margin: 0;
 }
 
 .mcc-player-360-kpi-grid {
@@ -7986,15 +9034,15 @@ tr:last-child td {
 
 .mcc-player-360-kpi-card {
     display: grid;
-    gap: .2rem;
+    gap: .15rem;
     margin: 0;
     min-width: 0;
-    padding: 1rem;
+    padding: .85rem .9rem;
 }
 
 .mcc-player-360-kpi-card strong {
     color: var(--app-text);
-    font-size: 1.65rem;
+    font-size: 1.45rem;
     line-height: 1.1;
 }
 
@@ -8007,23 +9055,30 @@ tr:last-child td {
     background: linear-gradient(135deg, #f1eaff, #fff);
 }
 
-.mcc-player-360-hero h1 {
-    margin: .15rem 0 .35rem;
+.mcc-player-360-hero h2 {
+    font-size: 1.2rem;
+    line-height: 1.2;
+    margin: .2rem 0 .25rem;
 }
 
-.mcc-player-360-hero h1 span {
-    color: var(--app-muted);
-    font-weight: 500;
+.mcc-player-360-hero p {
+    margin: 0;
 }
 
 .mcc-player-360-section-grid {
+    align-items: stretch;
     display: grid;
-    gap: 1rem;
+    gap: .75rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .mcc-player-360-section {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     min-width: 0;
+    padding: .95rem;
 }
 
 .mcc-player-360-section .mcc-card-heading,
@@ -8040,7 +9095,21 @@ tr:last-child td {
 
 .mcc-player-360-section .mcc-empty-state {
     margin: 0;
-    padding: 1rem;
+    padding: .7rem;
+}
+
+.mcc-player-360-unavailable {
+    background: var(--app-surface-muted, #f8f9fb);
+}
+
+.mcc-player-360-unavailable .mcc-card-heading {
+    margin-bottom: .5rem;
+    padding-bottom: .5rem;
+}
+
+.mcc-player-360-unavailable .mcc-empty-state {
+    color: var(--app-muted);
+    font-size: .78rem;
 }
 
 .mcc-player-360-summary {
@@ -8068,14 +9137,228 @@ tr:last-child td {
     font-size: 1.2rem;
 }
 
+.mcc-player-360-data-table-wrap {
+    margin-top: .65rem;
+    overflow-x: auto;
+}
+
+.mcc-player-360-data-table {
+    min-width: 560px;
+    table-layout: auto;
+    width: 100%;
+}
+
+.mcc-player-360-data-table th,
+.mcc-player-360-data-table td {
+    font-size: .78rem;
+    overflow-wrap: anywhere;
+    padding: .5rem .6rem;
+    vertical-align: top;
+}
+
+.mcc-player-360-data-table th {
+    background: var(--app-surface-muted, #f7f8fa);
+    color: var(--app-muted);
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: normal;
+}
+
+.mcc-player-360-data-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.mcc-player-360-fitness-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .65rem;
+}
+
+.mcc-player-360-fitness-summary span {
+    background: var(--app-surface-muted, #f7f8fa);
+    border: 1px solid var(--app-border);
+    border-radius: 999px;
+    color: var(--app-muted);
+    font-size: .75rem;
+    padding: .35rem .6rem;
+}
+
+.mcc-player-360-fitness-summary strong {
+    color: var(--app-text);
+    margin-left: .25rem;
+}
+
+.mcc-player-360-performance-section {
+    background: linear-gradient(145deg, #ffffff, #f8fbff);
+}
+
+.mcc-player-360-performance-section .mcc-player-360-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mcc-player-360-performance-section .mcc-player-360-summary div {
+    border-top: 3px solid #2f80ed;
+}
+
+.mcc-player-360-performance-empty {
+    align-items: flex-start;
+    background: var(--app-surface-muted, #f7f8fa);
+    border: 1px dashed var(--app-border);
+    border-radius: .55rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding: .85rem;
+}
+
+.mcc-player-360-performance-empty strong {
+    color: var(--app-text);
+    font-size: .85rem;
+}
+
+.mcc-player-360-performance-empty span {
+    color: var(--app-muted);
+    font-size: .76rem;
+}
+
+.mcc-fitness-edit-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.mcc-fitness-edit-page > form {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.mcc-fitness-edit-page .mcc-page-heading-card,
+.mcc-fitness-edit-page .mcc-form-section {
+    margin: 0;
+}
+
+.mcc-fitness-edit-page .mcc-page-heading-card {
+    padding: 1rem 1.15rem;
+}
+
+.mcc-fitness-edit-page .mcc-page-heading-card h1 {
+    margin: .2rem 0 .3rem;
+}
+
+.mcc-fitness-edit-page .mcc-page-heading-card p {
+    margin: 0;
+}
+
+.mcc-fitness-edit-page .mcc-form-section {
+    padding: 1rem 1.15rem;
+}
+
+.mcc-fitness-edit-page .mcc-card-heading {
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: .85rem;
+    padding-bottom: .65rem;
+}
+
+.mcc-fitness-edit-page .mcc-card-heading h2 {
+    margin: .2rem 0 0;
+}
+
+.mcc-fitness-edit-page .mcc-form-actions {
+    justify-content: flex-end;
+    margin-top: 0;
+}
+
+@media (max-width: 700px) {
+    .mcc-player-360-table-wrap {
+        border: 0;
+        overflow: visible;
+    }
+
+    .mcc-player-360-table,
+    .mcc-player-360-table tbody,
+    .mcc-player-360-table tr,
+    .mcc-player-360-table td {
+        display: block;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .mcc-player-360-table {
+        table-layout: auto;
+    }
+
+    .mcc-player-360-table thead {
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    .mcc-player-360-table tbody tr {
+        border: 1px solid var(--app-border);
+        border-radius: var(--app-radius);
+        margin-bottom: .75rem;
+        overflow: visible;
+    }
+
+    .mcc-player-360-table td {
+        border-bottom: 1px solid var(--app-border);
+        padding: .65rem .85rem;
+    }
+
+    .mcc-player-360-table td::before {
+        color: var(--app-muted);
+        content: attr(data-label);
+        display: block;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        margin-bottom: .3rem;
+        text-transform: uppercase;
+    }
+
+    .mcc-player-360-table td:last-child {
+        border-bottom: 0;
+        text-align: left;
+    }
+
+    .mcc-player-360-table td:last-child .mcc-button {
+        width: 100%;
+    }
+}
+
 @media (max-width: 760px) {
     .mcc-player-360-hero {
         align-items: flex-start;
         flex-direction: column;
     }
 
+    .mcc-player-360-hero .mcc-card-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
     .mcc-player-360-section-grid {
         grid-template-columns: 1fr;
+    }
+
+    .mcc-player-360-section {
+        padding: .8rem;
+    }
+
+    .mcc-player-360-data-table-wrap {
+        margin-left: -.2rem;
+        margin-right: -.2rem;
+    }
+
+    .mcc-player-360-performance-section .mcc-player-360-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -8317,6 +9600,1718 @@ tr:last-child td {
 .mcc-coach-related-card,
 .mcc-coach-kpi-card {
     min-width: 0;
+}
+
+.mcc-coach-kpi-card .mcc-card-heading {
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.mcc-coach-kpi-grid {
+    align-items: stretch;
+    gap: .85rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-coach-kpi-grid .metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    min-height: 8rem;
+    padding: 1rem;
+}
+
+.mcc-coach-kpi-grid .metric-card strong {
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    line-height: 1.1;
+}
+
+.mcc-coach-kpi-grid .metric-card .mcc-muted {
+    font-size: .75rem;
+    line-height: 1.35;
+    margin-top: auto;
+}
+
+@media (max-width: 800px) {
+    .mcc-coach-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-coach-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Final Academy assignment override: prevent shared grid rules from collapsing spacing. */
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid {
+    display: block !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+.mcc-portal-fee-actions {
+    display: grid;
+    gap: .25rem;
+    white-space: nowrap;
+}
+
+.mcc-portal-fee-summary {
+    display: grid;
+    gap: .8rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1rem;
+}
+
+.mcc-portal-fee-group {
+    display: grid;
+    gap: .75rem;
+}
+
+.mcc-portal-fee-switch {
+    background: #f4f7fb;
+    border: 1px solid #dfe7f2;
+    border-radius: 10px;
+    display: inline-flex;
+    gap: .25rem;
+    padding: .25rem;
+    width: fit-content;
+}
+
+.mcc-portal-fee-switch input {
+    height: 1px;
+    opacity: 0;
+    position: absolute;
+    width: 1px;
+}
+
+.mcc-portal-fee-switch label {
+    border-radius: 8px;
+    color: #64718a;
+    cursor: pointer;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: .55rem .8rem;
+}
+
+.mcc-portal-fee-switch label:hover {
+    color: var(--app-primary);
+}
+
+#portal-fee-tab-paid:checked + label,
+#portal-fee-tab-pending:checked + label {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(37, 58, 98, .1);
+    color: var(--app-primary);
+}
+
+.mcc-portal-fee-panels {
+    margin-top: .2rem;
+}
+
+.mcc-portal-fee-panel-pending {
+    display: none;
+}
+
+.mcc-portal-fee-switch:has(#portal-fee-tab-pending:checked) + .mcc-portal-fee-panels .mcc-portal-fee-panel-paid {
+    display: none;
+}
+
+.mcc-portal-fee-switch:has(#portal-fee-tab-pending:checked) + .mcc-portal-fee-panels .mcc-portal-fee-panel-pending {
+    display: grid;
+}
+
+.mcc-portal-fee-switch:has(#portal-fee-tab-paid:checked) + .mcc-portal-fee-panels .mcc-portal-fee-panel-paid {
+    display: grid;
+}
+
+.mcc-portal-fee-group + .mcc-portal-fee-group {
+    margin-top: .5rem;
+}
+
+.mcc-portal-fee-group-heading {
+    align-items: center;
+    border-bottom: 1px solid #e9eef5;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: .2rem 0 .65rem;
+}
+
+.mcc-portal-fee-group-heading h3 {
+    color: #243653;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.mcc-portal-fee-group-heading p {
+    color: #71809a;
+    font-size: .78rem;
+    margin: .2rem 0 0;
+}
+
+@media (max-width: 560px) {
+    .mcc-portal-fee-group-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+.mcc-portal-fee-summary > div {
+    background: #f8fafd;
+    border: 1px solid #e2e9f3;
+    border-radius: 10px;
+    display: grid;
+    gap: .25rem;
+    padding: .85rem 1rem;
+}
+
+.mcc-portal-fee-summary span {
+    color: #71809a;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.mcc-portal-fee-summary strong {
+    color: #233452;
+    font-size: 1.05rem;
+}
+
+.mcc-portal-fee-summary strong.is-collected {
+    color: #17633f;
+}
+
+.mcc-portal-fee-summary strong.is-pending {
+    color: #9a4c16;
+}
+
+@media (max-width: 560px) {
+    .mcc-portal-fee-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mcc-portal-fee-actions a {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #cbd9ec;
+    border-radius: 6px;
+    color: var(--app-primary);
+    display: inline-flex;
+    font-size: .75rem;
+    font-weight: 700;
+    justify-content: center;
+    min-height: 28px;
+    padding: .25rem .55rem;
+    text-decoration: none;
+}
+
+.mcc-portal-fee-actions a:hover,
+.mcc-portal-fee-actions a:focus-visible {
+    background: #eef5ff;
+    border-color: var(--app-primary);
+    text-decoration: underline;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid #academy {
+    box-sizing: border-box !important;
+    display: grid !important;
+    gap: 1.5rem !important;
+    margin: 0 !important;
+    max-width: none !important;
+    padding: clamp(1.35rem, 3vw, 2.15rem) !important;
+    width: 100% !important;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid #academy .mcc-portal-academy-summary {
+    gap: 1.1rem !important;
+    margin: 0 !important;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid #academy .mcc-portal-info-grid {
+    gap: 1rem !important;
+    margin: 0 !important;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid #academy .mcc-portal-info-grid > div {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    padding: 1rem 1.1rem !important;
+}
+
+/* Portal header/navigation final alignment pass. */
+.mcc-portal-body .mcc-portal-header {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    min-height: 72px;
+    padding: .7rem clamp(1rem, 3vw, 2.5rem);
+}
+
+.mcc-portal-body .mcc-portal-header-start,
+.mcc-portal-body .mcc-portal-header-actions {
+    align-items: center;
+    display: flex;
+    gap: .7rem;
+}
+
+.mcc-portal-body .mcc-portal-menu-toggle,
+.mcc-portal-body .mcc-portal-menu-close {
+    align-items: center;
+    background: #edf4fc;
+    border: 1px solid #d7e4f2;
+    border-radius: 10px;
+    color: #24568e;
+    display: inline-flex;
+    height: 2.35rem;
+    justify-content: center;
+    width: 2.35rem;
+}
+
+.mcc-portal-body .mcc-portal-menu-toggle:hover,
+.mcc-portal-body .mcc-portal-menu-close:hover {
+    background: #dcecff;
+    color: #123e70;
+}
+
+.mcc-portal-body .mcc-portal-menu-close {
+    display: none;
+    margin-left: auto;
+}
+
+.mcc-portal-body .mcc-portal-sidebar {
+    padding: 1.2rem .75rem;
+}
+
+.mcc-portal-body .mcc-portal-nav-group {
+    margin-left: .55rem;
+    margin-right: .55rem;
+}
+
+.mcc-portal-body .mcc-portal-nav a {
+    min-height: 2.6rem;
+    padding: .62rem .75rem;
+}
+
+.mcc-portal-body .mcc-portal-nav a span {
+    line-height: 1.2;
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active {
+    box-shadow: inset 3px 0 0 #80b8f2, 0 5px 12px rgba(5, 25, 53, .14);
+}
+
+.mcc-portal-body .mcc-portal-profile {
+    margin-left: .1rem;
+    margin-right: .1rem;
+}
+
+@media (max-width: 991px) {
+    .mcc-portal-body .mcc-portal-menu-toggle,
+    .mcc-portal-body .mcc-portal-menu-close {
+        display: inline-flex;
+    }
+
+    .mcc-portal-body .mcc-portal-sidebar {
+        box-shadow: 10px 0 30px rgba(2, 21, 45, .25);
+    }
+}
+
+@media (min-width: 992px) {
+    .mcc-portal-body .mcc-portal-menu-toggle {
+        display: none;
+    }
+}
+
+@media (max-width: 620px) {
+    .mcc-portal-body .mcc-portal-header-actions {
+        gap: .35rem;
+    }
+
+    .mcc-portal-body .mcc-portal-logout-button {
+        align-items: center;
+        display: inline-flex;
+        height: 2.35rem;
+        justify-content: center;
+        padding: 0;
+        width: 2.35rem;
+    }
+}
+
+/* Portal topbar and menu refinement. */
+.mcc-portal-body .mcc-portal-topbar-context {
+    border-left: 1px solid #dce6f1;
+    display: grid;
+    gap: .1rem;
+    margin-left: .8rem;
+    min-width: 150px;
+    padding-left: 1rem;
+}
+
+.mcc-portal-body .mcc-portal-topbar-context span {
+    color: #1a3c69;
+    font-size: .82rem;
+    font-weight: 800;
+}
+
+.mcc-portal-body .mcc-portal-topbar-context small {
+    color: #7a8da5;
+    font-size: .68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label {
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+    display: grid;
+    gap: .15rem;
+    margin: -.2rem .2rem .65rem;
+    padding: 0 .55rem .8rem;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label span {
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+}
+
+.mcc-portal-body .mcc-portal-navigation-label small {
+    color: #87a5ca;
+    font-size: .65rem;
+}
+
+.mcc-portal-body .mcc-portal-header-actions form {
+    margin: 0;
+}
+
+.mcc-portal-body .mcc-portal-logout-button {
+    align-items: center;
+    border-color: #d7e4f2;
+    display: inline-flex;
+    gap: .4rem;
+    min-height: 2.35rem;
+}
+
+.mcc-portal-body .mcc-portal-logout-button i {
+    color: #45698f;
+}
+
+@media (max-width: 760px) {
+    .mcc-portal-body .mcc-portal-topbar-context {
+        display: none;
+    }
+
+    .mcc-portal-body .mcc-portal-header-start {
+        min-width: 0;
+    }
+
+    .mcc-portal-body .mcc-portal-brand {
+        min-width: 0;
+    }
+
+    .mcc-portal-body .mcc-portal-brand img {
+        flex: 0 0 2.4rem;
+        height: 2.4rem;
+        width: 2.4rem;
+    }
+}
+
+/* Student dashboard composition: a focused, responsive overview. */
+.mcc-portal-main[data-portal-page="dashboard"] {
+    background: #f3f6fb;
+    gap: 1.35rem;
+    max-width: 1500px;
+    padding-bottom: 2.25rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-players,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-overview-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-academy-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-competition-grid,
+.mcc-portal-main[data-portal-page="dashboard"] #training,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-progress-grid,
+.mcc-portal-main[data-portal-page="dashboard"] #notices,
+.mcc-portal-main[data-portal-page="dashboard"] #documents,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-footer {
+    order: initial;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome {
+    background: linear-gradient(135deg, #0b2852 0%, #1559a4 62%, #3b83d0 100%);
+    border: 0;
+    border-radius: 22px;
+    box-shadow: 0 14px 30px rgba(22, 67, 122, .2);
+    color: #fff;
+    isolation: isolate;
+    overflow: hidden;
+    padding: clamp(1.35rem, 3vw, 2.1rem);
+    position: relative;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome::after {
+    background: radial-gradient(circle, rgba(255, 255, 255, .2), transparent 68%);
+    content: '';
+    height: 22rem;
+    pointer-events: none;
+    position: absolute;
+    right: -7rem;
+    top: -11rem;
+    width: 22rem;
+    z-index: -1;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome h2,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome p,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome .mcc-muted {
+    color: inherit;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome .mcc-muted {
+    opacity: .8;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid {
+    gap: .9rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi {
+    background: #fff;
+    border: 1px solid #dce6f3;
+    border-radius: 16px;
+    box-shadow: 0 7px 18px rgba(24, 58, 102, .07);
+    min-height: 8.5rem;
+    padding: 1.1rem 1.15rem;
+    transition: box-shadow .18s ease, transform .18s ease;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi:hover {
+    box-shadow: 0 12px 24px rgba(24, 58, 102, .12);
+    transform: translateY(-2px);
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi:nth-child(1) {
+    border-top: 4px solid #2563eb;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi:nth-child(2) {
+    border-top: 4px solid #16a34a;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi:nth-child(3) {
+    border-top: 4px solid #f59e0b;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid .mcc-portal-kpi:nth-child(4) {
+    border-top: 4px solid #7c3aed;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-players,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-content-grid > section,
+.mcc-portal-main[data-portal-page="dashboard"] #training,
+.mcc-portal-main[data-portal-page="dashboard"] #notices,
+.mcc-portal-main[data-portal-page="dashboard"] #documents {
+    background: #fff;
+    border: 1px solid #dce6f3;
+    border-radius: 18px;
+    box-shadow: 0 7px 18px rgba(24, 58, 102, .06);
+    min-width: 0;
+    padding: 1.15rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-content-grid {
+    gap: 1rem;
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-overview-grid {
+    grid-template-columns: 1fr;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-academy-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-competition-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-progress-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-section-heading {
+    align-items: center;
+    border-bottom: 1px solid #e6edf6;
+    display: flex;
+    gap: .65rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: .7rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-section-heading h2 {
+    color: #102b52;
+    font-size: 1.05rem;
+    letter-spacing: -.01em;
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-section-heading h2::before {
+    background: #2563eb;
+    border-radius: 999px;
+    content: '';
+    display: inline-block;
+    height: 1.1rem;
+    margin-right: .55rem;
+    vertical-align: -.15rem;
+    width: .25rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-player-grid,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-coach-grid {
+    gap: .8rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-player,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-coach-card {
+    background: #f8fbff;
+    border: 1px solid #e0eaf6;
+    border-radius: 13px;
+    padding: .85rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] table {
+    font-size: .84rem;
+    width: 100%;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] th {
+    background: #f4f7fb;
+    color: #53657d;
+    font-size: .7rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-empty-state {
+    background: #f8fbff;
+    border: 1px dashed #cbd9eb;
+    border-radius: 12px;
+    color: #6b7b91;
+    padding: 1rem;
+}
+
+@media (max-width: 1100px) {
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-academy-grid,
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-competition-grid,
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-progress-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 680px) {
+    .mcc-portal-main[data-portal-page="dashboard"] {
+        gap: 1rem;
+        padding: .85rem .7rem 1.5rem;
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome {
+        border-radius: 16px;
+        padding: 1.15rem;
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-players,
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-content-grid > section,
+    .mcc-portal-main[data-portal-page="dashboard"] #training,
+    .mcc-portal-main[data-portal-page="dashboard"] #notices,
+    .mcc-portal-main[data-portal-page="dashboard"] #documents {
+        border-radius: 14px;
+        padding: .9rem;
+    }
+}
+
+/* Portal visual system v2: shared shell and content surface. */
+.mcc-portal-body {
+    background: #eef3f9;
+    color: #17263f;
+}
+
+.mcc-portal-body .mcc-portal-dashboard {
+    background: #eef3f9;
+    min-height: 100vh;
+}
+
+.mcc-portal-body .mcc-portal-header {
+    background: rgba(255, 255, 255, .96);
+    border-bottom: 1px solid #d9e3ef;
+    box-shadow: 0 4px 18px rgba(17, 45, 82, .08);
+    min-height: 76px;
+    padding: .8rem clamp(1rem, 3vw, 2.4rem);
+    position: sticky;
+    top: 0;
+    z-index: 80;
+}
+
+.mcc-portal-body .mcc-portal-brand {
+    align-items: center;
+    color: #102c55;
+    gap: .7rem;
+}
+
+.mcc-portal-body .mcc-portal-brand img {
+    background: #fff;
+    border: 1px solid #dbe6f3;
+    border-radius: 12px;
+    height: 2.7rem;
+    object-fit: contain;
+    padding: .25rem;
+    width: 2.7rem;
+}
+
+.mcc-portal-body .mcc-portal-brand-copy strong {
+    font-size: .95rem;
+    letter-spacing: -.01em;
+}
+
+.mcc-portal-body .mcc-portal-brand-copy small,
+.mcc-portal-body .mcc-portal-user-copy small {
+    color: #74849a;
+    font-size: .7rem;
+}
+
+.mcc-portal-body .mcc-portal-user-summary {
+    align-items: center;
+    border-left: 1px solid #dfe7f1;
+    display: flex;
+    gap: .55rem;
+    padding-left: 1rem;
+}
+
+.mcc-portal-body .mcc-portal-avatar,
+.mcc-portal-body .mcc-portal-profile-avatar {
+    align-items: center;
+    background: linear-gradient(135deg, #1d65c1, #60a5fa);
+    border: 3px solid #e5effc;
+    border-radius: 50%;
+    color: #fff;
+    display: inline-flex;
+    font-weight: 800;
+    justify-content: center;
+}
+
+.mcc-portal-body .mcc-portal-avatar {
+    font-size: .78rem;
+    height: 2.3rem;
+    width: 2.3rem;
+}
+
+.mcc-portal-body .mcc-portal-user-copy {
+    display: grid;
+    gap: .12rem;
+}
+
+.mcc-portal-body .mcc-portal-user-copy strong {
+    color: #18345d;
+    font-size: .82rem;
+}
+
+.mcc-portal-body .mcc-portal-notification {
+    background: #f5f8fc;
+    border: 1px solid #dce6f2;
+    border-radius: 10px;
+    color: #315a91;
+    height: 2.4rem;
+    position: relative;
+    width: 2.4rem;
+}
+
+.mcc-portal-body .mcc-portal-notification span {
+    align-items: center;
+    background: #dc3545;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-flex;
+    font-size: .58rem;
+    height: 1rem;
+    justify-content: center;
+    position: absolute;
+    right: -.25rem;
+    top: -.25rem;
+    width: 1rem;
+}
+
+.mcc-portal-body .mcc-portal-layout {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: calc(100vh - 76px);
+}
+
+.mcc-portal-body .mcc-portal-sidebar {
+    background: #0d2547;
+    border-right: 1px solid #19385f;
+    color: #dce9f8;
+    padding: 1.35rem .85rem;
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+}
+
+.mcc-portal-body .mcc-portal-profile {
+    align-items: center;
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 14px;
+    display: flex;
+    gap: .65rem;
+    margin: 0 .2rem 1.35rem;
+    padding: .75rem;
+}
+
+.mcc-portal-body .mcc-portal-profile-avatar {
+    border-color: rgba(255, 255, 255, .22);
+    flex: 0 0 2.25rem;
+    height: 2.25rem;
+    width: 2.25rem;
+}
+
+.mcc-portal-body .mcc-portal-profile strong,
+.mcc-portal-body .mcc-portal-profile small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-portal-body .mcc-portal-profile strong {
+    color: #fff;
+    font-size: .82rem;
+}
+
+.mcc-portal-body .mcc-portal-profile small {
+    color: #a9c1df;
+    font-size: .68rem;
+    margin-top: .18rem;
+}
+
+.mcc-portal-body .mcc-portal-nav {
+    display: grid;
+    gap: .25rem;
+}
+
+.mcc-portal-body .mcc-portal-nav-group {
+    color: #86a4ca;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    margin: .8rem .7rem .3rem;
+    text-transform: uppercase;
+}
+
+.mcc-portal-body .mcc-portal-nav a {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #c9d9ed;
+    display: flex;
+    font-size: .8rem;
+    gap: .7rem;
+    min-height: 2.45rem;
+    padding: .55rem .7rem;
+    transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.mcc-portal-body .mcc-portal-nav a i {
+    color: #8cb2e2;
+    font-size: .9rem;
+    text-align: center;
+    width: 1.1rem;
+}
+
+.mcc-portal-body .mcc-portal-nav a:hover,
+.mcc-portal-body .mcc-portal-nav a.is-active {
+    background: #1a4f8d;
+    border-color: #2b6db7;
+    color: #fff;
+    transform: translateX(2px);
+}
+
+.mcc-portal-body .mcc-portal-nav a.is-active i {
+    color: #fff;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    margin-top: 1.25rem;
+    padding: 1rem .2rem 0;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    color: #b8cce4;
+    display: flex;
+    font-size: .8rem;
+    gap: .7rem;
+    padding: .65rem .7rem;
+    width: 100%;
+}
+
+.mcc-portal-body .mcc-portal-sidebar-footer button:hover {
+    background: rgba(255, 255, 255, .08);
+    color: #fff;
+}
+
+.mcc-portal-body .mcc-portal-main {
+    background: #eef3f9;
+    min-width: 0;
+    padding: clamp(1rem, 2.4vw, 2rem) clamp(1rem, 2.8vw, 2.75rem) 2.5rem;
+}
+
+.mcc-portal-body .mcc-portal-page-heading {
+    align-items: flex-end;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0 0 .5rem;
+}
+
+.mcc-portal-body .mcc-portal-page-heading h1 {
+    color: #102c55;
+    font-size: clamp(1.45rem, 2.8vw, 2.3rem);
+}
+
+.mcc-portal-body .mcc-portal-page-heading p {
+    color: #6f8198;
+}
+
+/* Fresh Student/Parent dashboard composition. */
+.mcc-student-dashboard-v3 {
+    display: grid;
+    gap: 1.15rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] > :not(.mcc-student-dashboard-v3) {
+    display: none !important;
+}
+
+.mcc-student-dashboard-v3-hero {
+    align-items: stretch;
+    background: linear-gradient(120deg, #0c315d, #185ea6 55%, #2f86c9);
+    border-radius: 24px;
+    box-shadow: 0 18px 34px rgba(15, 55, 103, .2);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    min-height: 220px;
+    overflow: hidden;
+    padding: clamp(1.5rem, 4vw, 2.7rem);
+    position: relative;
+}
+
+.mcc-student-dashboard-v3-hero::before,
+.mcc-student-dashboard-v3-hero::after {
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 50%;
+    content: '';
+    height: 20rem;
+    position: absolute;
+    right: -7rem;
+    top: -10rem;
+    width: 20rem;
+}
+
+.mcc-student-dashboard-v3-hero::after {
+    height: 12rem;
+    right: 7rem;
+    top: 8rem;
+    width: 12rem;
+}
+
+.mcc-student-dashboard-v3-hero-copy,
+.mcc-student-dashboard-v3-hero-profile {
+    position: relative;
+    z-index: 1;
+}
+
+.mcc-student-dashboard-v3-hero-copy {
+    max-width: 700px;
+}
+
+.mcc-student-dashboard-v3-kicker,
+.mcc-student-dashboard-v3-label {
+    color: #8cbdf3;
+    display: block;
+    font-size: .66rem;
+    font-weight: 800;
+    letter-spacing: .13em;
+}
+
+.mcc-student-dashboard-v3-hero h1 {
+    font-size: clamp(1.8rem, 4vw, 3.15rem);
+    letter-spacing: -.045em;
+    line-height: 1.05;
+    margin: .85rem 0 .75rem;
+}
+
+.mcc-student-dashboard-v3-hero p {
+    color: rgba(255, 255, 255, .82);
+    font-size: .95rem;
+    margin: 0;
+    max-width: 48ch;
+}
+
+.mcc-student-dashboard-v3-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: 1.35rem;
+}
+
+.mcc-student-dashboard-v3-tags span {
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 999px;
+    color: #fff;
+    font-size: .73rem;
+    padding: .38rem .68rem;
+}
+
+.mcc-student-dashboard-v3-hero-profile {
+    align-self: center;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 18px;
+    display: grid;
+    gap: .35rem;
+    min-width: 180px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.mcc-student-dashboard-v3-avatar,
+.mcc-student-dashboard-v3-player-avatar {
+    align-items: center;
+    border-radius: 50%;
+    display: inline-flex;
+    font-weight: 800;
+    justify-content: center;
+}
+
+.mcc-student-dashboard-v3-avatar {
+    background: #fff;
+    color: #1559a4;
+    font-size: 1.35rem;
+    height: 3.8rem;
+    justify-self: center;
+    width: 3.8rem;
+}
+
+.mcc-student-dashboard-v3-hero-profile small {
+    color: rgba(255, 255, 255, .72);
+    font-size: .68rem;
+}
+
+.mcc-student-dashboard-v3-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-student-dashboard-v3-grid-middle {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
+}
+
+.mcc-student-dashboard-v3-card {
+    background: #fff;
+    border: 1px solid #dbe5f0;
+    border-radius: 18px;
+    box-shadow: 0 9px 24px rgba(26, 62, 105, .07);
+    min-width: 0;
+    padding: 1.15rem;
+}
+
+.mcc-student-dashboard-v3-card-heading {
+    align-items: flex-start;
+    display: flex;
+    gap: .7rem;
+    justify-content: space-between;
+}
+
+.mcc-student-dashboard-v3-card h2 {
+    color: #152d50;
+    font-size: 1.05rem;
+    letter-spacing: -.02em;
+    margin: .28rem 0 0;
+}
+
+.mcc-student-dashboard-v3-icon {
+    align-items: center;
+    border-radius: 12px;
+    display: inline-flex;
+    flex: 0 0 2.35rem;
+    height: 2.35rem;
+    justify-content: center;
+    width: 2.35rem;
+}
+
+.mcc-student-dashboard-v3-icon-blue { background: #e6f0ff; color: #2563eb; }
+.mcc-student-dashboard-v3-icon-green { background: #e5f7ee; color: #159447; }
+.mcc-student-dashboard-v3-icon-purple { background: #f0eaff; color: #7541cc; }
+.mcc-student-dashboard-v3-icon-orange { background: #fff1df; color: #d97706; }
+.mcc-student-dashboard-v3-icon-teal { background: #e1f8f7; color: #0f8d8a; }
+.mcc-student-dashboard-v3-icon-pink { background: #ffe8ef; color: #dc3d72; }
+
+.mcc-student-dashboard-v3-session-meta,
+.mcc-student-dashboard-v3-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+}
+
+.mcc-student-dashboard-v3-session-meta {
+    margin: 1.15rem 0 .85rem;
+}
+
+.mcc-student-dashboard-v3-session-meta span,
+.mcc-student-dashboard-v3-attendance-card p {
+    color: #71839a;
+    font-size: .76rem;
+}
+
+.mcc-student-dashboard-v3-session-meta i {
+    color: #3975c2;
+    margin-right: .35rem;
+}
+
+.mcc-student-dashboard-v3-link {
+    align-items: center;
+    color: #2364b6;
+    display: inline-flex;
+    font-size: .75rem;
+    font-weight: 800;
+    gap: .35rem;
+    text-decoration: none;
+}
+
+.mcc-student-dashboard-v3-progress-track {
+    background: #e7eef6;
+    border-radius: 999px;
+    height: .6rem;
+    margin: 1.2rem 0 .55rem;
+    overflow: hidden;
+}
+
+.mcc-student-dashboard-v3-progress-track span {
+    background: linear-gradient(90deg, #16a34a, #60c98b);
+    border-radius: inherit;
+    display: block;
+    height: 100%;
+}
+
+.mcc-student-dashboard-v3-player-name {
+    align-items: center;
+    display: flex;
+    gap: .7rem;
+    margin: 1rem 0;
+}
+
+.mcc-student-dashboard-v3-player-avatar {
+    background: #e8f1ff;
+    color: #2463b4;
+    height: 2.5rem;
+    width: 2.5rem;
+}
+
+.mcc-student-dashboard-v3-player-name h2 {
+    margin: 0;
+}
+
+.mcc-student-dashboard-v3-player-name small,
+.mcc-student-dashboard-v3-development-grid small,
+.mcc-student-dashboard-v3-quick-link-grid small {
+    color: #7d8da2;
+    font-size: .7rem;
+}
+
+.mcc-student-dashboard-v3-player-facts {
+    display: grid;
+    gap: .4rem;
+    margin-bottom: .9rem;
+}
+
+.mcc-student-dashboard-v3-player-facts span {
+    color: #405773;
+    font-size: .76rem;
+}
+
+.mcc-student-dashboard-v3-player-facts strong {
+    color: #7b8da4;
+    display: inline-block;
+    font-size: .68rem;
+    margin-right: .35rem;
+    min-width: 6.8rem;
+}
+
+.mcc-student-dashboard-v3-development-grid,
+.mcc-student-dashboard-v3-quick-link-grid {
+    display: grid;
+    gap: .7rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 1rem;
+}
+
+.mcc-student-dashboard-v3-development-grid a,
+.mcc-student-dashboard-v3-quick-link-grid a {
+    border: 1px solid #e2eaf3;
+    border-radius: 13px;
+    color: #183457;
+    display: grid;
+    gap: .3rem;
+    padding: .75rem;
+    text-decoration: none;
+}
+
+.mcc-student-dashboard-v3-development-grid strong {
+    font-size: 1.25rem;
+}
+
+.mcc-student-dashboard-v3-facts {
+    display: grid;
+    gap: .75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 1.1rem 0;
+}
+
+.mcc-student-dashboard-v3-facts div {
+    background: #f7fafe;
+    border-radius: 10px;
+    padding: .7rem;
+}
+
+.mcc-student-dashboard-v3-facts dt {
+    color: #8091a5;
+    font-size: .65rem;
+    margin-bottom: .2rem;
+}
+
+.mcc-student-dashboard-v3-facts dd {
+    color: #405773;
+    font-size: .76rem;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.mcc-student-dashboard-v3-status {
+    background: #e6f7ed;
+    border-radius: 999px;
+    color: #168148;
+    font-size: .65rem;
+    font-weight: 800;
+    padding: .25rem .5rem;
+}
+
+.mcc-student-dashboard-v3-records-card {
+    padding-bottom: 1.35rem;
+}
+
+.mcc-student-dashboard-v3-records-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 1rem;
+}
+
+.mcc-student-dashboard-v3-record-column {
+    background: #f8fbff;
+    border: 1px solid #e3ebf4;
+    border-radius: 13px;
+    min-width: 0;
+    padding: .85rem;
+}
+
+.mcc-student-dashboard-v3-record-column h3 {
+    border-bottom: 1px solid #e4ebf4;
+    color: #254365;
+    font-size: .78rem;
+    margin: 0;
+    padding-bottom: .65rem;
+}
+
+.mcc-student-dashboard-v3-record-column h3 i {
+    color: #3975c2;
+    margin-right: .35rem;
+}
+
+.mcc-student-dashboard-v3-record {
+    align-items: flex-start;
+    border-bottom: 1px solid #e8eef5;
+    display: flex;
+    gap: .55rem;
+    padding: .7rem 0;
+    text-decoration: none;
+}
+
+.mcc-student-dashboard-v3-record:last-child {
+    border-bottom: 0;
+    padding-bottom: .15rem;
+}
+
+.mcc-student-dashboard-v3-record-dot {
+    border-radius: 50%;
+    flex: 0 0 .48rem;
+    height: .48rem;
+    margin-top: .3rem;
+    width: .48rem;
+}
+
+.mcc-student-dashboard-v3-record-dot-blue { background: #3478d2; }
+.mcc-student-dashboard-v3-record-dot-green { background: #22a463; }
+.mcc-student-dashboard-v3-record-dot-purple { background: #8456cf; }
+.mcc-student-dashboard-v3-record-dot-orange { background: #e99128; }
+
+.mcc-student-dashboard-v3-record strong,
+.mcc-student-dashboard-v3-record small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-student-dashboard-v3-record strong {
+    color: #29496d;
+    font-size: .74rem;
+}
+
+.mcc-student-dashboard-v3-record small,
+.mcc-student-dashboard-v3-record-empty {
+    color: #7b8da3;
+    font-size: .68rem;
+    margin: .2rem 0 0;
+}
+
+.mcc-student-dashboard-v3-record-empty {
+    padding: .6rem 0 .25rem;
+}
+
+.mcc-student-dashboard-v3-quick-link-grid a {
+    align-items: center;
+    grid-template-columns: auto 1fr;
+}
+
+.mcc-student-dashboard-v3-quick-link-grid a i {
+    color: #2d6fc3;
+    font-size: 1.1rem;
+    grid-row: span 2;
+}
+
+@media (max-width: 1100px) {
+    .mcc-student-dashboard-v3-grid-top {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-student-dashboard-v3-player-card {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 760px) {
+    .mcc-student-dashboard-v3-hero {
+        display: grid;
+        gap: 1.25rem;
+    }
+
+    .mcc-student-dashboard-v3-hero-profile {
+        align-items: center;
+        display: flex;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .mcc-student-dashboard-v3-grid-top,
+    .mcc-student-dashboard-v3-grid-middle,
+    .mcc-student-dashboard-v3-records-grid,
+    .mcc-student-dashboard-v3-quick-link-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-student-dashboard-v3-player-card {
+        grid-column: auto;
+    }
+
+    .mcc-student-dashboard-v3-development-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 420px) {
+    .mcc-student-dashboard-v3-hero {
+        border-radius: 18px;
+        padding: 1.25rem;
+    }
+
+    .mcc-student-dashboard-v3-card {
+        border-radius: 14px;
+        padding: .95rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .mcc-portal-body .mcc-portal-layout {
+        display: block;
+    }
+
+    .mcc-portal-body .mcc-portal-sidebar {
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        top: 0;
+        transform: translateX(-105%);
+        transition: transform .2s ease;
+        width: min(290px, 88vw);
+        z-index: 100;
+    }
+
+    .mcc-portal-body.mcc-portal-nav-open .mcc-portal-sidebar {
+        transform: translateX(0);
+    }
+
+    .mcc-portal-body .mcc-portal-backdrop {
+        background: rgba(8, 25, 49, .48);
+        inset: 0;
+        position: fixed;
+        z-index: 90;
+    }
+}
+
+@media (max-width: 620px) {
+    .mcc-portal-body .mcc-portal-header {
+        min-height: 66px;
+        padding: .65rem .8rem;
+    }
+
+    .mcc-portal-body .mcc-portal-brand-copy,
+    .mcc-portal-body .mcc-portal-user-copy,
+    .mcc-portal-body .mcc-portal-user-summary + .mcc-status-badge {
+        display: none;
+    }
+
+    .mcc-portal-body .mcc-portal-main {
+        padding: 1rem .75rem 1.5rem;
+    }
+}
+
+/* Final dashboard layout guardrails: keep every section inside the page grid. */
+.mcc-page-container:has(> .mcc-dashboard) {
+    overflow-x: hidden;
+}
+
+.mcc-page-container:has(> .mcc-dashboard) > .mcc-dashboard {
+    gap: 1rem;
+    overflow: visible;
+    padding: 0;
+}
+
+.mcc-dashboard > .dashboard-surface,
+.mcc-dashboard > .dashboard-primary-grid,
+.mcc-dashboard > .dashboard-analytics-grid,
+.mcc-dashboard > .dashboard-director-grid,
+.mcc-dashboard > .dashboard-reference-grid {
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-dashboard > .dashboard-visual-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-dashboard .dashboard-chart-card,
+.mcc-dashboard .dashboard-visual-grid > .dashboard-surface {
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-primary-grid,
+.mcc-dashboard .dashboard-analytics-grid,
+.mcc-dashboard .dashboard-director-grid,
+.mcc-dashboard .dashboard-reference-grid {
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-dashboard .dashboard-hero {
+    align-items: center;
+    border-radius: .75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin: 0;
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-hero-filters {
+    align-items: end;
+    display: grid;
+    gap: .5rem;
+    grid-template-columns: repeat(3, minmax(8rem, 1fr)) auto auto;
+    margin: 0;
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-hero-filters label,
+.mcc-dashboard .dashboard-hero-filters input,
+.mcc-dashboard .dashboard-hero-filters select {
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-dashboard .dashboard-section-heading {
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-section-heading > * {
+    min-width: 0;
+}
+
+.mcc-dashboard .dashboard-section-heading h2 {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+    .mcc-dashboard .dashboard-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mcc-dashboard .dashboard-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-dashboard .dashboard-hero-filters {
+        width: 100%;
+    }
+
+    .mcc-dashboard > .dashboard-visual-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .mcc-dashboard .dashboard-hero-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-dashboard .dashboard-hero-filters > button,
+    .mcc-dashboard .dashboard-hero-filters > a {
+        width: 100%;
+    }
+
+    .mcc-dashboard > .dashboard-visual-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-dashboard .dashboard-kpi-grid,
+    .mcc-dashboard .dashboard-branch-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-dashboard .dashboard-hero-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mcc-dashboard {
+    background: transparent;
+}
+
+.mcc-coach-form-page {
+    margin: 0 auto;
+    max-width: 980px;
+    width: 100%;
+}
+
+.mcc-coach-form-card .mcc-card-heading {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--app-border);
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+}
+
+.mcc-coach-form-card .mcc-form-field-full {
+    grid-column: 1 / -1;
+}
+
+.mcc-coach-form-section-title {
+    border-top: 1px solid var(--app-border);
+    display: grid;
+    gap: .2rem;
+    grid-column: 1 / -1;
+    margin-top: .35rem;
+    padding-top: 1rem;
+}
+
+.mcc-coach-form-section-title h3 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.mcc-performance-filters .mcc-form-grid {
+    align-items: end;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mcc-performance-filters .mcc-performance-filter-player {
+    grid-column: span 2;
+}
+
+.mcc-performance-filters .mcc-form-field,
+.mcc-performance-filters .mcc-form-field input,
+.mcc-performance-filters .mcc-form-field select {
+    min-width: 0;
+    width: 100%;
+}
+
+.mcc-performance-filters .mcc-form-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+}
+
+@media (max-width: 1000px) {
+    .mcc-performance-filters .mcc-form-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mcc-performance-filters .mcc-performance-filter-player {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .mcc-performance-filters .mcc-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-performance-filters .mcc-form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mcc-performance-filters .mcc-form-actions .mcc-button {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+.mcc-performance-detail-page {
+    display: grid;
+    gap: 1rem;
+    margin: 0 auto;
+    max-width: 1280px;
+    width: 100%;
+}
+
+.mcc-performance-detail-page .mcc-detail-hero {
+    align-items: flex-start;
+    display: flex;
+    gap: 1.5rem;
+    justify-content: space-between;
+}
+
+.mcc-performance-detail-page .mcc-detail-hero h2 {
+    margin-bottom: .45rem;
+}
+
+.mcc-performance-detail-page .mcc-detail-hero-meta {
+    display: grid;
+    gap: .25rem;
+    min-width: 110px;
+    text-align: right;
+}
+
+.mcc-performance-detail-page .mcc-detail-hero-meta strong {
+    color: var(--app-heading);
+    font-size: 1.3rem;
+}
+
+.mcc-performance-detail-page .mcc-detail-grid {
+    align-items: stretch;
+}
+
+.mcc-performance-detail-page .mcc-detail-card {
+    min-width: 0;
+}
+
+.mcc-performance-metric-group-title {
+    border-top: 1px solid var(--app-border);
+    color: var(--app-heading);
+    font-size: .8rem;
+    font-weight: 700;
+    grid-column: 1 / -1;
+    letter-spacing: .04em;
+    padding-top: .75rem;
+    text-transform: uppercase;
+}
+
+.mcc-performance-detail-page .mcc-detail-card .mcc-form-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+    .mcc-performance-detail-page .mcc-detail-hero {
+        flex-direction: column;
+    }
+
+    .mcc-performance-detail-page .mcc-detail-hero-meta {
+        text-align: left;
+    }
+}
+
+.mcc-coach-form-card .mcc-eyebrow + label {
+    margin-top: .15rem;
+}
+
+.mcc-coach-branch-assignment-table {
+    min-width: 680px;
+    width: 100%;
+}
+
+.mcc-coach-branch-assignment-table th,
+.mcc-coach-branch-assignment-table td {
+    vertical-align: middle;
+}
+
+.mcc-coach-branch-assignment-table td:nth-child(3) {
+    min-width: 240px;
+}
+
+.mcc-coach-branch-assignment-table td:nth-child(3) form {
+    margin: 0;
+}
+
+.mcc-coach-branch-assignment-table td:nth-child(3) .form-control {
+    min-width: 0;
+    width: 100%;
 }
 .mcc-coach-related-card .mcc-card-heading,
 .mcc-coach-kpi-card .mcc-card-heading {
@@ -8656,6 +11651,34 @@ tr:last-child td {
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
+}
+.mcc-tournament-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0 0 2.2rem;
+    width: 100%;
+}
+.mcc-tournament-list > .mcc-card {
+    margin: 0;
+}
+.mcc-opponent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0 0 2.2rem;
+    width: 100%;
+}
+.mcc-opponent-list > .mcc-card {
+    margin: 0;
+}
+.mcc-equipment-stock-summary {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
 }
 .mcc-scheduling-card:has(.mcc-bt-select) {
     overflow: visible;
@@ -9565,6 +12588,8 @@ tr:last-child td {
     border: 1px solid var(--app-border);
     border-radius: 5px;
     box-shadow: var(--app-shadow);
+    max-height: calc(100vh - 1rem);
+    overflow-y: auto;
     padding: .65rem;
     position: fixed;
     right: auto;
@@ -11288,6 +14313,30 @@ tr:last-child td {
     gap: 1rem;
 }
 
+.mcc-document-summary-card {
+    background: linear-gradient(145deg, #ffffff, #f8fbff);
+}
+
+.mcc-document-summary-card .mcc-detail-grid > div,
+.mcc-document-verification-card .mcc-detail-grid > div {
+    background: var(--app-surface-muted, #f7f8fa);
+    border: 1px solid var(--app-border);
+    border-radius: .5rem;
+    padding: .65rem .75rem;
+}
+
+.mcc-document-summary-card .mcc-detail-grid dt,
+.mcc-document-verification-card .mcc-detail-grid dt {
+    font-size: .68rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.mcc-document-summary-card .mcc-detail-grid dd,
+.mcc-document-verification-card .mcc-detail-grid dd {
+    margin-top: .25rem;
+}
+
 .mcc-document-summary-card .mcc-badge-group {
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -11307,6 +14356,17 @@ tr:last-child td {
     min-width: 9rem;
 }
 
+.mcc-document-status-stack {
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+
+.mcc-document-status-stack .mcc-badge {
+    font-size: .68rem;
+}
+
 .mcc-document-verification-form {
     background: var(--app-surface-muted, #f7f8fa);
     border: 1px solid var(--app-border);
@@ -11321,6 +14381,18 @@ tr:last-child td {
 .mcc-document-verification-form .mcc-form-actions {
     align-self: end;
     padding: 0;
+}
+
+.mcc-document-history-event {
+    background: var(--app-surface-muted, #f7f8fa);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+    margin-top: .75rem;
+    padding: .9rem;
+}
+
+.mcc-document-history-event:first-child {
+    margin-top: 0;
 }
 
 .mcc-document-filter-form,
@@ -11485,6 +14557,47 @@ tr:last-child td {
 .mcc-fitness-table th,
 .mcc-fitness-table td {
     vertical-align: middle;
+}
+
+.mcc-fitness-table thead th {
+    background: var(--app-surface-muted, #f7f8fa);
+    color: var(--app-muted);
+    font-size: .7rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.mcc-fitness-table tbody tr {
+    transition: background-color .15s ease;
+}
+
+.mcc-fitness-table tbody tr:hover {
+    background: rgba(47, 128, 237, .04);
+}
+
+.mcc-fitness-table td:last-child {
+    text-align: center;
+}
+
+.mcc-fitness-action-menu {
+    display: inline-flex;
+    position: relative;
+    z-index: 1200;
+}
+
+.mcc-fitness-action-menu[open] {
+    z-index: 1300;
+}
+
+.mcc-fitness-table tbody tr:has(.mcc-fitness-action-menu[open]) {
+    position: relative;
+    z-index: 1250;
+}
+
+.mcc-fitness-action-menu .mcc-detail-action-dropdown {
+    min-width: 13rem;
+    right: 0;
+    z-index: 50000;
 }
 
 .mcc-fitness-date {
@@ -12362,7 +15475,7 @@ tr:last-child td {
 .mcc-player-goals-table th,
 .mcc-player-goals-table td {
     overflow-wrap: anywhere;
-    padding: .9rem .85rem;
+    padding: .65rem .75rem;
     vertical-align: top;
 }
 
@@ -12392,13 +15505,13 @@ tr:last-child td {
 
 .mcc-goal-table-group {
     display: grid;
-    gap: .45rem;
+    gap: .25rem;
     min-width: 0;
 }
 
 .mcc-goal-table-value {
     display: block;
-    line-height: 1.45;
+    line-height: 1.3;
     max-width: 100%;
     overflow-wrap: anywhere;
 }
@@ -12410,17 +15523,19 @@ tr:last-child td {
 .mcc-goal-description {
     color: var(--app-muted);
     display: -webkit-box;
-    line-height: 1.5;
-    max-height: 4.5em;
+    line-height: 1.35;
+    max-height: 2.7em;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
 }
 
 .mcc-goal-timeline {
     display: grid;
     gap: .2rem;
-    margin-top: .15rem;
+    font-size: .625rem;
+    line-height: 1.25;
+    margin-top: .05rem;
 }
 
 .mcc-goal-actions {
@@ -12511,7 +15626,7 @@ tr:last-child td {
 
     .mcc-player-goals-table td {
         border-bottom: 1px solid var(--app-border);
-        padding: .8rem 1rem;
+        padding: .65rem .85rem;
     }
 
     .mcc-player-goals-table td::before {
@@ -12586,8 +15701,35 @@ tr:last-child td {
     gap: .75rem;
 }
 
+.mcc-player-feedback-page #player-feedback-filters {
+    overflow: visible;
+    position: relative;
+    z-index: 300;
+}
+
+.mcc-player-feedback-page #player-feedback-filters:has(.mcc-date-picker.is-open) {
+    z-index: 2300;
+}
+
+.mcc-player-feedback-page .mcc-player-action-menu:has(.mcc-player-action-dropdown.is-open) {
+    position: relative;
+    z-index: 3100;
+}
+
+.mcc-player-feedback-page .mcc-player-action-dropdown.is-open {
+    z-index: 99999 !important;
+}
+
 .mcc-player-feedback-page > .mcc-card {
     padding: 1rem;
+}
+
+.mcc-player-feedback-results-card {
+    min-width: 0;
+}
+
+.mcc-player-feedback-results-card .mcc-session-summary {
+    margin-bottom: .75rem;
 }
 
 .mcc-player-feedback-page > .mcc-card .mcc-card-heading {
@@ -12681,8 +15823,44 @@ tr:last-child td {
 .mcc-player-feedback-table th,
 .mcc-player-feedback-table td {
     overflow-wrap: anywhere;
-    padding: .7rem .75rem;
+    padding: .6rem .7rem;
     vertical-align: top;
+}
+
+.mcc-player-feedback-table thead th {
+    background: var(--app-surface-muted, #f7f8fa);
+    color: var(--app-muted);
+    font-size: .7rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.mcc-player-feedback-table tbody tr {
+    transition: background-color .15s ease;
+}
+
+.mcc-player-feedback-table tbody tr:hover {
+    background: rgba(47, 128, 237, .04);
+}
+
+.mcc-player-feedback-table .mcc-feedback-primary-value {
+    color: var(--app-text);
+    display: block;
+    font-size: .86rem;
+}
+
+.mcc-player-feedback-table .mcc-table-secondary-text {
+    color: var(--app-muted);
+    font-size: .72rem;
+}
+
+.mcc-player-feedback-table td:nth-child(3) {
+    color: var(--app-muted);
+    font-size: .78rem;
+}
+
+.mcc-player-feedback-table td:nth-child(3) strong {
+    font-weight: 500;
 }
 
 .mcc-player-feedback-table td:last-child {
@@ -12755,14 +15933,14 @@ tr:last-child td {
 
 .mcc-feedback-table-group {
     display: grid;
-    gap: .35rem;
+    gap: .25rem;
     min-width: 0;
 }
 
 .mcc-feedback-table-value,
 .mcc-feedback-primary-value {
     display: block;
-    line-height: 1.45;
+    line-height: 1.3;
     max-width: 100%;
     overflow-wrap: anywhere;
 }
@@ -13368,7 +16546,7 @@ tr:last-child td {
 
     .mcc-player-feedback-table td {
         border-bottom: 1px solid var(--app-border);
-        padding: .75rem 1rem;
+        padding: .65rem .85rem;
     }
 
     .mcc-player-feedback-table td::before {
@@ -13470,8 +16648,45 @@ tr:last-child td {
 .mcc-player-session-plan-history-table th,
 .mcc-player-session-plan-history-table td {
     overflow-wrap: anywhere;
-    padding: .85rem;
+    padding: .65rem .75rem;
     vertical-align: top;
+}
+
+.mcc-player-session-plan-table thead th {
+    background: var(--app-surface-muted, #f7f8fa);
+    color: var(--app-muted);
+    font-size: .7rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.mcc-player-session-plan-table tbody tr {
+    transition: background-color .15s ease;
+}
+
+.mcc-player-session-plan-table tbody tr:hover {
+    background: rgba(47, 128, 237, .04);
+}
+
+.mcc-player-session-plan-table .mcc-session-plan-primary-value {
+    color: var(--app-text);
+    display: block;
+    font-size: .86rem;
+}
+
+.mcc-player-session-plan-table .mcc-muted,
+.mcc-player-session-plan-table .mcc-session-plan-timeline {
+    color: var(--app-muted);
+    font-size: .72rem;
+}
+
+.mcc-player-session-plan-table .mcc-session-plan-table-group > .mcc-session-plan-table-value {
+    font-size: .76rem;
+    font-weight: 500;
+}
+
+.mcc-player-session-plan-table .mcc-player-session-plan-summary {
+    gap: .4rem;
 }
 
 .mcc-player-session-plan-table td .mcc-table-secondary-text {
@@ -13490,13 +16705,13 @@ tr:last-child td {
 
 .mcc-session-plan-table-group {
     display: grid;
-    gap: .45rem;
+    gap: .25rem;
     min-width: 0;
 }
 
 .mcc-session-plan-table-value {
     display: block;
-    line-height: 1.45;
+    line-height: 1.3;
     max-width: 100%;
     overflow-wrap: anywhere;
 }
@@ -13510,7 +16725,9 @@ tr:last-child td {
 .mcc-session-plan-timeline {
     display: grid;
     gap: .2rem;
-    margin-top: .15rem;
+    font-size: .625rem;
+    line-height: 1.25;
+    margin-top: .05rem;
 }
 
 .mcc-session-plan-status-line {
@@ -13799,7 +17016,7 @@ tr:last-child td {
     .mcc-player-session-plan-summary-table td,
     .mcc-player-session-plan-history-table td {
         border-bottom: 1px solid var(--app-border);
-        padding: .75rem 1rem;
+        padding: .65rem .85rem;
     }
 
     .mcc-player-session-plan-table td::before,
@@ -16190,6 +19407,10 @@ tr:last-child td {
     grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.mcc-award-filter-form {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .mcc-achievement-filter-form .mcc-form-field-wide {
     align-items: center;
     display: flex;
@@ -16235,6 +19456,23 @@ tr:last-child td {
     margin: 0;
 }
 
+.mcc-award-actions-list {
+    align-items: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    min-width: 10rem;
+}
+
+.mcc-award-actions-list > form {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin: 0;
+    width: 100%;
+}
+
 .mcc-award-actions form .form-control {
     max-width: 150px;
     min-width: 120px;
@@ -16243,6 +19481,19 @@ tr:last-child td {
 .mcc-achievement-awards-table time {
     color: var(--app-muted);
     white-space: nowrap;
+}
+
+.mcc-achievement-award-detail-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.mcc-achievement-award-detail-grid {
+    margin: 0;
+}
+
+.mcc-achievement-award-detail-grid dd {
+    overflow-wrap: anywhere;
 }
 
 @media (max-width: 1100px) {
@@ -17454,6 +20705,14 @@ tr:last-child td {
 .mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #notices,
 .mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #documents,
 .mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #activity,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #admission,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #renewals,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #goals,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #session-plans,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #feedback,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #batting,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #bowling,
+.mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) #fielding,
 .mcc-portal-main[data-portal-page]:not([data-portal-page="dashboard"]) [aria-labelledby="portal-actions-heading"] {
     display: none;
 }
@@ -17471,6 +20730,66 @@ tr:last-child td {
 .mcc-portal-main[data-portal-page="documents"] #documents,
 .mcc-portal-main[data-portal-page="notices"] #notices {
     display: block;
+}
+
+.mcc-portal-main[data-portal-page="admission"] #admission,
+.mcc-portal-main[data-portal-page="renewals"] #renewals,
+.mcc-portal-main[data-portal-page="goals"] #goals,
+.mcc-portal-main[data-portal-page="session-plans"] #session-plans,
+.mcc-portal-main[data-portal-page="feedback"] #feedback,
+.mcc-portal-main[data-portal-page="batting"] #batting,
+.mcc-portal-main[data-portal-page="bowling"] #bowling,
+.mcc-portal-main[data-portal-page="fielding"] #fielding {
+    display: block !important;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] #admission,
+.mcc-portal-main[data-portal-page="dashboard"] #renewals,
+.mcc-portal-main[data-portal-page="dashboard"] #goals,
+.mcc-portal-main[data-portal-page="dashboard"] #session-plans,
+.mcc-portal-main[data-portal-page="dashboard"] #feedback,
+.mcc-portal-main[data-portal-page="dashboard"] #batting,
+.mcc-portal-main[data-portal-page="dashboard"] #bowling,
+.mcc-portal-main[data-portal-page="dashboard"] #fielding {
+    display: none;
+}
+
+.mcc-portal-record-grid {
+    display: grid;
+    gap: .85rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.mcc-portal-record-card {
+    background: #f7faff;
+    border: 1px solid #e0eaf5;
+    border-radius: 12px;
+    display: grid;
+    gap: .65rem;
+    padding: .9rem;
+}
+
+.mcc-portal-record-card div {
+    display: grid;
+    gap: .18rem;
+}
+
+.mcc-portal-record-card span {
+    color: var(--app-muted);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.mcc-portal-record-card strong {
+    color: #17385f;
+    font-size: .92rem;
+    overflow-wrap: anywhere;
+}
+
+.mcc-portal-admission-details-wrap {
+    grid-column: 1 / -1;
+    margin-bottom: .85rem;
 }
 
 .mcc-portal-main[data-portal-page="schedule"] .mcc-portal-content-grid,
@@ -18106,6 +21425,258 @@ tr:last-child td {
     }
 }
 
+/* Profile page spacing and card alignment. */
+.mcc-portal-main[data-portal-page="profile"] {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.mcc-portal-main[data-portal-page="profile"] > .mcc-portal-section {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: clamp(1.15rem, 2vw, 1.5rem);
+}
+
+.mcc-portal-main[data-portal-page="profile"] #contact,
+.mcc-portal-main[data-portal-page="profile"] #hostel,
+.mcc-portal-main[data-portal-page="profile"] #medical,
+.mcc-portal-main[data-portal-page="profile"] #consent {
+    gap: 1rem;
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="profile"] .mcc-portal-section-description {
+    line-height: 1.55;
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="profile"] .mcc-portal-consent-grid {
+    gap: .9rem;
+}
+
+.mcc-portal-main[data-portal-page="profile"] .mcc-portal-consent-card {
+    box-sizing: border-box;
+    gap: .85rem;
+    padding: 1rem;
+}
+
+@media (max-width: 760px) {
+    .mcc-portal-main[data-portal-page="profile"] > .mcc-portal-section {
+        padding: 1rem;
+    }
+
+    .mcc-portal-main[data-portal-page="profile"] .mcc-portal-section-heading {
+        gap: .75rem;
+    }
+}
+
+/* Academy page spacing and responsive alignment. */
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid {
+    display: grid !important;
+    gap: 1.5rem !important;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    width: 100%;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid > .mcc-portal-section {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: clamp(1.15rem, 2vw, 1.5rem);
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary,
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+    margin-top: .25rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-next-session {
+    margin-top: .25rem;
+}
+
+@media (max-width: 900px) {
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Academy page final alignment refinements. */
+.mcc-portal-main[data-portal-page="academy"] #academy {
+    box-sizing: border-box;
+    margin: 0;
+    max-width: none;
+    width: 100%;
+}
+
+.mcc-portal-main[data-portal-page="academy"] {
+    max-width: none;
+    width: 100%;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary > div {
+    align-content: start;
+    min-height: 104px;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid > div {
+    min-width: 0;
+}
+
+@media (max-width: 560px) {
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Academy page presentation: a compact, full-width information workspace. */
+.mcc-portal-main[data-portal-page="academy"] {
+    align-content: start;
+    gap: 1rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-page-heading {
+    align-items: center;
+    background: linear-gradient(120deg, #ffffff 0%, #eef5ff 100%);
+    border-color: #dce7f7;
+    display: flex;
+    justify-content: space-between;
+    min-height: 0;
+    padding: 1.15rem 1.35rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-page-heading h1 {
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-page-heading p {
+    margin: .35rem 0 0;
+}
+
+.mcc-portal-main[data-portal-page="academy"] #academy {
+    background: #ffffff;
+    border-color: #dfe7f2;
+    box-shadow: 0 10px 26px rgba(37, 58, 98, .06);
+    display: grid;
+    gap: 1.35rem;
+    grid-column: 1 / -1;
+    padding: clamp(1.35rem, 2.8vw, 2rem);
+    width: 100%;
+}
+
+.mcc-portal-main[data-portal-page="academy"] #academy .mcc-portal-section-heading {
+    align-items: center;
+    margin: 0;
+    padding-bottom: .95rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] #academy .mcc-portal-section-heading h2 {
+    font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary {
+    gap: 1.1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary > div {
+    background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 100%);
+    border-color: #dce7f7;
+    min-height: 112px;
+    padding: .85rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary > div:nth-child(2) {
+    background: linear-gradient(145deg, #fbf8ff 0%, #f2ecff 100%);
+    border-color: #e6dafa;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary > div:nth-child(3) {
+    background: linear-gradient(145deg, #f6fffb 0%, #e9f9f2 100%);
+    border-color: #d5eee3;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary > div:nth-child(4) {
+    background: linear-gradient(145deg, #fffaf3 0%, #fff2df 100%);
+    border-color: #f2dfbd;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary strong {
+    font-size: .9rem;
+    line-height: 1.35;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid > div {
+    background: #fbfcfe;
+    border: 1px solid #e5ebf3;
+    border-radius: 10px;
+    min-height: 70px;
+    padding: 1rem 1.1rem;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid span {
+    color: #71809a;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid strong {
+    color: #243653;
+    font-size: .88rem;
+    line-height: 1.35;
+}
+
+.mcc-portal-main[data-portal-page="academy"] .mcc-portal-next-session {
+    background: linear-gradient(120deg, #edf5ff 0%, #f6f1ff 100%);
+    border-color: #d9e4f6;
+    margin: 0;
+    padding: 1rem 1.1rem;
+}
+
+@media (max-width: 900px) {
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .7rem;
+    }
+
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-academy-summary,
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mcc-portal-main[data-portal-page="academy"] .mcc-portal-info-grid > div {
+        min-height: 64px;
+    }
+}
+
 /* Dashboard-specific composition. */
 .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-page-heading {
     background: transparent;
@@ -18198,6 +21769,99 @@ tr:last-child td {
 
 .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-players {
     margin-top: -.1rem;
+}
+
+/* Student dashboard presentation: one clear hierarchy, consistent cards, and
+ * compact information density without changing any portal data projection. */
+.mcc-portal-main[data-portal-page="dashboard"] {
+    background: #f4f7fc;
+    gap: 1.35rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome {
+    border: 1px solid #d8e5f8;
+    box-shadow: 0 14px 32px rgba(34, 70, 130, .08);
+    min-height: 176px;
+    position: relative;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome::after {
+    background: linear-gradient(135deg, rgba(69, 126, 220, .18), rgba(135, 92, 210, .08));
+    border-radius: 50%;
+    content: "";
+    height: 180px;
+    pointer-events: none;
+    position: absolute;
+    right: -48px;
+    top: -62px;
+    width: 180px;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome > * {
+    position: relative;
+    z-index: 1;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi-grid {
+    gap: .9rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi {
+    border-radius: 14px;
+    min-height: 118px;
+    padding: 1rem 1.1rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-kpi strong {
+    font-size: 1.55rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-players,
+.mcc-portal-main[data-portal-page="dashboard"] #attendance,
+.mcc-portal-main[data-portal-page="dashboard"] #training {
+    border-color: #dce6f4;
+    box-shadow: 0 8px 22px rgba(37, 58, 98, .05);
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-linked-player,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-coach-card,
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-academy-summary > div {
+    background: #fbfdff;
+    border-color: #e0e8f3;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-section-heading {
+    align-items: center;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-section-heading h2 {
+    letter-spacing: -.01em;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-content-grid {
+    gap: 1rem;
+}
+
+.mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-table-wrap {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+
+@media (max-width: 760px) {
+    .mcc-portal-main[data-portal-page="dashboard"] {
+        gap: 1rem;
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .mcc-portal-main[data-portal-page="dashboard"] .mcc-portal-welcome::after {
+        height: 120px;
+        right: -42px;
+        top: -38px;
+        width: 120px;
+    }
 }
 
 .mcc-fitness-player-page .mcc-fitness-summary {
@@ -18413,6 +22077,134 @@ tr:last-child td {
     color: var(--app-primary);
 }
 
+.mcc-topbar-notification-menu {
+    position: relative;
+}
+
+.mcc-topbar-notification-menu > summary {
+    cursor: pointer;
+    list-style: none;
+    position: relative;
+}
+
+.mcc-topbar-notification-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.mcc-topbar-notification-count {
+    align-items: center;
+    background: #dc3545;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-flex;
+    font-size: .62rem;
+    font-weight: 700;
+    height: 1.1rem;
+    justify-content: center;
+    min-width: 1.1rem;
+    padding: 0 .2rem;
+    position: absolute;
+    right: -.3rem;
+    top: -.35rem;
+}
+
+.mcc-topbar-notification-panel {
+    background: #fff;
+    border: 1px solid #dfe6f0;
+    border-radius: .75rem;
+    box-shadow: 0 16px 36px rgba(21, 42, 75, .16);
+    min-width: 21rem;
+    padding: .75rem;
+    position: absolute;
+    right: 0;
+    top: calc(100% + .65rem);
+    z-index: 3000;
+}
+
+.mcc-topbar-notification-heading,
+.mcc-topbar-notification-item,
+.mcc-topbar-notification-view-all {
+    align-items: center;
+    display: flex;
+}
+
+.mcc-topbar-notification-heading {
+    justify-content: space-between;
+    padding: .25rem .35rem .65rem;
+}
+
+.mcc-topbar-notification-items {
+    display: grid;
+    gap: .25rem;
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
+.mcc-topbar-notification-item {
+    border-radius: .5rem;
+    color: #33425c;
+    gap: .6rem;
+    padding: .6rem .45rem;
+    text-decoration: none;
+}
+
+.mcc-topbar-notification-item:hover,
+.mcc-topbar-notification-item.is-unread {
+    background: #f1f6ff;
+}
+
+.mcc-topbar-notification-item-icon {
+    align-items: center;
+    background: #eaf2ff;
+    border-radius: 50%;
+    color: var(--app-primary);
+    display: inline-flex;
+    flex: 0 0 1.9rem;
+    height: 1.9rem;
+    justify-content: center;
+}
+
+.mcc-topbar-notification-item > span:last-child {
+    display: grid;
+    gap: .12rem;
+    min-width: 0;
+}
+
+.mcc-topbar-notification-item strong,
+.mcc-topbar-notification-item small,
+.mcc-topbar-notification-item time {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcc-topbar-notification-item small,
+.mcc-topbar-notification-item time,
+.mcc-topbar-notification-empty {
+    color: #71809a;
+    font-size: .75rem;
+}
+
+.mcc-topbar-notification-view-all {
+    border-top: 1px solid #edf1f6;
+    color: var(--app-primary);
+    font-size: .8rem;
+    justify-content: center;
+    margin-top: .5rem;
+    padding: .65rem .25rem .2rem;
+    text-decoration: none;
+}
+
+@media (max-width: 575px) {
+    .mcc-topbar-notification-panel {
+        min-width: min(21rem, calc(100vw - 1.5rem));
+        position: fixed;
+        right: .75rem;
+        top: 4.2rem;
+    }
+}
+
 .mcc-topbar-collapse {
     color: #53627a;
     display: inline-flex;
@@ -18595,5 +22387,44 @@ tr:last-child td {
 
     .mcc-account-email {
         max-width: 125px;
+    }
+}
+
+/* Coach KPI cards: keep the metric row balanced at every viewport. */
+.mcc-coach-kpi-grid {
+    align-items: stretch;
+    display: grid;
+    gap: .85rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcc-coach-kpi-grid .metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    min-height: 8rem;
+    padding: 1rem;
+}
+
+.mcc-coach-kpi-grid .metric-card strong {
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    line-height: 1.1;
+}
+
+.mcc-coach-kpi-grid .metric-card .mcc-muted {
+    font-size: .75rem;
+    line-height: 1.35;
+    margin-top: auto;
+}
+
+@media (max-width: 800px) {
+    .mcc-coach-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .mcc-coach-kpi-grid {
+        grid-template-columns: 1fr;
     }
 }

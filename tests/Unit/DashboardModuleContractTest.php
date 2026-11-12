@@ -44,4 +44,16 @@ final class DashboardModuleContractTest extends TestCase
         self::assertStringContainsString("\$formatDate(\$item['starts_at'], 'd-m-Y', true)", $view);
         self::assertStringContainsString("\$formatDate(\$item['starts_at'] ?? null, 'd-m-Y', true)", $view);
     }
+
+    public function testDashboardCoachWorkloadUsesTransparentSessionCounts(): void
+    {
+        $service = file_get_contents(APPPATH . 'Services/DashboardService.php');
+        $model = file_get_contents(APPPATH . 'Models/DashboardModel.php');
+        $view = file_get_contents(ROOTPATH . 'app/Views/dashboard.php');
+
+        self::assertStringContainsString('coachWorkload(', $service);
+        self::assertStringContainsString('COUNT(*) AS session_count', $model);
+        self::assertStringContainsString('dashboard-workload-table', $view);
+        self::assertStringNotContainsString('No approved workload unit', $view);
+    }
 }

@@ -30,13 +30,13 @@
 <?= esc($row['action']) ?>
 </td>
 <td>
-<?= esc($row['entity_type'].' #'.$row['entity_id']) ?>
+<?= esc((string) ($row['entity_label'] ?? $row['entity_type'])) ?>
 </td>
 <td>
-<?= esc((string) ($row['branch_id'] ?? 'Global')) ?>
+<?= esc((string) ($row['branch_label'] ?? 'Global')) ?>
 </td>
 <td>
-<?= esc((string) ($row['actor_user_id'] ?? 'System')) ?>
+<?= esc((string) ($row['actor_label'] ?? 'System')) ?>
 </td>
 <td>
 <?= esc((string) ($row['reason'] ?? '')) ?>

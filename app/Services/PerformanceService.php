@@ -6,6 +6,7 @@ namespace App\Services;
 
 use Config\Database;
 use RuntimeException;
+use Throwable;
 
 final class PerformanceService
 {
@@ -50,9 +51,10 @@ final class PerformanceService
 
     public function list(array $filters = []): array
     {
+        $db = Database::connect('default');
         $branches = $this->branches();
         if ($branches === []) {
-            return ['records' => [], 'filters' => $filters];
+            return ['records' => [], 'filters' => $filters, 'branches' => []];
         }
         $builder = $this->query()->whereIn('r.branch_id', $branches);
         if (in_array('Coach', (array) session('roles'), true)) {
@@ -87,7 +89,17 @@ final class PerformanceService
         if (($to = trim((string) ($filters['to'] ?? ''))) !== '') {
             $builder->where('r.recorded_on <=', $to);
         }
-        return ['records' => $builder->orderBy('r.recorded_on', 'DESC')->orderBy('r.id', 'DESC')->get()->getResultArray(), 'filters' => $filters];
+        return [
+            'records' => $builder->orderBy('r.recorded_on', 'DESC')->orderBy('r.id', 'DESC')->get()->getResultArray(),
+            'filters' => $filters,
+            'branches' => $db->table('branches')
+                ->select('id, name')
+                ->whereIn('id', $branches)
+                ->where('is_active', 1)
+                ->orderBy('name', 'ASC')
+                ->get()
+                ->getResultArray(),
+        ];
     }
 
     public function find(int $id): array
@@ -138,7 +150,14 @@ final class PerformanceService
         }
         $now = gmdate('Y-m-d H:i:s');
         if ($id === null) {
-            $data += ['recorded_by' => $this->actor(), 'created_at' => $now, 'updated_at' => $now];
+            $data += [
+                'recorded_by' => $this->actor(),
+                'approved' => 1,
+                'approved_by' => $this->actor(),
+                'approved_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
             $db->table('performance_records')->insert($data);
             $id = (int) $db->insertID();
             $event = 'performance_record_created';
@@ -160,6 +179,43 @@ final class PerformanceService
             $id !== null && $event === 'performance_record_updated' ? $correctionReason : null
         );
         return $id;
+    }
+
+    public function saveBundle(array $input): int
+    {
+        $db = Database::connect('default');
+        $db->transBegin();
+        $typeMetrics = [
+            'batting' => ['runs', 'balls_faced', 'dismissals', 'fours', 'sixes'],
+            'bowling' => ['wickets', 'runs_conceded', 'legal_balls'],
+            'fielding' => ['catches', 'stumpings', 'run_outs'],
+        ];
+
+        try {
+            $firstId = 0;
+            foreach (self::TYPES as $type) {
+                $typeInput = $input;
+                $typeInput['record_type'] = $type;
+                foreach (self::METRICS as $metric) {
+                    if (! in_array($metric, $typeMetrics[$type], true)) {
+                        $typeInput[$metric] = null;
+                    }
+                }
+                $savedId = $this->save($typeInput);
+                $firstId = $firstId > 0 ? $firstId : $savedId;
+            }
+
+            if ($db->transStatus() === false) {
+                throw new RuntimeException('Unable to save performance records.');
+            }
+
+            $db->transCommit();
+
+            return $firstId;
+        } catch (Throwable $exception) {
+            $db->transRollback();
+            throw $exception;
+        }
     }
 
     public function approve(int $id, string $reason = ''): void
@@ -297,8 +353,33 @@ final class PerformanceService
         return ['batting_records' => count($batting), 'runs' => $runs, 'balls_faced' => $balls, 'strike_rate' => $balls > 0 ? round($runs * 100 / $balls, 2) : null, 'average' => $dismissals > 0 ? round($runs / $dismissals, 2) : null, 'highest_score' => $batting === [] ? null : max(array_map(static fn(array $row): int => (int) ($row['runs'] ?? 0), $batting)), 'fours' => $sum($batting, 'fours'), 'sixes' => $sum($batting, 'sixes'), 'wickets' => $sum($bowling, 'wickets'), 'economy' => $legalBalls > 0 ? round($conceded * 6 / $legalBalls, 2) : null, 'catches' => $sum($rows, 'catches'), 'stumpings' => $sum($rows, 'stumpings'), 'run_outs' => $sum($rows, 'run_outs')];
     }
 
-    private function query(): object { return Database::connect('default')->table('performance_records r')->select('r.*, pe.full_name AS player_name, u.display_name AS recorded_by_name')->join('players p', 'p.id = r.player_id')->join('persons pe', 'pe.id = p.person_id')->join('users u', 'u.id = r.recorded_by')->where('r.deleted_at', null); }
-    private function findForWrite(int $id): array { $row = $this->query()->where('r.id', $id)->get()->getRowArray(); if (!is_array($row)) { throw new RuntimeException('Not found.'); } return $row; }
+    private function query(): object
+    {
+        return Database::connect('default')
+            ->table('performance_records r')
+            ->select(
+                'r.*, pe.full_name AS player_name, '
+                . 'u.display_name AS recorded_by_name, '
+                . 'b.name AS branch_name, s.starts_at AS session_starts_at'
+            )
+            ->join('players p', 'p.id = r.player_id', 'left')
+            ->join('persons pe', 'pe.id = p.person_id', 'left')
+            ->join('users u', 'u.id = r.recorded_by', 'left')
+            ->join('branches b', 'b.id = r.branch_id', 'left')
+            ->join('sessions s', 's.id = r.session_id', 'left')
+            ->where('r.deleted_at', null);
+    }
+
+    private function findForWrite(int $id): array
+    {
+        $row = $this->query()->where('r.id', $id)->get()->getRowArray();
+
+        if (! is_array($row)) {
+            throw new RuntimeException('Not found.');
+        }
+
+        return $row;
+    }
     private function branches(): array { return service('branchContext')->authorizedBranchIds(true); }
     private function actor(): int { $user = session('user'); if (!is_array($user) || !isset($user['id'])) { throw new RuntimeException('Authentication required'); } return (int) $user['id']; }
     private function playerInBranch(int $player, int $branch): bool { return Database::connect('default')->table('players')->where(['id' => $player, 'branch_id' => $branch])->countAllResults() > 0; }

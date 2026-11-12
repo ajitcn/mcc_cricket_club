@@ -8,6 +8,7 @@ $queryFilters = array_filter(
     static fn($value, $key): bool => $key !== 'page' && $value !== null && $value !== '',
     ARRAY_FILTER_USE_BOTH
 );
+$hasFilters = $queryFilters !== [];
 $pageUrl = static function (int $targetPage) use ($queryFilters, $coach): string {
     $query = http_build_query(array_merge($queryFilters, ['page' => $targetPage]));
 
@@ -20,27 +21,40 @@ $pageUrl = static function (int $targetPage) use ($queryFilters, $coach): string
     'nav' => $nav,
     'message' => $message,
     'error' => $error,
+    'pageActions' => '<div class="mcc-page-actions">
+        <button class="mcc-button mcc-button-secondary" type="button" data-filter-toggle
+            data-show-label="Show Filters" data-hide-label="Hide Filters"
+            aria-controls="coach-player-filters" aria-expanded="' . ($hasFilters ? 'true' : 'false') . '">
+            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+            <span class="mcc-button-label">' . ($hasFilters ? 'Hide Filters' : 'Show Filters') . '</span>
+        </button>
+        <a class="mcc-button mcc-button-secondary" href="' . site_url('coaches/' . (int) $coach['id']) . '">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+            <span class="mcc-button-label">Back to coach</span>
+        </a>
+    </div>',
 ]) ?>
 <div class="mcc-coach-detail-page">
-    <section class="mcc-card mcc-detail-hero mcc-coach-detail-heading" aria-labelledby="coach-players-heading">
-        <div>
-            <span class="mcc-eyebrow">Coach profile</span>
-            <h2 id="coach-players-heading"><?= esc($coach['display_name']) ?> · Assigned players</h2>
-            <p class="mcc-muted">Only active player assignments in your authorized branches are shown.</p>
-        </div>
-        <div class="mcc-detail-actions" aria-label="Assigned player actions">
-            <a class="mcc-button mcc-button-secondary" href="<?= site_url('coaches/' . (int) $coach['id']) ?>">
-                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-                <span class="mcc-button-label">Back to coach</span>
-            </a>
-        </div>
-    </section>
-    <section class="mcc-card" aria-labelledby="player-filter-heading">
+    <section id="coach-player-filters" class="mcc-card" aria-labelledby="player-filter-heading" <?= $hasFilters ? '' : 'hidden' ?>>
         <div class="mcc-card-heading">
-            <h2 id="player-filter-heading">Filter players</h2>
+            <div>
+                <span class="mcc-eyebrow">Search and filter</span>
+                <h2 id="player-filter-heading">Find assigned players</h2>
+            </div>
         </div>
-        <form method="get" class="mcc-coach-filter-form" aria-label="Filter assigned players">
-            <div class="mcc-coach-field">
+        <form method="get" class="row" aria-label="Filter assigned players">
+            <div class="col-12 col-md-6 col-lg-4 mb-3">
+                <label for="coach-player-search">Player</label>
+                <input
+                    class="form-control"
+                    id="coach-player-search"
+                    name="q"
+                    value="<?= esc($filters['q'] ?? '') ?>"
+                    placeholder="Search by player name"
+                    autocomplete="off"
+                >
+            </div>
+            <div class="col-12 col-md-6 col-lg-4 mb-3">
                 <label for="coach-player-status">Status</label>
                 <?php $playerStatuses = ['active' => 'Active', 'inactive' => 'Inactive', 'suspended' => 'Suspended', 'left_academy' => 'Left academy', 'alumni' => 'Alumni']; ?>
                 <select class="form-control" id="coach-player-status" name="status">
@@ -51,7 +65,7 @@ $pageUrl = static function (int $targetPage) use ($queryFilters, $coach): string
                 </select>
             </div>
             <?php if (count($result['branches'] ?? []) > 1): ?>
-                <div class="mcc-coach-field">
+                <div class="col-12 col-md-6 col-lg-4 mb-3">
                     <label for="coach-player-branch">Branch</label>
                     <select class="form-control" id="coach-player-branch" name="branch_id">
                         <option value="">All authorized branches</option>
@@ -63,7 +77,21 @@ $pageUrl = static function (int $targetPage) use ($queryFilters, $coach): string
                     </select>
                 </div>
             <?php endif; ?>
-            <div class="mcc-coach-filter-actions">
+            <div class="col-12 col-md-6 col-lg-4 mb-3">
+                <label for="coach-player-batch">Batch</label>
+                <select class="form-control" id="coach-player-batch" name="batch_id">
+                    <option value="">All batches</option>
+                    <?php foreach (($result['batchOptions'] ?? []) as $batch): ?>
+                        <option
+                            value="<?= (int) $batch['id'] ?>"
+                            <?= (string) ($filters['batch_id'] ?? '') === (string) $batch['id'] ? 'selected' : '' ?>
+                        >
+                            <?= esc($batch['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-12 mcc-form-actions">
                 <button class="mcc-button mcc-button-secondary" type="submit">
                     <i class="fa-solid fa-filter" aria-hidden="true"></i> Apply filters
                 </button>
@@ -73,7 +101,10 @@ $pageUrl = static function (int $targetPage) use ($queryFilters, $coach): string
     </section>
     <section class="mcc-card mcc-coach-related-card" aria-labelledby="player-list-heading">
         <div class="mcc-card-heading">
-            <h2 id="player-list-heading">Active assigned players</h2>
+            <div>
+                <span class="mcc-eyebrow"><?= esc($coach['display_name']) ?></span>
+                <h2 id="player-list-heading">Assigned players</h2>
+            </div>
             <span class="mcc-muted"><?= (int) ($result['total'] ?? 0) ?> result<?= (int) ($result['total'] ?? 0) === 1 ? '' : 's' ?></span>
         </div>
         <?php if ($players === []): ?>

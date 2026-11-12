@@ -155,6 +155,14 @@ final class SessionModel extends Model
                 $builder->where('s.' . $key, $filters[$key]);
             }
         }
+        if (($filters['session_type'] ?? '') === 'one_to_one') {
+            $builder->groupStart()
+                ->where('s.session_type', 'one_to_one')
+                ->orWhere('s.session_type', 'personal')
+                ->groupEnd();
+        } elseif (($filters['session_type'] ?? '') !== '') {
+            $builder->where('s.session_type', $filters['session_type']);
+        }
         if (isset($filters['date_from'], $filters['date_to'])) {
             $builder->where('s.starts_at >=', $filters['date_from']);
             $builder->where('s.starts_at <', $filters['date_to']);

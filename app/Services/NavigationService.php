@@ -108,7 +108,7 @@ final class NavigationService
                         'achievements',
                         'implemented',
                         'trophy',
-                        ['achievements/awards', 'achievements/reports'],
+                        ['achievements/awards'],
                     ),
                     $this->item(
                         'achievement.view',
@@ -117,14 +117,6 @@ final class NavigationService
                         'achievements/awards',
                         'implemented',
                         'trophy',
-                    ),
-                    $this->item(
-                        'report.view',
-                        'Achievement Reports',
-                        'achievements/reports',
-                        'achievements/reports',
-                        'implemented',
-                        'chart',
                     ),
                 ],
             ],

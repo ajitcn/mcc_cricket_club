@@ -9,7 +9,8 @@ $queryFilters = array_filter(
 $hasFilters = $queryFilters !== [];
 $pageActions = '<div class="mcc-page-actions">'
     . '<button class="mcc-button mcc-button-secondary" type="button" data-filter-toggle aria-controls="tournament-filters" aria-expanded="' . ($hasFilters ? 'true' : 'false') . '">'
-    . '<i class="fa-solid fa-filter" aria-hidden="true"></i><span>Filters</span></button>';
+    . '<i class="fa-solid fa-filter" aria-hidden="true"></i><span class="mcc-button-label">'
+    . ($hasFilters ? 'Hide Filters' : 'Show Filters') . '</span></button>';
 if (($can_create ?? false) === true) {
     $pageActions .= '<a class="mcc-button mcc-button-primary" href="' . site_url('tournaments/new') . '">'
         . '<i class="fa-solid fa-plus" aria-hidden="true"></i>'
@@ -17,10 +18,16 @@ if (($can_create ?? false) === true) {
         . '</a>';
 }
 $pageActions .= '</div>';
+$statusDefinitions = [
+    'planned' => ['label' => 'Planned', 'class' => 'info'],
+    'active' => ['label' => 'Active', 'class' => 'success'],
+    'completed' => ['label' => 'Completed', 'class' => 'success'],
+    'cancelled' => ['label' => 'Cancelled', 'class' => 'danger'],
+];
 ?>
 <?= view('staff_header', ['title' => $title, 'pageActions' => $pageActions]) ?>
 
-<main class="mcc-page-container mcc-tournament-list" id="main-content">
+<div class="mcc-tournament-list">
 
     <?php
     $pageUrl = static function (int $page) use ($queryFilters): string {
@@ -30,14 +37,14 @@ $pageActions .= '</div>';
     };
     ?>
 
-    <section class="mcc-card mcc-tournament-filter-card" id="tournament-filters" aria-labelledby="tournament-filter-heading" <?= $hasFilters ? '' : 'hidden' ?>>
+    <section class="mcc-card mcc-scheduling-card mcc-session-filters-card" id="tournament-filters" aria-labelledby="tournament-filter-heading" <?= $hasFilters ? '' : 'hidden' ?>>
         <div class="mcc-card-heading">
             <div>
                 <span class="mcc-eyebrow">Tournaments</span>
                 <h2 id="tournament-filter-heading">Search and filter</h2>
             </div>
         </div>
-    <form method="get" class="row" action="<?= site_url('tournaments') ?>">
+        <form method="get" class="row mcc-filter-form" action="<?= site_url('tournaments') ?>">
         <div class="col-12 col-md-4 mb-2">
             <label for="tournament-search">Search</label>
             <input
@@ -91,19 +98,26 @@ $pageActions .= '</div>';
         <div class="col-12 mt-2 mcc-form-actions">
             <button class="mcc-button mcc-button-secondary" type="submit">Filter</button>
         </div>
-    </form>
+        </form>
     </section>
 
-    <section class="mcc-card mcc-tournament-table-card" aria-labelledby="tournaments-heading">
-        <div class="mcc-card-heading">
+    <section class="mcc-card mcc-scheduling-card mcc-session-results-card" aria-labelledby="tournaments-heading">
+        <div class="mcc-session-summary" aria-live="polite">
             <div>
                 <span class="mcc-eyebrow">Competition records</span>
                 <h2 id="tournaments-heading">Tournaments</h2>
             </div>
-            <span class="mcc-muted"><?= (int) ($result['total'] ?? 0) ?> result<?= (int) ($result['total'] ?? 0) === 1 ? '' : 's' ?></span>
+            <div class="mcc-session-summary-meta">
+                <span><strong><?= (int) ($result['total'] ?? 0) ?></strong> result<?= (int) ($result['total'] ?? 0) === 1 ? '' : 's' ?></span>
+                <?php if ($hasFilters): ?>
+                    <span class="mcc-badge mcc-badge-info"><?= count($queryFilters) ?> active filter<?= count($queryFilters) === 1 ? '' : 's' ?></span>
+                <?php else: ?>
+                    <span class="mcc-muted">All authorized branches</span>
+                <?php endif; ?>
+            </div>
         </div>
-    <div class="mcc-table-wrap">
-        <table class="mcc-table">
+    <div class="mcc-table-wrap mcc-session-table-wrap">
+        <table class="mcc-table mcc-session-list-table">
             <caption class="visually-hidden">Branch-scoped tournaments</caption>
             <thead>
                 <tr>
@@ -119,28 +133,31 @@ $pageActions .= '</div>';
                 <?php foreach ($result['tournaments'] as $tournament): ?>
                     <tr>
                         <th scope="row"><?= esc($tournament['name']) ?></th>
-                        <td><?= esc($tournament['tournament_type']) ?></td>
+                        <td><span class="mcc-badge mcc-badge-info"><?= esc(ucfirst((string) $tournament['tournament_type'])) ?></span></td>
                         <td>
-                            <?= esc(mcc_user_date($tournament['starts_on'] ?? null)) ?>
-                            to
-                            <?= esc(mcc_user_date($tournament['ends_on'] ?? null)) ?>
+                            <span><?= esc(mcc_user_date($tournament['starts_on'] ?? null)) ?></span>
+                            <span class="mcc-muted mcc-date-muted">to <?= esc(mcc_user_date($tournament['ends_on'] ?? null)) ?></span>
                         </td>
                         <td><?= esc($tournament['branch_name']) ?></td>
                         <td>
-                            <span class="mcc-badge <?= ($tournament['status'] ?? '') === 'completed' ? 'mcc-badge-success' : (($tournament['status'] ?? '') === 'cancelled' ? 'mcc-badge-danger' : 'mcc-badge-info') ?>">
-                                <?= esc($tournament['status']) ?>
+                            <?php $statusMeta = $statusDefinitions[strtolower((string) ($tournament['status'] ?? ''))] ?? ['label' => 'Unknown', 'class' => 'neutral']; ?>
+                            <span class="mcc-badge mcc-badge-<?= esc($statusMeta['class']) ?>">
+                                <?= esc($statusMeta['label']) ?>
                             </span>
                         </td>
-                        <td>
-                            <div class="mcc-match-actions">
-                                <a class="mcc-button mcc-button-secondary" href="<?= site_url('tournaments/' . (int) $tournament['id']) ?>">
-                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="mcc-button-label">View</span>
-                                </a>
-                                <?php if (service('authorization')->can('tournament.update', (string) ($tournament['branch_id'] ?? 0))): ?>
-                                    <a class="mcc-button mcc-button-secondary" href="<?= site_url('tournaments/' . (int) $tournament['id'] . '/edit') ?>">
-                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span class="mcc-button-label">Edit</span>
-                                    </a>
-                                <?php endif; ?>
+                        <td data-label="Actions">
+                            <div class="mcc-session-action-menu" data-session-actions>
+                                <button class="mcc-button mcc-button-secondary" type="button" data-session-actions-toggle aria-expanded="false" aria-haspopup="true" aria-controls="tournament-actions-<?= (int) $tournament['id'] ?>">
+                                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                    <span>Actions</span>
+                                </button>
+                                <div class="mcc-session-action-dropdown" id="tournament-actions-<?= (int) $tournament['id'] ?>" data-session-actions-menu hidden>
+                                    <a href="<?= esc(site_url('tournaments/' . (int) $tournament['id'])) ?>"><i class="fa-solid fa-eye" aria-hidden="true"></i>View tournament</a>
+                                    <?php if (service('authorization')->can('tournament.update', (string) ($tournament['branch_id'] ?? 0))): ?>
+                                        <a href="<?= esc(site_url('tournaments/' . (int) $tournament['id'] . '/edit')) ?>"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit tournament</a>
+                                    <?php endif; ?>
+                                    <a href="<?= esc(site_url('tournaments/' . (int) $tournament['id'] . '/fixtures')) ?>"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>Fixtures</a>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -180,6 +197,6 @@ $pageActions .= '</div>';
             <?php endif ?>
         </nav>
     <?php endif ?>
-</main>
+</div>
 
 <?= view('staff_footer') ?>

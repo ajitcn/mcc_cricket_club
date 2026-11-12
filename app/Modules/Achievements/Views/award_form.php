@@ -17,6 +17,12 @@ $recipientType = (string) $value('recipient_type', 'player');
 if (! in_array($recipientType, ['player', 'coach'], true)) {
     $recipientType = 'player';
 }
+$recipientId = old('recipient_id');
+if ($recipientId === null || $recipientId === '') {
+    $recipientId = $recipientType === 'coach'
+        ? ($award['coach_id'] ?? '')
+        : ($award['player_id'] ?? '');
+}
 $action = $isEdit
     ? site_url('achievements/awards/' . (int) $award['id'])
     : site_url('achievements/awards');
@@ -26,15 +32,14 @@ $heading = $isEdit ? 'Edit Achievement Award' : 'Create Achievement Award';
     'title' => $heading,
     'pageActions' => '<a class="mcc-button mcc-button-secondary" href="' . esc(site_url('achievements/awards')) . '"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span class="mcc-button-label">Back to Awards</span></a>',
 ]) ?>
-<main class="container py-4 mcc-achievements-page mcc-achievement-award-form-page">
-    <section class="mcc-card mcc-achievement-award-card" aria-labelledby="award-form-heading">
+<div class="mcc-achievements-page mcc-achievement-award-form-page">
+    <section class="mcc-card mcc-scheduling-card mcc-achievement-award-card" aria-labelledby="award-form-heading">
         <div class="mcc-card-heading">
             <div>
                 <span class="mcc-eyebrow">Award details</span>
                 <h2 id="award-form-heading"><?= esc($heading) ?></h2>
-                <p class="mcc-card-subtitle">Choose the branch and achievement first, then select exactly one recipient.</p>
             </div>
-            <span class="mcc-badge mcc-badge-neutral">Saved as Draft</span>
+            <span class="mcc-badge mcc-badge-success">Final award</span>
         </div>
 
         <form
@@ -157,7 +162,7 @@ $heading = $isEdit ? 'Edit Achievement Award' : 'Create Achievement Award';
                         <option
                             value="<?= (int) $recipient['id'] ?>"
                             data-branch-id="<?= (int) $recipient['branch_id'] ?>"
-                            <?= $recipientType === 'player' && (string) $value('recipient_id') === (string) $recipient['id'] ? 'selected' : '' ?>
+                            <?= $recipientType === 'player' && (string) $recipientId === (string) $recipient['id'] ? 'selected' : '' ?>
                         >
                             <?= esc($recipient['full_name']) ?>
                         </option>
@@ -189,7 +194,7 @@ $heading = $isEdit ? 'Edit Achievement Award' : 'Create Achievement Award';
                         <option
                             value="<?= (int) $recipient['id'] ?>"
                             data-branch-id="<?= (int) $recipient['branch_id'] ?>"
-                            <?= $recipientType === 'coach' && (string) $value('recipient_id') === (string) $recipient['id'] ? 'selected' : '' ?>
+                            <?= $recipientType === 'coach' && (string) $recipientId === (string) $recipient['id'] ? 'selected' : '' ?>
                         >
                             <?= esc($recipient['full_name']) ?>
                         </option>
@@ -248,11 +253,11 @@ $heading = $isEdit ? 'Edit Achievement Award' : 'Create Achievement Award';
 
             <div class="mcc-form-actions mcc-form-field-wide mcc-achievement-award-form-actions">
                 <button class="mcc-button mcc-button-primary" type="submit">
-                    <?= $isEdit ? 'Save changes' : 'Create Award' ?>
+                    <?= $isEdit ? 'Save changes' : 'Save Award' ?>
                 </button>
                 <a class="mcc-button mcc-button-secondary" href="<?= site_url('achievements/awards') ?>">Cancel</a>
             </div>
         </form>
     </section>
-</main>
+</div>
 <?= view('staff_footer') ?>

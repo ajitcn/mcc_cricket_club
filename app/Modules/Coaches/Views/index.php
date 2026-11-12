@@ -86,7 +86,11 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
 </section>
 <section class="mcc-card mcc-detail-card mcc-coach-directory-card" aria-labelledby="coaches-heading">
     <div class="mcc-card-heading">
-        <h2 id="coaches-heading">Coach directory</h2>
+        <div>
+            <span class="mcc-eyebrow">Authorized coaching staff</span>
+            <h2 id="coaches-heading">Coach directory</h2>
+        </div>
+        <span class="mcc-muted"><?= (int) $result['total'] ?> result<?= (int) $result['total'] === 1 ? '' : 's' ?></span>
     </div>
     <div class="mcc-table-wrap">
         <table class="mcc-table mcc-coach-table">
@@ -156,16 +160,10 @@ $pageUrl = static function (int $page) use ($queryFilters): string {
                                         View details
                                     </button>
                                     <?php if ($canUpdateCoach): ?>
-                                        <button
-                                            type="button"
-                                            data-coach-action="edit"
-                                            data-coach-id="<?= $coachId ?>"
-                                            data-coach-name="<?= esc($coach['display_name']) ?>"
-                                            data-coach-edit-url="<?= esc(site_url('coaches/' . $coachId . '/edit')) ?>"
-                                        >
+                                        <a href="<?= esc(site_url('coaches/' . $coachId . '/edit')) ?>">
                                             <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                                             Edit coach
-                                        </button>
+                                        </a>
                                     <?php endif; ?>
                                 </div>
                             </div>

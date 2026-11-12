@@ -75,7 +75,9 @@ final class Browser extends StaffController
 
             return redirect()->to('/performance/' . $id)->with('message', 'Performance record approved.');
         } catch (Throwable $exception) {
-            return redirect()->back()->withInput()->with('error', $this->safe($exception));
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $this->safe($exception));
         }
     }
 
@@ -84,10 +86,18 @@ final class Browser extends StaffController
         try {
             $data = $this->request->getPost();
             unset($data[csrf_token()]);
-            $saved = service('performance')->save($data, $id);
+            $saved = $id === null && ($data['record_type'] ?? '') === 'all'
+                ? service('performance')->saveBundle($data)
+                : service('performance')->save($data, $id);
             return redirect()->to('/performance/' . $saved)->with('message', 'Performance record saved.');
         } catch (Throwable $exception) {
-            return redirect()->back()->withInput()->with('error', $this->safe($exception));
+            $target = $id === null
+                ? '/performance/new'
+                : '/performance/' . $id . '/edit';
+
+            return redirect()->to($target)
+                ->withInput()
+                ->with('error', $this->safe($exception));
         }
     }
 

@@ -73,6 +73,37 @@ final class Auth extends BaseController
         ]);
     }
 
+    public function passwordPage(): string
+    {
+        return view('auth/password', [
+            'title' => 'Update password',
+            'nav' => service('navigation')->staff(),
+            'message' => session()->getFlashdata('message'),
+            'error' => session()->getFlashdata('error'),
+        ]);
+    }
+
+    public function updatePassword(): ResponseInterface
+    {
+        try {
+            service('auth')->updatePassword(
+                (string) $this->request->getPost('current_password'),
+                (string) $this->request->getPost('password'),
+                (string) $this->request->getPost('password_confirmation'),
+            );
+
+            return redirect()->to('/')->with('message', 'Password updated successfully.');
+        } catch (Throwable $exception) {
+            $message = match ($exception->getMessage()) {
+                'Current password is incorrect.' => $exception->getMessage(),
+                'Invalid password change.' => 'Choose a different password from your current password.',
+                default => 'Password must be at least 12 characters and match the confirmation.',
+            };
+
+            return redirect()->to('/auth/password')->withInput()->with('error', $message);
+        }
+    }
+
     public function selectActiveBranch(): ResponseInterface|string
     {
         try {

@@ -37,10 +37,10 @@ final class DirectorDashboardRoutesTest extends TestCase
         self::assertStringContainsString('Coach schedule', $view);
         self::assertStringContainsString('Coach workload overview', $view);
         self::assertStringContainsString('dashboard-kpi-icon', $view);
-        self::assertStringContainsString("'title' => 'Director Dashboard'", $view);
+        self::assertStringContainsString("'title' => 'Dashboard'", $view);
         self::assertStringContainsString("'Total leads'", $view);
         self::assertStringContainsString("'Open admissions'", $view);
-        self::assertStringContainsString('Age-group distribution - Not available on this dashboard', $service);
+        self::assertStringContainsString('coachWorkload(', $service);
     }
 
     public function testSourceBackedDashboardPanelsRemainVisible(): void

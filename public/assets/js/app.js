@@ -134,6 +134,39 @@
             button.addEventListener('click', function () {
                 var next = panel.hidden;
 
+                if (next) {
+                    document.querySelectorAll('[data-nav-group-toggle]').forEach(function (otherButton) {
+                        if (otherButton === button) {
+                            return;
+                        }
+
+                        var otherPanel = document.getElementById(otherButton.getAttribute('aria-controls'));
+                        var otherGroup = otherButton.closest('[data-nav-group]');
+                        var otherIndicator = otherButton.querySelector('.mcc-nav-group-chevron');
+
+                        if (!otherPanel || !otherGroup) {
+                            return;
+                        }
+
+                        otherPanel.hidden = true;
+                        otherButton.setAttribute('aria-expanded', 'false');
+                        otherGroup.setAttribute('data-default-open', 'false');
+
+                        if (otherIndicator) {
+                            otherIndicator.classList.remove('fa-chevron-down');
+                            otherIndicator.classList.add('fa-chevron-right');
+                        }
+
+                        try {
+                            window.localStorage.setItem(
+                                'mcc.nav.' + otherButton.getAttribute('aria-controls'),
+                                '0',
+                            );
+                        } catch (ignore) {
+                        }
+                    });
+                }
+
                 panel.hidden = !next;
                 button.setAttribute('aria-expanded', next ? 'true' : 'false');
                 setIndicator(next);
@@ -3670,13 +3703,22 @@
             optionSelect.dataset.sessionSkillInitialized = 'true';
             var previousArea = areaSelect.value;
             var sync = function (clearStaleSelection) {
-                var area = areaSelect.value;
+                var normalizeArea = function (value) {
+                    return String(value || '')
+                        .trim()
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '_')
+                        .replace(/^_+|_+$/g, '');
+                };
+                var area = normalizeArea(areaSelect.value);
                 optionSelect.disabled = area === '';
                 if (clearStaleSelection && area !== previousArea) {
                     optionSelect.value = '';
                 }
+                var matchingOptions = 0;
                 optionSelect.querySelectorAll('option[data-skill-area]').forEach(function (option) {
-                    var visible = area !== '' && option.dataset.skillArea === area;
+                    var optionArea = normalizeArea(option.dataset.skillArea);
+                    var visible = area !== '' && optionArea === area;
                     var retired = option.dataset.skillRetired === '1';
                     var selected = option.value !== '' && option.value === optionSelect.value;
 
@@ -3684,12 +3726,25 @@
                         visible = false;
                     }
                     option.hidden = !visible;
+                    option.style.display = visible ? '' : 'none';
                     option.disabled = !visible && !selected;
+                    if (visible && !retired) {
+                        matchingOptions += 1;
+                    }
                 });
+                if (area !== '' && matchingOptions === 0) {
+                    optionSelect.querySelectorAll('option[data-skill-area]').forEach(function (option) {
+                        if (option.dataset.skillRetired !== '1') {
+                            option.hidden = false;
+                            option.style.display = '';
+                            option.disabled = false;
+                        }
+                    });
+                }
                 var selected = optionSelect.options[optionSelect.selectedIndex];
                 if (!selected || selected.value === '' || selected.hidden
                     || (selected.disabled && selected.dataset.skillRetired !== '1')
-                    || area === '' || selected.dataset.skillArea !== area) {
+                    || area === '' || normalizeArea(selected.dataset.skillArea) !== area) {
                     optionSelect.value = '';
                 }
                 previousArea = area;
@@ -3698,6 +3753,8 @@
 
             areaSelect.addEventListener('change', function () {
                 sync(true);
+                optionSelect.dispatchEvent(new Event('change', {bubbles: true}));
+                optionSelect.dispatchEvent(new Event('bt-select-refresh'));
             });
             sync(false);
 
@@ -4112,6 +4169,10 @@
                 if (top + popupHeight > window.innerHeight - edge
                     && inputRect.top - popupHeight - 6 >= edge) {
                     top = inputRect.top - popupHeight - 6;
+                }
+
+                if (top + popupHeight > window.innerHeight - edge) {
+                    top = Math.max(edge, window.innerHeight - popupHeight - edge);
                 }
 
                 popup.style.left = Math.round(left) + 'px';
@@ -4654,15 +4715,27 @@
                 var viewportWidth = document.documentElement.clientWidth;
                 var viewportHeight = document.documentElement.clientHeight;
                 var width = Math.min(rect.width, viewportWidth - 16);
+                var optionHeight = Math.max(120, Math.min(240, viewportHeight - 140));
+
+                options.style.maxHeight = optionHeight + 'px';
+                options.style.overflowY = 'auto';
+                options.style.overflowX = 'hidden';
+                panel.style.maxHeight = Math.max(180, viewportHeight - 16) + 'px';
+                panel.style.overflow = 'hidden';
+
                 var left = Math.min(
                     Math.max(8, rect.left),
                     Math.max(8, viewportWidth - width - 8)
                 );
                 var top = rect.bottom + 4;
-                var panelHeight = panel.offsetHeight;
+                var panelHeight = panel.getBoundingClientRect().height;
 
                 if (top + panelHeight > viewportHeight - 8 && rect.top > panelHeight + 4) {
                     top = rect.top - panelHeight - 4;
+                }
+
+                if (top + panelHeight > viewportHeight - 8) {
+                    top = viewportHeight - panelHeight - 8;
                 }
 
                 panel.style.left = left + 'px';
@@ -6368,6 +6441,38 @@
         });
     }
 
+    function initPerformanceMetricFields() {
+        document.querySelectorAll('#performance-record-type').forEach(function (typeSelect) {
+            if (typeSelect.dataset.performanceMetricsInitialized === 'true') {
+                return;
+            }
+
+            var form = typeSelect.form;
+            if (!form) {
+                return;
+            }
+
+            var sync = function () {
+                var selectedType = typeSelect.value;
+                form.querySelectorAll('[data-performance-metric]').forEach(function (field) {
+                    var types = (field.dataset.performanceTypes || '').split(',');
+                    var visible = selectedType === 'all'
+                        || (selectedType !== '' && types.indexOf(selectedType) !== -1);
+                    field.hidden = !visible;
+
+                    var input = field.querySelector('input');
+                    if (input) {
+                        input.disabled = !visible;
+                    }
+                });
+            };
+
+            typeSelect.addEventListener('change', sync);
+            typeSelect.dataset.performanceMetricsInitialized = 'true';
+            sync();
+        });
+    }
+
     function initAdmissionAccordions() {
         document.querySelectorAll('form[data-admission-five-sections]').forEach(function (form) {
             form.querySelectorAll('[data-admission-installment-section]').forEach(function (content) {
@@ -6642,11 +6747,11 @@
         initCoachListActions();
         initSessionWorkflowForms();
         initSessionOptionFilters();
-        initSessionSkillSelectors();
         initSessionAvailability();
         initSessionActions();
         initGroundFormFeedback();
         initBtSelect();
+        initSessionSkillSelectors();
         initAchievementAwardForm();
         initMatchFormFeedback();
         initTournamentFormFeedback();
@@ -6658,6 +6763,7 @@
         initPerformanceAccordion();
         initPerformanceHelpTooltips();
         initPerformanceFormFilters();
+        initPerformanceMetricFields();
         initAdmissionBranchScopedFields();
         initAdmissionTrialRatings();
         initAdmissionEliteCampFields();

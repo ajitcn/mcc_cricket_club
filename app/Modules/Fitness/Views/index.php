@@ -86,16 +86,27 @@ $pageActions = '<div class="mcc-page-actions">
                                     <span class="mcc-table-primary-text"><?= esc(mcc_user_date($assessment['created_at'] ?? $assessment['assessment_date'] ?? null)) ?></span>
                                     <span class="mcc-table-secondary-text">Updated: <?= esc(mcc_user_date($assessment['updated_at'] ?? null)) ?></span>
                                     <span class="mcc-table-secondary-text">Assessment: <?= esc(mcc_user_date($assessment['assessment_date'] ?? null)) ?></span>
-                                    <span class="mcc-table-secondary-text">Notes: <?= esc(trim((string) ($assessment['coach_notes'] ?? '')) !== '' ? $assessment['coach_notes'] : 'Not provided') ?></span>
                                 </td>
                                 <td data-label="Created by">
                                     <span class="mcc-table-primary-text"><?= esc($assessment['created_by_name'] ?? 'System') ?></span>
                                 </td>
                                 <td data-label="Actions">
-                                    <div class="mcc-page-actions">
-                                        <a class="mcc-button mcc-button-secondary mcc-button-sm" href="<?= site_url('fitness/players/' . (int) $assessment['player_id']) ?>">View</a>
-                                        <a class="mcc-button mcc-button-primary mcc-button-sm" href="<?= site_url('fitness/assessments/' . (int) $assessment['id'] . '/edit') ?>">Edit</a>
-                                    </div>
+                                    <details class="mcc-detail-action-menu mcc-fitness-action-menu">
+                                        <summary class="mcc-button mcc-button-secondary">
+                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                            Actions
+                                        </summary>
+                                        <div class="mcc-detail-action-dropdown" role="menu" aria-label="Fitness assessment actions">
+                                            <a href="<?= site_url('fitness/players/' . (int) $assessment['player_id']) ?>" role="menuitem">
+                                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                                View Player Fitness
+                                            </a>
+                                            <a href="<?= site_url('fitness/assessments/' . (int) $assessment['id'] . '/edit') ?>" role="menuitem">
+                                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                                                Edit Assessment
+                                            </a>
+                                        </div>
+                                    </details>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

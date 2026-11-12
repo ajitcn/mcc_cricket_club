@@ -215,6 +215,13 @@ final class CoachManagementService
             'pages' => max(1, (int) ceil($total / $perPage)),
             'filters' => $filters,
             'branches' => $this->branches($branches),
+            'batchOptions' => Database::connect('default')
+                ->table('batches')
+                ->select('id, name')
+                ->where('is_active', 1)
+                ->orderBy('name', 'ASC')
+                ->get()
+                ->getResultArray(),
         ];
     }
 
@@ -1101,6 +1108,25 @@ final class CoachManagementService
             ->whereIn('pca.branch_id', $branches);
 
         $this->applyBranchFilter($builder, 'pca.branch_id', $filters, $branches);
+        $search = trim((string) ($filters['q'] ?? ''));
+        if ($search !== '') {
+            $builder->like('pe.full_name', $search);
+        }
+
+        $batchValue = trim((string) ($filters['batch_id'] ?? ''));
+        if ($batchValue !== '' && ! ctype_digit($batchValue)) {
+            $builder->where('pca.player_id', 0);
+        } elseif ($batchValue !== '') {
+            $builder->where(
+                'EXISTS (SELECT 1 FROM player_batch_assignments pba_filter '
+                    . 'WHERE pba_filter.player_id = pca.player_id '
+                    . 'AND pba_filter.effective_to IS NULL '
+                    . 'AND pba_filter.batch_id = ' . (int) $batchValue . ')',
+                null,
+                false
+            );
+        }
+
         if (($filters['status'] ?? '') !== '') {
             $builder->where('p.status', (string) $filters['status']);
         }

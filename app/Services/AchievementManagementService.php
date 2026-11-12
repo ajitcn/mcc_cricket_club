@@ -21,18 +21,34 @@ use Throwable;
 final class AchievementManagementService
 {
     /** @return list<array<string, mixed>> */
-    public function list(string $permission = 'achievement.view'): array
+    public function list(string $permission = 'achievement.view', array $filters = []): array
     {
         $branchIds = $this->authorizedBranchIds($permission);
         if ($branchIds === []) {
             return [];
         }
 
-        return Database::connect('default')
+        $query = Database::connect('default')
             ->table('achievements a')
             ->select('a.*, b.name AS branch_name')
             ->join('branches b', 'b.id = a.branch_id')
-            ->whereIn('a.branch_id', $branchIds)
+            ->whereIn('a.branch_id', $branchIds);
+
+        if (($filters['branch_id'] ?? '') !== '') {
+            $query->where('a.branch_id', (int) $filters['branch_id']);
+        }
+
+        if (trim((string) ($filters['category'] ?? '')) !== '') {
+            $query->where('a.category', trim((string) $filters['category']));
+        }
+
+        if (($filters['status'] ?? '') === 'active') {
+            $query->where('a.is_active', 1);
+        } elseif (($filters['status'] ?? '') === 'inactive') {
+            $query->where('a.is_active', 0);
+        }
+
+        return $query
             ->orderBy('a.title', 'ASC')
             ->orderBy('a.id', 'DESC')
             ->get()
@@ -105,6 +121,108 @@ final class AchievementManagementService
         }
     }
 
+    /** @return array<string, mixed> */
+    public function findForEdit(int $id): array
+    {
+        $permission = $this->achievementManagementPermission();
+        if ($id < 1 || $permission === null) {
+            throw new RuntimeException('Forbidden');
+        }
+
+        $branchIds = $this->authorizedBranchIds($permission);
+        $achievement = Database::connect('default')
+            ->table('achievements a')
+            ->select('a.*, b.name AS branch_name')
+            ->join('branches b', 'b.id = a.branch_id')
+            ->where('a.id', $id)
+            ->whereIn('a.branch_id', $branchIds)
+            ->get()
+            ->getRowArray();
+
+        if (! is_array($achievement)) {
+            throw new RuntimeException('Achievement not found.');
+        }
+
+        return $achievement;
+    }
+
+    /** @return array<string, mixed> */
+    public function findForView(int $id): array
+    {
+        if ($id < 1) {
+            throw new RuntimeException('Achievement not found.');
+        }
+
+        $branchIds = $this->authorizedBranchIds('achievement.view');
+        $achievement = Database::connect('default')
+            ->table('achievements a')
+            ->select('a.*, b.name AS branch_name')
+            ->join('branches b', 'b.id = a.branch_id')
+            ->where('a.id', $id)
+            ->whereIn('a.branch_id', $branchIds)
+            ->get()
+            ->getRowArray();
+
+        if (! is_array($achievement)) {
+            throw new RuntimeException('Achievement not found.');
+        }
+
+        return $achievement;
+    }
+
+    /** @param array<string, mixed> $input */
+    public function update(int $id, array $input): void
+    {
+        $values = $this->validated($input);
+        $permission = $this->achievementManagementPermission();
+        if ($permission === null) {
+            throw new RuntimeException('Forbidden');
+        }
+        $this->allow($values['branch_id'], $permission);
+        $existing = $this->findForEdit($id);
+        $db = Database::connect('default');
+        $duplicate = $db->table('achievements')
+            ->where('branch_id', $values['branch_id'])
+            ->where('title', $values['title'])
+            ->where('id !=', $id)
+            ->countAllResults();
+        if ($duplicate > 0) {
+            throw new RuntimeException('Achievement title already exists in this branch.');
+        }
+
+        $now = gmdate('Y-m-d H:i:s');
+        $db->transBegin();
+        try {
+            $updated = (new AchievementModel())->update($id, [
+                'branch_id' => $values['branch_id'],
+                'category' => $values['category'],
+                'title' => $values['title'],
+                'description' => $values['description'],
+                'is_active' => $values['is_active'],
+                'updated_at' => $now,
+            ]);
+            if ($updated !== true) {
+                throw new RuntimeException('Unable to update Achievement.');
+            }
+
+            service('auditPersistence')->record(
+                $this->actorId(),
+                'achievement_updated',
+                'achievement',
+                (string) $id,
+                $values['branch_id'],
+                $existing,
+                $values,
+                null,
+                $db,
+            );
+            $db->transCommit();
+        } catch (Throwable $exception) {
+            $db->transRollback();
+            throw $exception;
+        }
+    }
+
     /** @return list<array<string, mixed>> */
     public function awardList(bool $includeArchived = false, array $filters = []): array
     {
@@ -114,6 +232,8 @@ final class AchievementManagementService
             'recipient_type' => '',
             'status' => '',
             'branch_id' => '',
+            'date_from' => '',
+            'date_to' => '',
         ];
         $branchIds = $this->authorizedBranchIds('achievement.view');
         if ($branchIds === []) {
@@ -157,6 +277,12 @@ final class AchievementManagementService
                 ->orLike('cu.display_name', $search)
                 ->orLike('b.name', $search)
                 ->groupEnd();
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $filters['date_from']) === 1) {
+            $builder->where('aa.created_at >=', $filters['date_from'] . ' 00:00:00');
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $filters['date_to']) === 1) {
+            $builder->where('aa.created_at <=', $filters['date_to'] . ' 23:59:59');
         }
 
         return $builder
@@ -270,16 +396,16 @@ final class AchievementManagementService
                 $values['recipient_id'],
                 $values['branch_id'],
             );
-            $data = $this->awardData($values, $actor, $actor, null);
+            $data = $this->awardData($values, $actor, $actor, null, 'approved');
             $id = $db->table('achievement_awards')->insert($data, true)
                 ? (int) $db->insertID()
                 : 0;
             if ($id < 1) {
-                throw new RuntimeException('Unable to save Achievement draft.');
+                throw new RuntimeException('Unable to save Achievement award.');
             }
             service('auditPersistence')->record(
                 $actor,
-                'achievement_award_draft_created',
+                'achievement_award_created',
                 'achievement_award',
                 (string) $id,
                 $values['branch_id'],
@@ -310,10 +436,14 @@ final class AchievementManagementService
     public function updateAward(int $id, array $input): void
     {
         $values = $this->validatedAward($input, true);
-        $this->allow($values['branch_id'], 'achievement.update');
+        $permission = $this->achievementManagementPermission();
+        if ($permission === null) {
+            throw new RuntimeException('Forbidden');
+        }
+        $this->allow($values['branch_id'], $permission);
         $before = $this->award($id);
-        if ((string) $before['status'] !== 'draft' || (int) $before['branch_id'] !== $values['branch_id']) {
-            throw new RuntimeException('Only same-branch drafts can be edited.');
+        if (! in_array((string) $before['status'], ['draft', 'approved'], true) || (int) $before['branch_id'] !== $values['branch_id']) {
+            throw new RuntimeException('Only same-branch Draft or Approved awards can be edited.');
         }
         $db = Database::connect('default');
         $db->transBegin();
@@ -331,9 +461,10 @@ final class AchievementManagementService
                 $actor,
                 $actor,
                 $values['correction_reason'],
+                (string) $before['status'],
             );
             $version = (int) ($input['version'] ?? 0);
-            $this->updateWithVersion($db, $id, 'draft', $values['branch_id'], $version, $data);
+            $this->updateWithVersion($db, $id, (string) $before['status'], $values['branch_id'], $version, $data);
             service('auditPersistence')->record(
                 $actor,
                 'achievement_award_draft_updated',
@@ -343,6 +474,40 @@ final class AchievementManagementService
                 $before,
                 $data,
                 $values['correction_reason'],
+                $db,
+            );
+            $db->transCommit();
+        } catch (Throwable $exception) {
+            $db->transRollback();
+            throw $exception;
+        }
+    }
+
+    public function deleteAward(int $id): void
+    {
+        $permission = $this->achievementManagementPermission();
+        if ($permission === null) {
+            throw new RuntimeException('Forbidden');
+        }
+        $this->allowAwardPermission($id, $permission);
+        $before = $this->award($id);
+        $db = Database::connect('default');
+        $db->transBegin();
+
+        try {
+            if ($db->table('achievement_awards')->where('id', $id)->delete() !== true) {
+                throw new RuntimeException('Unable to delete Achievement award.');
+            }
+
+            service('auditPersistence')->record(
+                $this->actorId(),
+                'achievement_award_deleted',
+                'achievement_award',
+                (string) $id,
+                (int) $before['branch_id'],
+                $before,
+                null,
+                'Permanent award deletion',
                 $db,
             );
             $db->transCommit();
@@ -681,7 +846,13 @@ final class AchievementManagementService
         }
     }
 
-    private function awardData(array $values, int $createdBy, int $updatedBy, ?string $reason): array
+    private function awardData(
+        array $values,
+        int $createdBy,
+        int $updatedBy,
+        ?string $reason,
+        string $status,
+    ): array
     {
         return [
             'achievement_id' => $values['achievement_id'],
@@ -693,7 +864,7 @@ final class AchievementManagementService
             'coach_id' => $values['recipient_type'] === 'coach'
                 ? $values['recipient_id']
                 : null,
-            'status' => 'draft',
+            'status' => $status,
             'nomination_note' => $values['nomination_note'],
             'created_by' => $createdBy,
             'updated_by' => $updatedBy,
@@ -737,6 +908,27 @@ final class AchievementManagementService
         ];
     }
 
+    private function achievementManagementPermission(): ?string
+    {
+        if (service('authorization')->can('achievement.update')) {
+            return 'achievement.update';
+        }
+
+        return service('authorization')->can('achievement.create')
+            ? 'achievement.create'
+            : null;
+    }
+
+    private function allowAwardPermission(int $id, string $permission): void
+    {
+        if (! service('authorization')->can($permission)) {
+            throw new RuntimeException('Forbidden');
+        }
+
+        $award = $this->award($id);
+        $this->allow((int) $award['branch_id'], $permission);
+    }
+
     /** @return list<int> */
     private function authorizedBranchIds(string $permission): array
     {
@@ -768,13 +960,8 @@ final class AchievementManagementService
     /** @param list<int> $branchIds */
     private function allowHistoricalAccess(array $branchIds): void
     {
-        foreach ($branchIds as $branchId) {
-            if (
-                service('authorization')->can('achievement.archive', (string) $branchId)
-                || service('authorization')->can('achievement.restore', (string) $branchId)
-            ) {
-                return;
-            }
+        if ($branchIds !== []) {
+            return;
         }
 
         throw new RuntimeException('Forbidden');

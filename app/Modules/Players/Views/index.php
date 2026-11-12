@@ -58,29 +58,6 @@ $actionPermission = static function (string $permission, string $branchId): bool
     </div>',
 ]) ?>
 
-<section class="mcc-card mcc-admission-status-summary" aria-labelledby="player-status-summary-heading">
-    <div class="mcc-card-heading">
-        <div>
-            <span class="mcc-eyebrow">Players</span>
-            <h2 id="player-status-summary-heading">Status summary</h2>
-        </div>
-    </div>
-    <div class="mcc-follow-up-summary-grid mcc-admission-status-summary-grid">
-    <?php foreach ($statusCards as $status => $card): ?>
-        <?php
-        $statusQuery = array_merge($summaryFilters, ['status' => $status]);
-        $statusUrl = site_url('players') . '?' . http_build_query($statusQuery);
-        $isSelectedStatus = (string) ($filters['status'] ?? '') === $status;
-        ?>
-        <a class="mcc-follow-up-summary-card mcc-status-badge <?= esc($card['class']) ?><?= $isSelectedStatus ? ' is-active' : '' ?>"
-           href="<?= esc($statusUrl) ?>" aria-current="<?= $isSelectedStatus ? 'page' : 'false' ?>">
-            <span class="mcc-follow-up-summary-label"><?= esc($card['label']) ?></span>
-            <strong class="mcc-follow-up-summary-count"><?= (int) ($statusCounts[$status] ?? 0) ?></strong>
-        </a>
-    <?php endforeach; ?>
-    </div>
-</section>
-
 <section id="player-filters" class="mcc-card" aria-labelledby="player-filters-heading" hidden>
     <div class="mcc-card-heading">
         <div>
@@ -145,6 +122,29 @@ $actionPermission = static function (string $permission, string $branchId): bool
             <a class="mcc-button mcc-button-secondary" href="<?= esc(site_url('players')) ?>"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Clear filters</a>
         </div>
     </form>
+</section>
+
+<section class="mcc-card mcc-admission-status-summary" aria-labelledby="player-status-summary-heading">
+    <div class="mcc-card-heading">
+        <div>
+            <span class="mcc-eyebrow">Players</span>
+            <h2 id="player-status-summary-heading">Status summary</h2>
+        </div>
+    </div>
+    <div class="mcc-follow-up-summary-grid mcc-admission-status-summary-grid">
+    <?php foreach ($statusCards as $status => $card): ?>
+        <?php
+        $statusQuery = array_merge($summaryFilters, ['status' => $status]);
+        $statusUrl = site_url('players') . '?' . http_build_query($statusQuery);
+        $isSelectedStatus = (string) ($filters['status'] ?? '') === $status;
+        ?>
+        <a class="mcc-follow-up-summary-card mcc-status-badge <?= esc($card['class']) ?><?= $isSelectedStatus ? ' is-active' : '' ?>"
+           href="<?= esc($statusUrl) ?>" aria-current="<?= $isSelectedStatus ? 'page' : 'false' ?>">
+            <span class="mcc-follow-up-summary-label"><?= esc($card['label']) ?></span>
+            <strong class="mcc-follow-up-summary-count"><?= (int) ($statusCounts[$status] ?? 0) ?></strong>
+        </a>
+    <?php endforeach; ?>
+    </div>
 </section>
 
 <section class="mcc-card mcc-detail-card mcc-player-list-card" aria-labelledby="players-heading">

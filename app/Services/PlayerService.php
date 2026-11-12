@@ -35,7 +35,8 @@ final class PlayerService
         $query = $db->table('players p')
             ->select("p.id, p.branch_id, p.status, p.updated_at, p.admission_id, p.lead_id,
                 a.trial_id, a.status AS admission_status, a.admission_number AS player_reference,
-                a.age_group, pe.full_name, pe.email, pe.phone, b.name AS branch_name,
+                COALESCE(NULLIF(ag.name, ''), NULLIF(a.age_group, '')) AS age_group,
+                pe.full_name, pe.email, pe.phone, b.name AS branch_name,
                 (SELECT ba.name
                     FROM player_batch_assignments pba
                     INNER JOIN batches ba ON ba.id = pba.batch_id
@@ -71,6 +72,7 @@ final class PlayerService
             ->join('persons pe', 'pe.id = p.person_id')
             ->join('branches b', 'b.id = p.branch_id')
             ->join('admissions a', 'a.id = p.admission_id')
+            ->join('admission_age_groups ag', 'ag.id = a.age_group_id', 'left')
             ->whereIn('p.branch_id', $branches);
 
         $branchFilter = trim((string) ($filters['branch_id'] ?? ''));
@@ -100,7 +102,11 @@ final class PlayerService
 
         $ageGroupFilter = trim((string) ($filters['age_group'] ?? ''));
         if ($ageGroupFilter !== '') {
-            $query->where('a.age_group', $ageGroupFilter);
+            $query->where(
+                "COALESCE(NULLIF(ag.name, ''), NULLIF(a.age_group, '')) = " . $db->escape($ageGroupFilter),
+                null,
+                false,
+            );
         }
 
         $batchFilter = trim((string) ($filters['batch_id'] ?? ''));
@@ -195,9 +201,11 @@ final class PlayerService
         $query = $db->table('player_goals pg')
             ->select('pg.id, pg.player_id, pg.branch_id, pg.coach_user_id, pg.title, pg.description,
                 pg.version, pg.created_at, pg.updated_at, pe.full_name AS player_name,
+                a.admission_number AS player_reference,
                 b.name AS branch_name, u.display_name AS coach_name')
             ->join('players p', 'p.id = pg.player_id')
             ->join('persons pe', 'pe.id = p.person_id')
+            ->join('admissions a', 'a.id = p.admission_id', 'left')
             ->join('branches b', 'b.id = pg.branch_id')
             ->join('users u', 'u.id = pg.coach_user_id', 'left')
             ->whereIn('pg.branch_id', $branches);
@@ -480,14 +488,21 @@ final class PlayerService
 
     private function authorizedAgeGroupOptions(object $db, array $branches): array
     {
-        $rows = $db->table('admissions a')
-            ->select('a.age_group')
-            ->join('players p', 'p.admission_id = a.id')
-            ->whereIn('p.branch_id', $branches)
-            ->where('a.age_group IS NOT NULL', null, false)
-            ->where('a.age_group !=', '')
-            ->groupBy('a.age_group')
-            ->orderBy('a.age_group')
+        if ($branches === []) {
+            return [];
+        }
+
+        $rows = $db->table('admission_age_groups')
+            ->select('name AS age_group')
+            ->where('is_active', 1)
+            ->groupStart()
+                ->where('branch_id IS NULL', null, false)
+                ->orWhereIn('branch_id', $branches)
+            ->groupEnd()
+            ->where('name !=', '')
+            ->groupBy('name')
+            ->orderBy('display_order')
+            ->orderBy('name')
             ->get()
             ->getResultArray();
 

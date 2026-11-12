@@ -424,3 +424,20 @@ visibility, ratings/scoring, notifications, exports, retention, Tournament
 rules, and idempotency policy remain `NEEDS_DECISION` or deployment-owner work.
 No production migration, data cleanup, permission change, or business-rule
 change was performed.
+
+## Portal policy approval update — 2026-11-10
+
+The seven Student/Parent Portal policy areas are approved for development and
+production under `docs/PORTAL-POLICY-APPROVAL.md`:
+
+- Fees and payments
+- Document visibility
+- Medical-data visibility
+- Messaging permissions
+- Consent and signatures
+- Profile/contact editing
+- Hostel and transport information
+
+Approver: **Ajit**, Manager. Approval and effective date: **2026-11-10**.
+Implementation remains subject to server-side authorization, branch isolation,
+private storage, audit, CSRF, validation, transaction, and test controls.
