@@ -10,8 +10,18 @@ final class AddFitnessSoftDeletion extends Migration
 {
     public function up(): void
     {
-        $this->forge->addColumn('fitness_assessments', ['deleted_at' => ['type' => 'DATETIME', 'null' => true]]);
-        $this->forge->addColumn('fitness_plans', ['deleted_at' => ['type' => 'DATETIME', 'null' => true]]);
+        if ($this->db->tableExists('fitness_assessments')
+            && ! $this->db->fieldExists('deleted_at', 'fitness_assessments')) {
+            $this->forge->addColumn('fitness_assessments', [
+                'deleted_at' => ['type' => 'DATETIME', 'null' => true],
+            ]);
+        }
+        if ($this->db->tableExists('fitness_plans')
+            && ! $this->db->fieldExists('deleted_at', 'fitness_plans')) {
+            $this->forge->addColumn('fitness_plans', [
+                'deleted_at' => ['type' => 'DATETIME', 'null' => true],
+            ]);
+        }
         $permissions = ['fitness.delete', 'fitness.plan.delete'];
         foreach ($this->db->table('roles')->select('id, name')->get()->getResultArray() as $role) {
             if (!in_array($role['name'], ['Super Admin', 'Branch Admin', 'Fitness Coach'], true)) {

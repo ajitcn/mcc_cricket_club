@@ -20,12 +20,15 @@ final class AddEquipmentUpdateDelete extends Migration
 
     public function up(): void
     {
-        $this->forge->addColumn('equipment', [
-            'deleted_at' => [
-                'type' => 'DATETIME',
-                'null' => true,
-            ],
-        ]);
+        if ($this->db->tableExists('equipment')
+            && ! $this->db->fieldExists('deleted_at', 'equipment')) {
+            $this->forge->addColumn('equipment', [
+                'deleted_at' => [
+                    'type' => 'DATETIME',
+                    'null' => true,
+                ],
+            ]);
+        }
 
         $roles = $this->db
             ->table('roles')
