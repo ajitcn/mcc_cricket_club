@@ -164,7 +164,18 @@ $pageActions = '';
             </div>
             <div class="mcc-form-field col-12 col-md-6 col-xl-3 mb-3">
                 <label for="meeting-start-time">Start Time</label>
-                <input class="form-control" id="meeting-start-time" name="start_time" type="time" value="<?= esc($timeValue('start_at') ?: $timeValue('follow_up_at')) ?>" required>
+                <input
+                    class="form-control"
+                    id="meeting-start-time"
+                    name="start_time"
+                    type="time"
+                    value="<?= esc((string) old('start_time', $timeValue('start_at') ?: $timeValue('follow_up_at'))) ?>"
+                    <?= $errorFor('start_time') !== '' ? 'aria-invalid="true"' : '' ?>
+                    required
+                >
+                <?php if ($errorFor('start_time') !== ''): ?>
+                    <p class="mcc-field-error" role="alert"><?= esc($errorFor('start_time')) ?></p>
+                <?php endif; ?>
             </div>
             <div class="mcc-form-field col-12 col-md-6 mb-3">
                 <label for="meeting-assigned-form">Assigned User</label>

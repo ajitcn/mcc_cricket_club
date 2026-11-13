@@ -6,13 +6,28 @@ $value = static function (string $field) use ($test): string {
     return trim((string) $value) === '' ? 'Not answered' : (string) $value;
 };
 $inputValue = static function (string $field) use ($test): string {
-    return esc((string) old($field, $test[$field] ?? ''));
+    $value = trim((string) old($field, $test[$field] ?? ''));
+
+    if (in_array($field, ['applicant_date_of_birth', 'coaching_start'], true) && $value !== '') {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1) {
+            $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+            $value = $date !== false && $date->format('Y-m-d') === $value
+                ? $date->format('d-m-Y')
+                : '';
+        } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $value) !== 1) {
+            $value = '';
+        }
+    }
+
+    return esc($value);
 };
 $selected = static function (string $field, string $option) use ($test): string {
     return (string) old($field, $test[$field] ?? '') === $option ? 'selected' : '';
 };
 $personalDetailsErrors = session()->getFlashdata('personal_details_errors');
 $personalDetailsErrors = is_array($personalDetailsErrors) ? $personalDetailsErrors : [];
+$fieldErrors = session()->getFlashdata('field_errors');
+$fieldErrors = is_array($fieldErrors) ? $fieldErrors : [];
 $personalDetailsPanelOpen = $personalDetailsErrors !== [];
 $personalError = static function (string $field) use ($personalDetailsErrors): string {
     $message = trim((string) ($personalDetailsErrors[$field] ?? ''));
@@ -196,9 +211,11 @@ $studentTestLink = is_string($studentTestLink) ? trim($studentTestLink) : '';
                 <input type="hidden" name="version" value="<?= (int) $test['version'] ?>">
                 <?php foreach (['applicant_full_name' => 'Name of the Player', 'father_name' => 'Father Name', 'father_profession' => 'Father Profession', 'age' => 'Age', 'applicant_date_of_birth' => 'Date of Birth', 'residence' => 'Residence', 'contact_number' => 'Contact No 1', 'secondary_contact_number' => 'Contact No 2', 'email' => 'Email ID 1', 'secondary_email' => 'Email ID 2', 'coaching_start' => 'Date/Month (Wish to start the coaching)', 'discovery_source' => 'How did you come to know about us'] as $field => $label): ?>
                     <?php $isDateField = in_array($field, ['applicant_date_of_birth', 'coaching_start'], true); ?>
+                    <?php $isAgeField = $field === 'age'; ?>
                     <div class="col-12 col-md-6 mb-3">
                         <label for="admission-test-<?= esc($field) ?>"><?= esc($label) ?></label>
-                        <input class="form-control" id="admission-test-<?= esc($field) ?>" name="<?= esc($field) ?>" value="<?= $inputValue($field) ?>" <?= $isDateField ? 'inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d"' : '' ?>>
+                        <input class="form-control" id="admission-test-<?= esc($field) ?>" name="<?= esc($field) ?>" value="<?= $inputValue($field) ?>" <?= $isAgeField ? 'type="number" min="0" max="120" step="1" inputmode="numeric"' : '' ?> <?= $isDateField ? 'inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d"' : '' ?>>
+                        <?php if ($isAgeField): ?><small class="mcc-form-help">Enter a whole number from 0 to 120. Leave blank if unknown.</small><?php endif; ?>
                         <?= $personalError($field) ?>
                     </div>
                 <?php endforeach; ?>
@@ -365,16 +382,18 @@ $studentTestLink = is_string($studentTestLink) ? trim($studentTestLink) : '';
                 <div class="col-12 col-md-4 mb-3">
                     <label for="follow-up-date">Follow-up date</label>
                     <input class="form-control" id="follow-up-date" name="follow_up_date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc($followUpDateInput) ?>" required>
+                    <?php if (isset($fieldErrors['follow_up_date'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_date']) ?></p><?php endif; ?>
                 </div>
                 <div class="col-12 col-md-4 mb-3">
                     <label for="follow-up-time">Follow-up time</label>
                     <input class="form-control" id="follow-up-time" name="follow_up_time" type="time" autocomplete="off" value="<?= esc($followUpTimeInput) ?>" required>
+                    <?php if (isset($fieldErrors['follow_up_time'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_time']) ?></p><?php endif; ?>
                 </div>
-                <div class="col-12 col-md-4 mb-3"><label for="follow-up-type">Type</label><select class="form-control" id="follow-up-type" name="follow_up_type"><?php foreach ($followUpOptions['types'] as $option): ?><option value="<?= esc($option) ?>"><?= esc($option) ?></option><?php endforeach; ?></select></div>
-                <div class="col-12 col-md-4 mb-3"><label for="follow-up-status">Status</label><select class="form-control" id="follow-up-status" name="status"><?php foreach ($followUpOptions['statuses'] as $option): ?><option value="<?= esc($option) ?>"><?= esc($option) ?></option><?php endforeach; ?></select></div>
-                <div class="col-12 mb-3"><label for="follow-up-notes">Notes</label><textarea class="form-control" id="follow-up-notes" name="notes" rows="3" required></textarea></div>
-                <div class="col-12 mb-3"><label for="follow-up-outcome">Outcome</label><textarea class="form-control" id="follow-up-outcome" name="outcome" rows="2"></textarea></div>
-                <div class="col-12 mb-3"><label for="follow-up-next-action">Next action</label><textarea class="form-control" id="follow-up-next-action" name="next_action" rows="2"></textarea></div>
+                <div class="col-12 col-md-4 mb-3"><label for="follow-up-type">Type</label><select class="form-control" id="follow-up-type" name="follow_up_type"><?php foreach ($followUpOptions['types'] as $option): ?><option value="<?= esc($option) ?>"><?= esc($option) ?></option><?php endforeach; ?></select><?php if (isset($fieldErrors['follow_up_type'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_type']) ?></p><?php endif; ?></div>
+                <div class="col-12 col-md-4 mb-3"><label for="follow-up-status">Status</label><select class="form-control" id="follow-up-status" name="status"><?php foreach ($followUpOptions['statuses'] as $option): ?><option value="<?= esc($option) ?>"><?= esc($option) ?></option><?php endforeach; ?></select><?php if (isset($fieldErrors['status'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['status']) ?></p><?php endif; ?></div>
+                <div class="col-12 mb-3"><label for="follow-up-notes">Notes</label><textarea class="form-control" id="follow-up-notes" name="notes" rows="3" required><?= esc((string) old('notes', '')) ?></textarea><?php if (isset($fieldErrors['notes'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['notes']) ?></p><?php endif; ?></div>
+                <div class="col-12 mb-3"><label for="follow-up-outcome">Outcome</label><textarea class="form-control" id="follow-up-outcome" name="outcome" rows="2"><?= esc((string) old('outcome', '')) ?></textarea></div>
+                <div class="col-12 mb-3"><label for="follow-up-next-action">Next action</label><textarea class="form-control" id="follow-up-next-action" name="next_action" rows="2"><?= esc((string) old('next_action', '')) ?></textarea></div>
                 <div class="col-12"><button class="mcc-button mcc-button-secondary" type="submit">Add Follow-up</button></div>
             </form>
         </details>

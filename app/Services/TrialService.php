@@ -234,7 +234,12 @@ final class TrialService
         $ratings = [];
 
         foreach (self::RATING_FIELDS as $field) {
-            $ratings[$field] = $this->ratingService->numeric($trial[$field] ?? null);
+            try {
+                $ratings[$field] = $this->ratingService->numeric($trial[$field] ?? null);
+            } catch (\InvalidArgumentException) {
+                // Invalid legacy values must not prevent staff from opening a Trial.
+                $ratings[$field] = null;
+            }
         }
 
         return $ratings;
@@ -246,7 +251,12 @@ final class TrialService
         $categories = [];
 
         foreach (self::RATING_FIELDS as $field) {
-            $categories[$field] = $this->ratingService->category($trial[$field] ?? null);
+            try {
+                $categories[$field] = $this->ratingService->category($trial[$field] ?? null);
+            } catch (\InvalidArgumentException) {
+                // Keep an invalid legacy value from breaking the detail projection.
+                $categories[$field] = null;
+            }
         }
 
         return $categories;

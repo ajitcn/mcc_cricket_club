@@ -5,6 +5,7 @@ namespace App\Modules\CRM\Controllers;
 
 use App\Controllers\StaffController;
 use App\Modules\CRM\Models\LeadModel;
+use DateTimeImmutable;
 use Throwable;
 use CodeIgniter\HTTP\ResponseInterface;
 final class Browser extends StaffController
@@ -99,13 +100,15 @@ final class Browser extends StaffController
     }
     public function update(int $id): \CodeIgniter\HTTP\ResponseInterface|string
     {
+        $input = $this->request->getPost();
         try {
-            service('crm')->updateLead($id, $this->request->getPost());
+            service('crm')->updateLead($id, $input);
             return redirect()->to('/crm/leads/' . $id)->with('message', 'Lead updated.');
         } catch (Throwable $e) {
             return redirect()->to('/crm/leads/' . $id . '/edit')
                 ->withInput()
-                ->with('error', $this->safe($e));
+                ->with('error', $this->safe($e))
+                ->with('field_errors', $this->leadFieldErrors($input, $e, true));
         }
     }
     public function create(): \CodeIgniter\HTTP\ResponseInterface|string
@@ -124,8 +127,86 @@ final class Browser extends StaffController
             }
             return redirect()->to('/crm/leads/new')
                 ->withInput()
-                ->with('error', $this->safe($e));
+                ->with('error', $this->safe($e))
+                ->with('field_errors', $this->leadFieldErrors($d ?? [], $e));
         }
+    }
+
+    /** @param array<string, mixed> $input @return array<string, string> */
+    private function leadFieldErrors(array $input, Throwable $exception, bool $editing = false): array
+    {
+        if (! in_array($exception->getMessage(), ['Invalid lead.', 'Invalid owner.', 'Forbidden'], true)) {
+            return [];
+        }
+
+        $errors = [];
+        $name = trim((string) ($input['full_name'] ?? ''));
+        if ($name === '' || strlen($name) > 150) {
+            $errors['full_name'] = 'Enter a name up to 150 characters.';
+        }
+
+        $email = trim((string) ($input['email'] ?? ''));
+        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            $errors['email'] = 'Enter a valid email address.';
+        }
+
+        $phone = trim((string) ($input['phone'] ?? ''));
+        if (strlen($phone) > 40) {
+            $errors['phone'] = 'Enter a phone number with 40 characters or fewer.';
+        }
+
+        $dateOfBirth = trim((string) ($input['date_of_birth'] ?? ''));
+        if ($dateOfBirth !== '') {
+            $validDate = false;
+            if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $dateOfBirth)) {
+                $parsedDate = DateTimeImmutable::createFromFormat('!d-m-Y', $dateOfBirth);
+                $validDate = $parsedDate !== false && $parsedDate->format('d-m-Y') === $dateOfBirth;
+            } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateOfBirth)) {
+                $parsedDate = DateTimeImmutable::createFromFormat('!Y-m-d', $dateOfBirth);
+                $validDate = $parsedDate !== false && $parsedDate->format('Y-m-d') === $dateOfBirth;
+            }
+            if (! $validDate) {
+                $errors['date_of_birth'] = 'Enter a valid date as DD-MM-YYYY.';
+            }
+        }
+
+        $branchId = (int) ($input['branch_id'] ?? 0);
+        $branchIds = $editing ? [] : array_map(
+            static fn (array $branch): int => (int) ($branch['id'] ?? 0),
+            service('crm')->availableBranches(),
+        );
+        if (! $editing && (! ctype_digit((string) ($input['branch_id'] ?? '')) || $branchId < 1 || ! in_array($branchId, $branchIds, true))) {
+            $errors['branch_id'] = 'Select an authorized branch.';
+        }
+        $source = trim((string) ($input['source'] ?? ''));
+        $sources = array_map(
+            static fn (array $option): string => strtolower(trim((string) ($option['name'] ?? ''))),
+            service('crm')->activeLeadSources(),
+        );
+        if ($source === '') {
+            $errors['source'] = 'Select a lead source.';
+        }
+        $status = trim((string) ($input['status'] ?? ''));
+        $statuses = array_map(
+            static fn (array $option): string => strtolower(trim((string) ($option['name'] ?? ''))),
+            service('crm')->activeLeadStatuses(),
+        );
+        if ($status === '' || ! in_array(strtolower($status), $statuses, true)) {
+            $errors['status'] = 'Select a lead status.';
+        }
+
+        if ($exception->getMessage() === 'Invalid owner.') {
+            $errors['owner_user_id'] = 'Select an enabled user.';
+        }
+        if ($exception->getMessage() === 'Forbidden') {
+            $errors['branch_id'] = 'Select a branch you are authorized to manage.';
+        }
+
+        if ($errors === []) {
+            $errors['_form'] = 'Review the highlighted lead details.';
+        }
+
+        return $errors;
     }
 
     public function sampleImport(): ResponseInterface
@@ -206,8 +287,9 @@ final class Browser extends StaffController
     }
     public function followUp(int $id): \CodeIgniter\HTTP\ResponseInterface|string
     {
+        $input = $this->request->getPost();
         try {
-            $d = $this->request->getPost();
+            $d = $input;
             if (!$this->browser()) {
                 $json = $this->request->getJSON(true);
                 if (is_array($json)) {
@@ -226,8 +308,38 @@ final class Browser extends StaffController
             }
             return redirect()->to('/crm/leads/' . $id)
                 ->withInput()
-                ->with('error', $this->safe($e));
+                ->with('error', $this->safe($e))
+                ->with('field_errors', $this->followUpFieldErrors($input, $e));
         }
+    }
+
+    /** @param array<string, mixed> $input @return array<string, string> */
+    private function followUpFieldErrors(array $input, Throwable $exception): array
+    {
+        if ($exception->getMessage() !== 'Invalid follow-up.') {
+            return [];
+        }
+
+        $errors = [];
+        $types = ['call', 'whatsapp', 'email', 'meeting', 'other'];
+        if (! in_array(strtolower(trim((string) ($input['follow_up_type'] ?? ''))), $types, true)) {
+            $errors['follow_up_type'] = 'Select a follow-up type.';
+        }
+
+        $note = trim((string) ($input['note'] ?? ''));
+        if ($note === '' || strlen($note) > 65535) {
+            $errors['note'] = 'Enter follow-up notes.';
+        }
+
+        if (($input['follow_up_at'] ?? '') !== '') {
+            $value = trim((string) $input['follow_up_at']);
+            $valid = preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2}|T\d{2}:\d{2})$/', $value) === 1;
+            if (! $valid) {
+                $errors['follow_up_at'] = 'Enter a valid follow-up date and time.';
+            }
+        }
+
+        return $errors;
     }
     public function updateFollowUp(int $leadId, int $followUpId): \CodeIgniter\HTTP\ResponseInterface|string
     {

@@ -32,7 +32,7 @@ final class TrialRatingService
             $value = $matches[1];
         }
 
-        if (preg_match('/^(?:0|[1-9]\d?)(?:\.\d)?$/', $value) !== 1) {
+        if (preg_match('/^(?:0|[1-9]\d?)(?:\.\d{1,2})?$/', $value) !== 1) {
             throw new InvalidArgumentException('Invalid Trial rating.');
         }
 
@@ -42,9 +42,11 @@ final class TrialRatingService
             throw new InvalidArgumentException('Invalid Trial rating.');
         }
 
-        return str_contains($value, '.')
-            ? rtrim(rtrim(number_format($numeric, 2, '.', ''), '0'), '.')
-            : (string) (int) $numeric;
+        if (abs(($numeric * 10) - round($numeric * 10)) > 0.000001) {
+            throw new InvalidArgumentException('Invalid Trial rating.');
+        }
+
+        return rtrim(rtrim(number_format($numeric, 1, '.', ''), '0'), '.');
     }
 
     public function category(mixed $value): ?string

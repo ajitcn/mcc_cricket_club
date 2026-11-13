@@ -1922,6 +1922,23 @@ final class AdmissionTestService
             }
         }
 
+        if ($fields['applicant_date_of_birth'] !== null) {
+            $dateOfBirth = $fields['applicant_date_of_birth'];
+            $format = preg_match('/^\d{2}-\d{2}-\d{4}$/', $dateOfBirth) === 1
+                ? '!d-m-Y'
+                : (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateOfBirth) === 1 ? '!Y-m-d' : null);
+            $parsedDate = $format === null
+                ? false
+                : DateTimeImmutable::createFromFormat($format, $dateOfBirth);
+            $expectedFormat = $format === '!d-m-Y' ? 'd-m-Y' : 'Y-m-d';
+
+            if ($parsedDate === false || $parsedDate->format($expectedFormat) !== $dateOfBirth) {
+                throw new RuntimeException('Invalid date of birth.');
+            }
+
+            $fields['applicant_date_of_birth'] = $parsedDate->format('Y-m-d');
+        }
+
         return $fields;
     }
 

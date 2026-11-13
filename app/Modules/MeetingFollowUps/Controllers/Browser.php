@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\MeetingFollowUps\Controllers;
 
 use App\Controllers\StaffController;
+use App\Modules\MeetingFollowUps\Services\MeetingFollowUpValidationException;
 use CodeIgniter\HTTP\ResponseInterface;
 use Throwable;
 
@@ -90,8 +91,10 @@ final class Browser extends StaffController
     private function failure(string $path, Throwable $exception): ResponseInterface
     {
         $message = $this->safe($exception);
-        $fieldErrors = $this->fieldErrors($exception);
+        $fieldErrors = $this->fieldErrors($path, $exception);
         if ($fieldErrors !== []) {
+            $message = 'Please correct the highlighted fields and submit again.';
+
             return redirect()->to(site_url($path))
                 ->withInput()
                 ->with('error', $message)
@@ -117,12 +120,17 @@ final class Browser extends StaffController
     }
 
     /** @return array<string, string> */
-    private function fieldErrors(Throwable $exception): array
+    private function fieldErrors(string $path, Throwable $exception): array
     {
+        if ($exception instanceof MeetingFollowUpValidationException) {
+            return $exception->fieldErrors();
+        }
+
         return match ($exception->getMessage()) {
             'Invalid Admission Test.' => ['admission_test_id' => 'Select a valid authorized Admission Test.'],
-            'Invalid Meeting Follow-up.' => ['follow_up_type' => 'Select a valid follow-up type.', 'status' => 'Select a valid status.'],
-            'Invalid follow-up date.' => ['start_at' => 'Enter a valid start date and time.'],
+            'Not found.' => $path === 'meeting-followups/new'
+                ? ['admission_test_id' => 'Select a valid authorized Admission Test.']
+                : [],
             'Invalid assigned user.' => ['assigned_user_id' => 'Select an authorized assigned user.'],
             default => [],
         };

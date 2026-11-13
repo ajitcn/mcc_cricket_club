@@ -157,14 +157,24 @@ final class Browser extends StaffController
 
             return redirect()->to($target)->with('message', 'Trial ratings updated.');
         } catch (Throwable $exception) {
+            $input = $this->request->getPost();
             $fieldErrors = [];
             if ($exception->getMessage() === 'Invalid Trial rating.') {
-                foreach (['ability_overall', 'ability_batting', 'ability_bowling', 'ability_wicketkeeping', 'ability_fitness'] as $field) {
-                    $fieldErrors[$field] = $this->safe($exception);
+                $ratingService = new \App\Services\TrialRatingService();
+                foreach (\App\Services\TrialRatingService::FIELDS as $field) {
+                    try {
+                        $ratingService->normalize($input[$field] ?? null);
+                    } catch (\InvalidArgumentException) {
+                        $fieldErrors[$field] = 'Enter a rating from 0 to 10, including decimals, or leave it blank.';
+                    }
                 }
             }
 
-            $response = redirect()->to($target)->withInput()->with('error', $this->safe($exception));
+            $message = $fieldErrors === []
+                ? $this->safe($exception)
+                : 'Please correct the highlighted rating fields and submit again.';
+            $response = redirect()->to($target)->withInput()->with('error', $message);
+
             return $fieldErrors === [] ? $response : $response->with('field_errors', $fieldErrors);
         }
     }

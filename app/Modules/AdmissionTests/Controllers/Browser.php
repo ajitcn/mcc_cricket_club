@@ -264,17 +264,26 @@ final class Browser extends StaffController
             return redirect()->to(site_url('admission-tests/' . $id))
                 ->with('message', 'Personal details saved.');
         } catch (Throwable $exception) {
-            $reference = 'ADT-' . strtoupper(bin2hex(random_bytes(4)));
-            log_message('error', 'Admission Test personal details update failed [{reference}] for test {testId}: {message}', [
-                'reference' => $reference,
-                'testId' => $id,
-                'message' => $exception->getMessage(),
-            ]);
+            $fieldErrors = $this->personalDetailsErrors($exception);
+            $isValidationFailure = ! isset($fieldErrors['_form']);
+            $message = $isValidationFailure
+                ? 'Invalid form data. Please correct the highlighted fields and try again.'
+                : 'The personal details could not be saved.';
+
+            if (! $isValidationFailure) {
+                $reference = 'ADT-' . strtoupper(bin2hex(random_bytes(4)));
+                log_message('error', 'Admission Test personal details update failed [{reference}] for test {testId}: {message}', [
+                    'reference' => $reference,
+                    'testId' => $id,
+                    'message' => $exception->getMessage(),
+                ]);
+                $message .= ' Support reference: ' . $reference . '.';
+            }
 
             return redirect()->to(site_url('admission-tests/' . $id . '#personal-details'))
                 ->withInput()
-                ->with('personal_details_errors', $this->personalDetailsErrors($exception))
-                ->with('error', $this->safe($exception) . ' Support reference: ' . $reference . '.');
+                ->with('personal_details_errors', $fieldErrors)
+                ->with('error', $message);
         }
     }
 
@@ -303,6 +312,9 @@ final class Browser extends StaffController
             ],
             'Invalid age.' => [
                 'age' => 'Enter an age from 0 to 120.',
+            ],
+            'Invalid date of birth.' => [
+                'applicant_date_of_birth' => 'Enter a valid date of birth as DD-MM-YYYY.',
             ],
             'Invalid Represented value.' => [
                 'represented_as' => 'Select a valid representation option.',

@@ -423,17 +423,26 @@ href="<?= site_url('crm/trials/from-lead/' . (int) ($lead['id'] ?? 0)) ?>"
 </option>
 <?php endforeach; ?>
 </select>
+<?php if (isset($fieldErrors['follow_up_type'])): ?>
+<p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_type']) ?></p>
+<?php endif; ?>
 </div>
 <div class="col-12 col-md-4 mb-2">
 <label for="follow-up-at">Date and time <span class="mcc-muted">(optional)</span>
 </label>
 <input class="form-control" id="follow-up-at" name="follow_up_at" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-picker-time-input="follow-up-time">
 <input class="form-control mt-2" id="follow-up-time" type="time" aria-label="Follow-up time">
+<?php if (isset($fieldErrors['follow_up_at'])): ?>
+<p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_at']) ?></p>
+<?php endif; ?>
 </div>
 <div class="col-12 col-md-4 mb-2">
 <label for="follow-up-note">Notes</label>
 <textarea class="form-control" id="follow-up-note" name="note" maxlength="65535" required>
 </textarea>
+<?php if (isset($fieldErrors['note'])): ?>
+<p class="mcc-field-error" role="alert"><?= esc($fieldErrors['note']) ?></p>
+<?php endif; ?>
 </div>
 <div class="col-12 mt-2 text-right">
 <button class="mcc-button mcc-button-primary" type="submit">

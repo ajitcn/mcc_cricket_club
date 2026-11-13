@@ -412,15 +412,27 @@ This trial is <?= esc($statusLabels[$trial['status']] ?? 'closed') ?> and has no
 <?php $savedRating = is_array($trial['coach_ratings'] ?? null)
     ? ($trial['coach_ratings'][$field] ?? null)
     : ($trial[$field] ?? null); ?>
+<?php
+$rawSelectedRating = old($field, $savedRating ?? '');
+$selectedRating = null;
+
+if (is_scalar($rawSelectedRating) && $rawSelectedRating !== '') {
+    try {
+        $selectedRating = $ratingService->numeric($rawSelectedRating);
+    } catch (\InvalidArgumentException) {
+        $selectedRating = null;
+    }
+}
+?>
 <div class="col-12 col-md-6 col-lg-4 mb-2">
 <label for="trial-<?= esc(str_replace('_', '-', $field)) ?>"><?= esc($label) ?></label>
 <?php if ($canEditCoachRatings): ?>
 <select class="form-control" id="trial-<?= esc(str_replace('_', '-', $field)) ?>" name="<?= esc($field) ?>">
-<option value=""<?= old($field, $savedRating ?? '') === '' ? ' selected' : '' ?>>Not rated</option>
+<option value=""<?= $rawSelectedRating === '' || $rawSelectedRating === null ? ' selected' : '' ?>>Not rated</option>
 <?php for ($rating = 0; $rating <= 100; $rating++): ?>
 <?php $ratingValue = number_format($rating / 10, 1, '.', ''); ?>
 <?php $ratingOption = $ratingValue . ' - ' . $ratingService->category($ratingValue); ?>
-<option value="<?= esc($ratingOption) ?>"<?= (string) ((float) old($field, $savedRating ?? '')) === (string) ((float) $ratingValue) ? ' selected' : '' ?>><?= esc($ratingOption) ?></option>
+<option value="<?= esc($ratingOption) ?>"<?= $selectedRating !== null && (float) $selectedRating === (float) $ratingValue ? ' selected' : '' ?>><?= esc($ratingOption) ?></option>
 <?php endfor; ?>
 </select>
 <?php else: ?>

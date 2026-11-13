@@ -196,23 +196,48 @@ final class MeetingFollowUpService
 
     private function validated(array $input, array $test, bool $creating): array
     {
-        $type = strtolower(trim((string) ($input['follow_up_type'] ?? '')));
-        $status = strtolower(trim((string) ($input['status'] ?? 'scheduled')));
-        $start = $this->dateTime($input['start_at'] ?? ($input['follow_up_at'] ?? null));
-        if (! in_array($type, self::TYPES, true) || ! in_array($status, self::STATUSES, true)) {
-            throw new RuntimeException('Invalid Meeting Follow-up.');
+        $typeValue = $input['follow_up_type'] ?? null;
+        $statusValue = $input['status'] ?? 'scheduled';
+        $timeValue = $input['start_time'] ?? null;
+        $type = is_scalar($typeValue) ? strtolower(trim((string) $typeValue)) : '';
+        $status = is_scalar($statusValue) ? strtolower(trim((string) $statusValue)) : '';
+        $time = is_scalar($timeValue) ? trim((string) $timeValue) : '';
+        $fieldErrors = [];
+
+        if (! in_array($type, self::TYPES, true)) {
+            $fieldErrors['follow_up_type'] = 'Select a valid follow-up type.';
         }
+        if (! in_array($status, self::STATUSES, true)) {
+            $fieldErrors['status'] = 'Select a valid status.';
+        }
+        if (array_key_exists('start_time', $input)
+            && ! preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time)) {
+            $fieldErrors['start_time'] = 'Enter a valid start time.';
+        }
+
+        $start = null;
+        try {
+            $start = $this->dateTime($input['start_at'] ?? ($input['follow_up_at'] ?? null));
+        } catch (RuntimeException) {
+            $fieldErrors['start_at'] = 'Enter a valid start date.';
+        }
+
         $assigned = $input['assigned_user_id'] ?? null;
-        if ($assigned !== null && $assigned !== '' && ! is_numeric($assigned)) {
-            throw new RuntimeException('Invalid assigned user.');
-        }
-        if ($assigned !== null && $assigned !== '') {
+        $hasAssignedUser = $assigned !== null && $assigned !== '';
+        if ($hasAssignedUser && (! is_scalar($assigned) || ! is_numeric($assigned))) {
+            $fieldErrors['assigned_user_id'] = 'Select an authorized assigned user.';
+        } elseif ($hasAssignedUser) {
             $valid = Database::connect('default')->table('user_branches')
                 ->where(['user_id' => (int) $assigned, 'branch_id' => (int) $test['branch_id']])->countAllResults();
             if ($valid < 1) {
-                throw new RuntimeException('Invalid assigned user.');
+                $fieldErrors['assigned_user_id'] = 'Select an authorized assigned user.';
             }
         }
+
+        if ($fieldErrors !== []) {
+            throw new MeetingFollowUpValidationException($fieldErrors);
+        }
+
         return [
             'follow_up_at' => $start,
             'start_at' => $start,
@@ -229,6 +254,10 @@ final class MeetingFollowUpService
 
     private function dateTime(mixed $value, bool $nullable = false): ?string
     {
+        if (! is_scalar($value)) {
+            throw new RuntimeException('Invalid follow-up date.');
+        }
+
         $value = str_replace('T', ' ', trim((string) $value));
         if ($value === '' && $nullable) {
             return null;
@@ -248,7 +277,7 @@ final class MeetingFollowUpService
 
     private function positiveInt(mixed $value): int
     {
-        if ($value === null || ! ctype_digit((string) $value) || (int) $value < 1) {
+        if (! is_scalar($value) || ! ctype_digit((string) $value) || (int) $value < 1) {
             throw new RuntimeException('Invalid Admission Test.');
         }
         return (int) $value;

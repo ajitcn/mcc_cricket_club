@@ -1,3 +1,8 @@
+<?php
+$fieldErrors = session()->getFlashdata('field_errors');
+$fieldErrors = is_array($fieldErrors) ? $fieldErrors : [];
+$fieldError = static fn (string $field): string => trim((string) ($fieldErrors[$field] ?? ''));
+?>
 <?= view('staff_header', ['title' => 'Create lead', 'nav' => $nav, 'message' => $message, 'error' => $error]) ?>
 <section class="mcc-card" aria-labelledby="lead-create-heading">
 <div class="mcc-card-heading">
@@ -9,19 +14,23 @@
 <div class="col-12 col-md-4">
 <label for="lead-name">Full name</label>
 <input class="form-control mb-2" id="lead-name" name="full_name" required maxlength="150" value="<?= esc(old('full_name')) ?>">
+<?php if ($fieldError('full_name') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('full_name')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-email">Email</label>
 <input class="form-control mb-2" id="lead-email" name="email" type="email" value="<?= esc(old('email')) ?>">
+<?php if ($fieldError('email') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('email')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-phone">Phone</label>
 <input class="form-control mb-2" id="lead-phone" name="phone" maxlength="40" value="<?= esc(old('phone')) ?>">
+<?php if ($fieldError('phone') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('phone')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-dob">Date of birth</label>
 <input class="form-control mb-2" id="lead-dob" name="date_of_birth" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y"
     value="<?= esc(old('date_of_birth')) ?>">
+<?php if ($fieldError('date_of_birth') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('date_of_birth')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-branch">Branch</label>
@@ -32,6 +41,7 @@
 <?= esc($branch['name']) ?> (<?= esc($branch['code']) ?>)</option>
 <?php endforeach; ?>
 </select>
+<?php if ($fieldError('branch_id') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('branch_id')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-source">Source</label>
@@ -43,6 +53,7 @@
 </option>
 <?php endforeach; ?>
 </select>
+<?php if ($fieldError('source') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('source')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-owner">Assign to <span class="mcc-muted">(optional)</span></label>
@@ -54,6 +65,7 @@
 </option>
 <?php endforeach; ?>
 </select>
+<?php if ($fieldError('owner_user_id') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('owner_user_id')) ?></p><?php endif; ?>
 </div>
 <div class="col-12 col-md-4">
 <label for="lead-status">Status</label>
@@ -65,6 +77,7 @@
 </option>
 <?php endforeach; ?>
 </select>
+<?php if ($fieldError('status') !== ''): ?><p class="mcc-field-error" role="alert"><?= esc($fieldError('status')) ?></p><?php endif; ?>
 </div>
 <div class="col-12">
 <label for="lead-remarks">Remarks <span class="mcc-muted">(optional)</span></label>

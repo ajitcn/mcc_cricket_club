@@ -5119,15 +5119,27 @@
     }
 
     function ratingNumber(value) {
-        var numericValue = String(value || '').split('-')[0].trim();
+        if (value === null || value === undefined) {
+            return null;
+        }
 
-        return Number(numericValue);
+        var numericValue = String(value).split('-')[0].trim();
+
+        if (numericValue === '') {
+            return null;
+        }
+
+        var parsedValue = Number(numericValue);
+
+        return Number.isFinite(parsedValue) ? parsedValue : null;
     }
 
     function setRatingControlValue(control, value) {
         var numericValue = ratingNumber(value);
         var matchingOption = Array.prototype.find.call(control.options, function (option) {
-            return ratingNumber(option.value) === numericValue;
+            return numericValue !== null
+                && option.value !== ''
+                && ratingNumber(option.value) === numericValue;
         });
 
         control.value = matchingOption ? matchingOption.value : '';
