@@ -4,6 +4,7 @@
 /writable/logs/*
 /writable/session/*
 /writable/uploads/*
+/writable/private/*
 !.gitkeep
 .env
 .test-credentials.local.md
@@ -11,3 +12,4 @@
 
 # Codex configuration
 .codex/
+
