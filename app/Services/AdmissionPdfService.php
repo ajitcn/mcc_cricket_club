@@ -77,7 +77,7 @@ final class AdmissionPdfService
         $this->drawRect(self::LEFT, 430, self::PAGE_WIDTH - self::LEFT - self::RIGHT, 68, self::PALE_BLUE, [0.82, 0.87, 0.94]);
         $this->drawText('AMOUNT RECEIVED', self::LEFT + 14, 475, 8, false, false, [0.38, 0.45, 0.56]);
         $this->drawText(number_format((float) ($payment['amount_received'] ?? 0), 2), self::LEFT + 14, 450, 16, true, false, self::BLUE);
-        $this->drawText('Generated from the MCC Cricket Club portal.', self::LEFT, 395, 8, false, false, [0.4, 0.47, 0.57]);
+        $this->drawText('Generated from the Mumbai Cricket Club portal.', self::LEFT, 395, 8, false, false, [0.4, 0.47, 0.57]);
         $this->finishPage();
 
         return $this->buildPdf();

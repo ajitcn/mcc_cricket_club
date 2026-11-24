@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Modules\Admissions\Models\AdmissionModel;
 use Config\Database;
+use DateTimeImmutable;
 use RuntimeException;
 use Throwable;
 final class AdmissionService
@@ -737,8 +738,8 @@ final class AdmissionService
                 $startDate,
             );
             $renewalValues = $this->normalizeRenewalValues($input, $admission);
-            $installmentRows = $this->normalizeInstallmentRows($input, 'installment_');
-            $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_');
+            $installmentRows = $this->normalizeInstallmentRows($input, 'installment_', [], 'Coaching');
+            $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_', [], 'Hostel');
             $masterInput = [
                 'age_group_id' => $renewalValues['age_group_id'],
             ];
@@ -858,6 +859,7 @@ final class AdmissionService
             }
             return (int) $existing['id'];
         }
+        $this->normalizeAdmissionDateOfBirth($lead['date_of_birth'] ?? null);
         $trial = $db->table('trials')->where(['id' => $trialId, 'lead_id' => $leadId, 'branch_id' => $branch])->get()->getRowArray();
         if (!is_array($trial)) {
             throw new RuntimeException('Invalid admission source.');
@@ -904,7 +906,7 @@ final class AdmissionService
         $db = Database::connect('default');
         $db->transStart();
         try {
-            $lead = $db->query('SELECT id, branch_id, status FROM leads WHERE id = ? LIMIT 1 FOR UPDATE', [$leadId])->getRowArray();
+            $lead = $db->query('SELECT id, branch_id, status, date_of_birth FROM leads WHERE id = ? LIMIT 1 FOR UPDATE', [$leadId])->getRowArray();
             if (!is_array($lead)) {
                 throw new RuntimeException('Not found.');
             }
@@ -916,9 +918,11 @@ final class AdmissionService
             if ($db->table('admissions')->where('lead_id', $leadId)->countAllResults() > 0) {
                 throw new RuntimeException('Admission already exists.');
             }
+            $this->normalizeAdmissionDateOfBirth($lead['date_of_birth'] ?? null);
+            $this->normalizeAdmissionDateOfBirth($input['applicant_date_of_birth'] ?? null);
             $profile = $this->intakeFields($input);
-            $installmentRows = $this->normalizeInstallmentRows($input, 'installment_');
-            $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_');
+            $installmentRows = $this->normalizeInstallmentRows($input, 'installment_', [], 'Coaching');
+            $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_', [], 'Hostel');
             $this->validateExtendedFields($profile, $branch, $db);
             $this->validateTrialRelationship($profile['trial_id'], $leadId, $branch, $db);
             $profile = array_merge($profile, $this->masterSnapshots($profile, $branch, $db));
@@ -985,15 +989,15 @@ final class AdmissionService
         $name = trim((string) ($input['applicant_full_name'] ?? ''));
         $email = trim((string) ($input['applicant_email'] ?? ''));
         $phone = trim((string) ($input['applicant_phone'] ?? ''));
-        $dob = trim((string) ($input['applicant_date_of_birth'] ?? ''));
+        $dob = $this->normalizeAdmissionDateOfBirth($input['applicant_date_of_birth'] ?? null);
         $branch = (int) ($input['branch_id'] ?? 0);
         if ($name === '' || strlen($name) > 150 || $email !== '' && (strlen($email) > 190 || filter_var($email,
-            FILTER_VALIDATE_EMAIL) === false) || strlen($phone) > 40 || $dob !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+            FILTER_VALIDATE_EMAIL) === false) || strlen($phone) > 40) {
             throw new RuntimeException('Invalid admission details.');
         }
         $profile = $this->intakeFields($input);
-        $installmentRows = $this->normalizeInstallmentRows($input, 'installment_');
-        $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_');
+        $installmentRows = $this->normalizeInstallmentRows($input, 'installment_', [], 'Coaching');
+        $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_', [], 'Hostel');
         $actor = $this->authorize($branch, 'admission.create');
         $db = Database::connect('default');
             $this->validateExtendedFields($profile, $branch, $db);
@@ -1014,7 +1018,7 @@ final class AdmissionService
                 'applicant_full_name' => $name,
                 'applicant_email' => $email === '' ? null : $email,
                 'applicant_phone' => $phone === '' ? null : $phone,
-                'applicant_date_of_birth' => $dob === '' ? null : $dob,
+                'applicant_date_of_birth' => $dob,
                 'branch_id' => $branch,
                 'admission_number' => $admissionNumber,
                 'status' => self::INTAKE,
@@ -1116,8 +1120,21 @@ final class AdmissionService
             if ($a['lead_id'] === null && ($updates['trial_id'] ?? null) !== null) {
                 throw new RuntimeException('Trial requires a Lead.');
             }
-            $installmentRows = $this->normalizeInstallmentRows($input, 'installment_');
-            $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_');
+            $currentPeriodId = $this->currentPeriodId($db, $id) ?? 0;
+            $existingCoachingRows = $this->loadInstallmentRows($id, 'coaching', $currentPeriodId);
+            $existingHostelRows = $this->loadInstallmentRows($id, 'hostel', $currentPeriodId);
+            $installmentRows = $this->normalizeInstallmentRows(
+                $input,
+                'installment_',
+                $existingCoachingRows,
+                'Coaching',
+            );
+            $hostelInstallmentRows = $this->normalizeInstallmentRows(
+                $input,
+                'hostel_installment_',
+                $existingHostelRows,
+                'Hostel',
+            );
             foreach (self::RATING_FIELDS as $field) {
                 $existing = trim((string) ($a[$field] ?? ''));
                 if (array_key_exists($field, $input)
@@ -1169,7 +1186,9 @@ final class AdmissionService
                 $updates['applicant_full_name'] = $name;
                 $updates['applicant_email'] = trim((string) ($input['applicant_email'] ?? '')) ?: null;
                 $updates['applicant_phone'] = trim((string) ($input['applicant_phone'] ?? '')) ?: null;
-                $updates['applicant_date_of_birth'] = trim((string) ($input['applicant_date_of_birth'] ?? '')) ?: null;
+                $updates['applicant_date_of_birth'] = $this->normalizeAdmissionDateOfBirth(
+                    $input['applicant_date_of_birth'] ?? null,
+                );
             }
             $updates = array_merge($updates, $statusUpdates);
             $now = date('Y-m-d H:i:s');
@@ -1479,6 +1498,30 @@ final class AdmissionService
         }
 
         return 'MCC-' . str_pad((string) $next, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function normalizeAdmissionDateOfBirth(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (! is_string($value) && ! is_int($value)) {
+            throw new RuntimeException('Invalid admission details.');
+        }
+
+        $dateOfBirth = trim((string) $value);
+        $parsedDate = DateTimeImmutable::createFromFormat('!Y-m-d', $dateOfBirth);
+
+        if ($parsedDate === false || $parsedDate->format('Y-m-d') !== $dateOfBirth) {
+            throw new RuntimeException('Invalid admission details.');
+        }
+
+        if ($dateOfBirth > date('Y-m-d')) {
+            throw new RuntimeException('The entered date must not be later than the current date.');
+        }
+
+        return $dateOfBirth;
     }
 
     /** @return array<string, mixed> */
@@ -1956,7 +1999,12 @@ final class AdmissionService
     }
 
     /** @return list<array<string, int|string|null>> */
-    private function normalizeInstallmentRows(array $input, string $prefix): array
+    private function normalizeInstallmentRows(
+        array $input,
+        string $prefix,
+        array $existingRows = [],
+        string $scheduleLabel = 'Installment',
+    ): array
     {
         $plan = trim((string) ($input[$prefix . 'plan'] ?? ''));
         if ($plan === '' || $plan === 'Full Payment') {
@@ -2014,6 +2062,11 @@ final class AdmissionService
                 if ($rawDate !== '' && $date === null) {
                     throw new RuntimeException('Every supplied instalment date must be valid.');
                 }
+                if ($date !== null
+                    && $date <= date('Y-m-d')
+                    && ! $this->isUnchangedInstallmentDate($existingRows, $yearNumber, $number, $date)) {
+                    throw new RuntimeException($scheduleLabel . ' installment dates must be in the future.');
+                }
                 $row['installment_' . $number . '_date'] = $date;
 
                 if ($rawAmount !== '' && preg_match('/^\d+(?:\.\d{1,2})?$/', $rawAmount) !== 1) {
@@ -2027,6 +2080,23 @@ final class AdmissionService
         }
 
         return $rows;
+    }
+
+    /** @param list<array<string, int|string|null>> $existingRows */
+    private function isUnchangedInstallmentDate(
+        array $existingRows,
+        int $yearNumber,
+        int $installmentNumber,
+        string $date,
+    ): bool {
+        foreach ($existingRows as $existingRow) {
+            if ((int) ($existingRow['year_number'] ?? 0) === $yearNumber
+                && (string) ($existingRow['installment_' . $installmentNumber . '_date'] ?? '') === $date) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function normalizeInstallmentDate(mixed $value): ?string

@@ -5288,6 +5288,47 @@
         });
     }
 
+    function admissionInstallmentDateAsIso(value) {
+        var normalized = String(value || '').trim();
+        var match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (!match) {
+            match = normalized.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+            if (match) {
+                normalized = match[3] + '-' + match[2] + '-' + match[1];
+                match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            }
+        }
+
+        if (!match) {
+            return '';
+        }
+
+        var parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        if (parsed.getFullYear() !== Number(match[1])
+            || parsed.getMonth() !== Number(match[2]) - 1
+            || parsed.getDate() !== Number(match[3])) {
+            return '';
+        }
+
+        return normalized;
+    }
+
+    function updateAdmissionInstallmentDateValidity(input) {
+        var date = admissionInstallmentDateAsIso(input.value);
+        var existingDate = input.getAttribute('data-mcc-admission-existing-date') || '';
+        var invalid = date !== '' && input.min !== '' && date < input.min && date !== existingDate;
+
+        input.classList.toggle('is-invalid', invalid);
+        if (invalid) {
+            input.setAttribute('aria-invalid', 'true');
+            input.setAttribute('title', 'Choose a future installment date.');
+        } else {
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('title');
+        }
+    }
+
     function initAdmissionInstallmentSchedule() {
         document.querySelectorAll('[data-admission-installment-schedule]').forEach(function (schedule) {
             if (schedule.closest('[data-admission-test-schedule]')) {
@@ -5310,7 +5351,6 @@
             var isInstallmentValueInput = function (input) {
                 return /(?:^|_)installment_[1-4](?:_date)?\[\]$/.test(input.name);
             };
-
             if (!form || !plan || !rows || !addButton) {
                 return;
             }
@@ -5318,6 +5358,9 @@
             var clearInputs = function (row) {
                 row.querySelectorAll('input').forEach(function (input) {
                     input.value = '';
+                    if (input.hasAttribute('data-mcc-admission-installment-date')) {
+                        updateAdmissionInstallmentDateValidity(input);
+                    }
                 });
             };
 
@@ -5388,8 +5431,13 @@
                     dateInput.inputMode = 'numeric';
                     dateInput.autocomplete = 'off';
                     dateInput.placeholder = 'DD-MM-YYYY';
+                    var minimumDateInput = schedule.querySelector('[data-mcc-date-picker]');
+                    if (minimumDateInput && minimumDateInput.min) {
+                        dateInput.min = minimumDateInput.min;
+                    }
                     dateInput.setAttribute('data-mcc-date-picker', '');
                     dateInput.setAttribute('data-mcc-date-picker-no-toggle', '');
+                    dateInput.setAttribute('data-mcc-admission-installment-date', '');
                     dateInput.setAttribute('data-mcc-date-format', 'd-m-Y');
                     dateInput.setAttribute('data-mcc-date-submit-format', 'Y-m-d');
                     dateInput.id = 'admission-' + prefix + number + '-date-' + Date.now();
@@ -5434,7 +5482,20 @@
                         input.value = '';
                     }
                 });
+                schedule.querySelectorAll('[data-mcc-admission-installment-date]').forEach(updateAdmissionInstallmentDateValidity);
             };
+
+            rows.addEventListener('input', function (event) {
+                if (event.target.matches('[data-mcc-admission-installment-date]')) {
+                    updateAdmissionInstallmentDateValidity(event.target);
+                }
+            });
+            rows.addEventListener('change', function (event) {
+                if (event.target.matches('[data-mcc-admission-installment-date]')) {
+                    updateAdmissionInstallmentDateValidity(event.target);
+                }
+            });
+            schedule.querySelectorAll('[data-mcc-admission-installment-date]').forEach(updateAdmissionInstallmentDateValidity);
 
             plan.addEventListener('change', sync);
             addButton.addEventListener('click', function () {
@@ -5538,10 +5599,15 @@
                     input.inputMode = 'numeric';
                     input.autocomplete = 'off';
                     input.placeholder = 'DD-MM-YYYY';
+                    var minimumDateInput = schedule.querySelector('[data-mcc-date-picker]');
+                    if (minimumDateInput && minimumDateInput.min) {
+                        input.min = minimumDateInput.min;
+                    }
                     input.setAttribute('data-mcc-date-picker', '');
                     input.setAttribute('data-mcc-date-picker-no-toggle', '');
                     input.setAttribute('data-mcc-date-format', 'd-m-Y');
                     input.setAttribute('data-mcc-date-submit-format', 'Y-m-d');
+                    input.setAttribute('data-mcc-admission-installment-date', '');
                 }
                 return input;
             };
@@ -5582,6 +5648,13 @@
                         source['installment_' + number + '_date'] || '',
                         dateId,
                     );
+                    var persistedDate = source.existing_dates
+                        ? String(source.existing_dates[number] || '')
+                        : '';
+                    if (persistedDate
+                        && admissionInstallmentDateAsIso(dateInput.value) === admissionInstallmentDateAsIso(persistedDate)) {
+                        dateInput.setAttribute('data-mcc-admission-existing-date', admissionInstallmentDateAsIso(persistedDate));
+                    }
                     var amountInput = createInput(
                         prefix + number + '[]',
                         'number',
@@ -5620,6 +5693,7 @@
                     input.disabled = !enabled;
                     input.required = enabled && ! isInstallmentValueInput(input);
                 });
+                schedule.querySelectorAll('[data-mcc-admission-installment-date]').forEach(updateAdmissionInstallmentDateValidity);
             };
 
             var sync = function () {
@@ -5648,6 +5722,16 @@
                 setEnabled(true);
             };
 
+            rows.addEventListener('input', function (event) {
+                if (event.target.matches('[data-mcc-admission-installment-date]')) {
+                    updateAdmissionInstallmentDateValidity(event.target);
+                }
+            });
+            rows.addEventListener('change', function (event) {
+                if (event.target.matches('[data-mcc-admission-installment-date]')) {
+                    updateAdmissionInstallmentDateValidity(event.target);
+                }
+            });
             plan.addEventListener('change', sync);
             addButton.addEventListener('click', function () {
                 if (plan.value !== 'Instalment Plan') {
@@ -6696,7 +6780,33 @@
         });
     }
 
+    function initTrialMediaUpload() {
+        document.querySelectorAll('[data-trial-media-upload]').forEach(function (form) {
+            if (form.dataset.initialized === 'true') {
+                return;
+            }
+
+            form.addEventListener('submit', function () {
+                var button = form.querySelector('button[type="submit"]');
+                var status = form.querySelector('[data-trial-media-upload-status]');
+
+                if (button) {
+                    button.disabled = true;
+                    button.setAttribute('aria-busy', 'true');
+                    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>Uploading…';
+                }
+
+                if (status) {
+                    status.hidden = false;
+                }
+            });
+
+            form.dataset.initialized = 'true';
+        });
+    }
+
     function init() {
+        initTrialMediaUpload();
         initSessionPlanActionMenus();
         initFeedbackPlayerSearch();
         document.querySelectorAll('[data-copy-student-test-link]').forEach(function (button) {

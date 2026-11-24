@@ -195,7 +195,9 @@ final class TrialService
         $canAssignSecondary = $this->canAssignSecondaryCoach($trial, $actorId);
         $trial['canEditCoachRatings'] = $canRate;
         $trial['media'] = [];
-        if (($canView || $canRate) && Database::connect('default')->tableExists('trial_media')) {
+        if ($trial['status'] !== self::NO_SHOW
+            && ($canView || $canRate)
+            && Database::connect('default')->tableExists('trial_media')) {
             $trial['media'] = service('trialMedia')->listForTrial($id);
         }
         $trial['actions'] = ['manage' => $canManage, 'secondary_assignment' => $canAssignSecondary,
@@ -204,7 +206,10 @@ final class TrialService
                 'selection' => $canManage && $trial['status'] === self::ATTENDED && $trial['selection_outcome'] === 'pending',
                     'admission_pending' => $canManage && $trial['status'] === self::ATTENDED && $trial['selection_outcome'] === 'selected'
                         && $trial['lead_status'] !== 'admission pending',
-                    'ratings' => $canRate, 'media_upload' => $canManage || $this->canReviewTrial($trial, $actorId)];
+                    'ratings' => $canRate,
+                    'media_upload' => $trial['status'] !== self::NO_SHOW
+                        && ($canManage || $this->canReviewTrial($trial, $actorId)),
+                ];
         return $trial;
     }
 
@@ -611,6 +616,10 @@ final class TrialService
 
     private function canEditCoachRatings(array $trial, ?int $actorId = null): bool
     {
+        if (($trial['status'] ?? '') === self::NO_SHOW) {
+            return false;
+        }
+
         if ($actorId === null) {
             $actor = session('user');
             $actorId = is_array($actor) ? (int) ($actor['id'] ?? 0) : 0;
@@ -677,7 +686,9 @@ final class TrialService
 
     private function canReviewTrial(array $trial, int $actorId): bool
     {
-        if ($actorId < 1 || ! service('authorization')->can('performance.update', (string) ($trial['branch_id'] ?? 0))) {
+        if (($trial['status'] ?? '') === self::NO_SHOW
+            || $actorId < 1
+            || ! service('authorization')->can('performance.update', (string) ($trial['branch_id'] ?? 0))) {
             return false;
         }
 
@@ -745,8 +756,24 @@ final class TrialService
         if (!$dateObject || $normalizedDate === false || $expectedDate !== $date) {
             throw new RuntimeException('Invalid trial date.');
         }
+        $today = new DateTimeImmutable('today', $timezone);
+        if ($normalizedDate < $today->format('Y-m-d')) {
+            throw new RuntimeException('Trial date must be today or in the future.');
+        }
         if (!$timeObject || $timeObject->format('H:i') !== $time) {
             throw new RuntimeException('Invalid trial time.');
+        }
+        $currentDateTime = new DateTimeImmutable('now', $timezone);
+        if ($normalizedDate === $currentDateTime->format('Y-m-d')) {
+            $scheduledDateTime = DateTimeImmutable::createFromFormat(
+                '!Y-m-d H:i:s',
+                $normalizedDate . ' ' . $time . ':00',
+                $timezone,
+            );
+
+            if ($scheduledDateTime === false || $scheduledDateTime <= $currentDateTime) {
+                throw new RuntimeException('Trial time must be in the future when the Trial date is today.');
+            }
         }
         if (strlen($location) > 255) {
             throw new RuntimeException('Invalid trial location.');

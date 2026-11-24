@@ -39,6 +39,8 @@ $workflowCurrent = match (true) {
 $workflowTerminal = in_array($trial['status'] ?? '', ['cancelled', 'no_show', 'rescheduled'], true);
 $fieldErrors = session()->getFlashdata('field_errors');
 $fieldErrors = is_array($fieldErrors) ? $fieldErrors : [];
+$trialTimezone = new \DateTimeZone((string) (config('App')->appTimezone ?: 'Asia/Kolkata'));
+$minimumTrialDate = (new \DateTimeImmutable('today', $trialTimezone))->format('Y-m-d');
 $rescheduleDate = old('trial_date');
 if ($rescheduleDate === null || $rescheduleDate === '') {
     $rescheduleDate = mcc_user_date_input($trial['trial_date'] ?? null);
@@ -256,6 +258,7 @@ This trial is <?= esc($statusLabels[$trial['status']] ?? 'closed') ?> and has no
                     type="text"
                     inputmode="numeric"
                     placeholder="DD-MM-YYYY"
+                    min="<?= esc($minimumTrialDate) ?>"
                     data-mcc-date-format="d-m-Y"
                     data-mcc-date-picker
                     value="<?= esc((string) $rescheduleDate) ?>"
@@ -397,6 +400,9 @@ This trial is <?= esc($statusLabels[$trial['status']] ?? 'closed') ?> and has no
 <div>
 <span class="mcc-eyebrow">Coach assessment</span>
 <h2 id="trial-rating-summary-heading">Trial ratings</h2>
+<?php if (($trial['status'] ?? '') === 'no_show'): ?>
+<p class="text-muted mb-0">Ratings are inactive because this Trial was marked No show.</p>
+<?php endif; ?>
 </div>
 </div>
 <form method="post" action="<?= site_url('crm/trials/' . (int) $trial['id'] . '/ratings') ?>" class="row mcc-trial-ratings-form">
@@ -452,6 +458,7 @@ if (is_scalar($rawSelectedRating) && $rawSelectedRating !== '') {
 <?php endif; ?>
 </form>
 </section>
+<?php if (($trial['status'] ?? '') !== 'no_show'): ?>
 <section class="mcc-card mcc-detail-card" aria-labelledby="trial-media-heading">
 <div class="mcc-card-heading">
 <div>
@@ -460,7 +467,7 @@ if (is_scalar($rawSelectedRating) && $rawSelectedRating !== '') {
 </div>
 </div>
 <?php if (! empty($actions['media_upload'])): ?>
-<form method="post" action="<?= site_url('crm/trials/' . (int) ($trial['id'] ?? 0) . '/media') ?>" enctype="multipart/form-data" class="mcc-trial-media-upload">
+<form method="post" action="<?= site_url('crm/trials/' . (int) ($trial['id'] ?? 0) . '/media') ?>" enctype="multipart/form-data" class="mcc-trial-media-upload" data-trial-media-upload>
 <?= csrf_field() ?>
 <div class="row align-items-end">
 <div class="col-12 col-md-8 mb-2">
@@ -472,6 +479,9 @@ if (is_scalar($rawSelectedRating) && $rawSelectedRating !== '') {
 <button class="mcc-button mcc-button-primary" type="submit"><i class="fa-solid fa-upload mr-1" aria-hidden="true"></i>Upload video</button>
 </div>
 </div>
+<p class="mcc-trial-media-upload-status" data-trial-media-upload-status role="status" aria-live="polite" hidden>
+<i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i>Uploading video… Please keep this page open.
+</p>
 </form>
 <?php endif; ?>
 <?php if (($trial['media'] ?? []) === []): ?>
@@ -529,6 +539,7 @@ if (is_scalar($rawSelectedRating) && $rawSelectedRating !== '') {
 </div>
 <?php endif; ?>
 </section>
+<?php endif; ?>
 <section class="mcc-card mcc-detail-card" aria-labelledby="history-heading">
 <div class="mcc-card-heading">
 <div>

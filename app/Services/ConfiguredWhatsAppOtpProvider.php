@@ -35,7 +35,7 @@ final class ConfiguredWhatsAppOtpProvider implements WhatsAppOtpProviderInterfac
                 'from' => $sender,
                 'to' => $mobile,
                 'type' => 'text',
-                'text' => ['body' => 'Your MCC Cricket Club verification code is ' . $otp],
+                'text' => ['body' => 'Your Mumbai Cricket Club verification code is ' . $otp],
             ], JSON_THROW_ON_ERROR),
         ]);
 

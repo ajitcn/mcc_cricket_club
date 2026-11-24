@@ -30,7 +30,7 @@ $email = (string) ($user['email'] ?? 'Account');
             <i class="fa-solid fa-shield-halved"></i>
         </span>
         <span>
-            <strong>MCC Cricket Club</strong>
+            <strong>Mumbai Cricket Club</strong>
             <small>Academy workspace</small>
         </span>
     </div>

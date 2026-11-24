@@ -22,7 +22,7 @@ final class PortalDashboardUiContractTest extends TestCase
     {
         foreach ([
             'Student &amp; Parent Portal',
-            'MCC Cricket Club',
+            'Mumbai Cricket Club',
             'Portal navigation',
             'Welcome back,',
             'Upcoming schedule',
@@ -38,7 +38,7 @@ final class PortalDashboardUiContractTest extends TestCase
             'Recent activity',
             'Important notices',
             'mcc-portal-footer',
-            'MCC Cricket Club',
+            'Mumbai Cricket Club',
             'Need help? Contact the academy support desk.',
         ] as $content) {
             self::assertStringContainsString($content, $this->view);
@@ -81,7 +81,7 @@ final class PortalDashboardUiContractTest extends TestCase
             'mcc-portal-logout-button',
             'mcc-portal-brand-copy',
             'mcc-portal-welcome-summary',
-            'MCC Cricket Club',
+            'Mumbai Cricket Club',
             'Student &amp; Parent Portal',
             'assets/img/logo.png',
         ] as $content) {

@@ -21,7 +21,7 @@ final class StaffLoginUiContractTest extends TestCase
     public function testLoginCardUsesAccessibleBrandingAndSafeFormFields(): void
     {
         self::assertStringContainsString("site_url('assets/img/logo.png')", $this->view);
-        self::assertStringContainsString('alt="MCC Cricket Club"', $this->view);
+        self::assertStringContainsString('alt="Mumbai Cricket Club"', $this->view);
         self::assertStringContainsString('class="mcc-auth-card"', $this->view);
         self::assertStringContainsString('name="email"', $this->view);
         self::assertStringContainsString('name="password"', $this->view);

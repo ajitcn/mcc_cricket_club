@@ -22,7 +22,7 @@ final class PortalRoutesTest extends CIUnitTestCase
         self::assertStringContainsString('Mobile number', $response->getBody());
         self::assertStringContainsString('Get OTP', $response->getBody());
         self::assertStringContainsString('mcc-auth-logo', $response->getBody());
-        self::assertStringContainsString('alt="MCC Cricket Club"', $response->getBody());
+        self::assertStringContainsString('alt="Mumbai Cricket Club"', $response->getBody());
         self::assertStringContainsString('name="mobile"', $response->getBody());
         self::assertStringContainsString('mcc-button-primary', $response->getBody());
         self::assertStringContainsString('csrf', strtolower($response->getBody()));

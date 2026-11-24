@@ -1,6 +1,8 @@
 <?php $lead = is_array($lead ?? null) ? $lead : []; ?>
 <?php $fieldErrors = session()->getFlashdata('field_errors'); ?>
 <?php $fieldErrors = is_array($fieldErrors) ? $fieldErrors : []; ?>
+<?php $trialTimezone = new \DateTimeZone((string) (config('App')->appTimezone ?: 'Asia/Kolkata')); ?>
+<?php $minimumTrialDate = (new \DateTimeImmutable('today', $trialTimezone))->format('Y-m-d'); ?>
 <?= view('staff_header', ['title' => 'Book trial', 'nav' => $nav ?? [], 'message' => $message ?? null, 'error' => $error ?? null]) ?>
 <section class="mcc-card" aria-labelledby="trial-booking-heading">
 <div class="mcc-card-heading">
@@ -15,7 +17,7 @@
 <input type="hidden" name="return_context" value="standalone">
 <div class="col-12 col-md-4 mb-2">
 <label for="trial-date">Trial date</label>
-<input class="form-control" id="trial-date" name="trial_date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" required value="<?= esc(old('trial_date')) ?>">
+<input class="form-control" id="trial-date" name="trial_date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" min="<?= esc($minimumTrialDate) ?>" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" required value="<?= esc(old('trial_date')) ?>">
 <?php if (isset($fieldErrors['trial_date'])): ?>
 <p class="mcc-field-error" role="alert"><?= esc($fieldErrors['trial_date']) ?></p>
 <?php endif; ?>

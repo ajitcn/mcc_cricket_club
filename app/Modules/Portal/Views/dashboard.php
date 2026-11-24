@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student &amp; Parent Portal - MCC Cricket Club</title>
+    <title>Student &amp; Parent Portal - Mumbai Cricket Club</title>
     <link rel="stylesheet" href="<?= site_url('assets/css/app.css?v=20261111-portal-v36') ?>">
 </head>
 <body class="mcc-app mcc-portal-body">
@@ -85,10 +85,10 @@
                 >
                     <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
-                <a class="mcc-portal-brand" href="<?= site_url($portalType === 'Parent' ? 'parent-dashboard' : 'student-dashboard') ?>" aria-label="MCC Cricket Club portal home">
-                    <img src="<?= site_url('assets/img/logo.png') ?>" alt="MCC Cricket Club">
+                <a class="mcc-portal-brand" href="<?= site_url($portalType === 'Parent' ? 'parent-dashboard' : 'student-dashboard') ?>" aria-label="Mumbai Cricket Club portal home">
+                    <img src="<?= site_url('assets/img/logo.png') ?>" alt="Mumbai Cricket Club">
                     <span class="mcc-portal-brand-copy">
-                        <strong>MCC Cricket Club</strong>
+                        <strong>Mumbai Cricket Club</strong>
                         <small>Student &amp; Parent Portal</small>
                     </span>
                 </a>
@@ -397,14 +397,14 @@
                 <?php endif; ?>
                 <section class="mcc-portal-page-heading" aria-labelledby="portal-page-heading">
                     <div>
-                        <span class="mcc-eyebrow">MCC Cricket Club Portal</span>
+                        <span class="mcc-eyebrow">Mumbai Cricket Club Portal</span>
                         <h1 id="portal-page-heading"><?= esc($portalHeading[0]) ?></h1>
                         <p><?= esc($portalHeading[1]) ?></p>
                     </div>
                     <span class="mcc-status-badge mcc-status-badge-info"><?= esc($portalType) ?></span>
                 </section>
                 <section class="mcc-portal-welcome mcc-card" id="profile" aria-labelledby="portal-welcome-heading">
-                    <span class="mcc-eyebrow">MCC Cricket Club · Student &amp; Parent Portal</span>
+                    <span class="mcc-eyebrow">Mumbai Cricket Club · Student &amp; Parent Portal</span>
                     <h1 id="portal-welcome-heading">Welcome back, <?= esc($portalName) ?></h1>
                     <p>Your <?= esc(strtolower($portalType)) ?> portal overview is ready. Keep track of training, attendance, and academy updates.</p>
                     <div class="mcc-portal-welcome-summary">
@@ -1242,7 +1242,7 @@
                 </section>
 
                 <footer class="mcc-portal-footer">
-                    <strong>MCC Cricket Club</strong>
+                    <strong>Mumbai Cricket Club</strong>
                     <span>Need help? Contact the academy support desk.</span>
                 </footer>
             </main>

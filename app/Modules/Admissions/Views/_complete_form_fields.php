@@ -74,6 +74,33 @@ $errorFor = static function (string $field): string {
 
     return is_array($errors) ? trim((string) ($errors[$field] ?? '')) : '';
 };
+$installmentMinimumDate = date('Y-m-d', strtotime('+1 day'));
+$normalizeInstallmentDate = static function (mixed $value): string {
+    $date = trim((string) $value);
+
+    if (preg_match('/^(\d{2})-(\d{2})-(\d{4})$/', $date, $matches) === 1) {
+        return $matches[3] . '-' . $matches[2] . '-' . $matches[1];
+    }
+
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 ? $date : '';
+};
+$hasPersistedInstallmentDate = static function (
+    array $rows,
+    mixed $year,
+    int $number,
+    string $date,
+) use ($normalizeInstallmentDate): bool {
+    foreach ($rows as $savedRow) {
+        if ((int) ($savedRow['year_number'] ?? 0) === (int) $year
+            && $normalizeInstallmentDate($savedRow['installment_' . $number . '_date'] ?? '')
+                === $normalizeInstallmentDate($date)
+            && $normalizeInstallmentDate($date) !== '') {
+            return true;
+        }
+    }
+
+    return false;
+};
 $dateValue = static function (string $field) use ($valueFor): string {
     $value = $valueFor($field);
 
@@ -505,7 +532,8 @@ $showSection = static function (string $name) use ($section): bool {
                                     <div class="input-group mcc-admission-installment-input-group">
                                         <span class="input-group-prepend"><span class="input-group-text">Date</span></span>
                                         <label class="mcc-sr-only" for="admission-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>">Date</label>
-                                        <input class="form-control" id="admission-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>" name="installment_<?= $number ?>_date[]" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input((string) ($row['installment_' . $number . '_date'] ?? ''))) ?>">
+                                        <?php $installmentDate = (string) ($row['installment_' . $number . '_date'] ?? ''); ?>
+                                        <input class="form-control" id="admission-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>" name="installment_<?= $number ?>_date[]" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" min="<?= esc($installmentMinimumDate) ?>" <?= $hasPersistedInstallmentDate($storedInstallmentRows, $row['year_number'] ?? 0, $number, $installmentDate) ? 'data-mcc-admission-existing-date="' . esc($normalizeInstallmentDate($installmentDate)) . '"' : '' ?> data-mcc-admission-installment-date data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($installmentDate)) ?>">
                                     </div>
                                     <div class="input-group mcc-admission-installment-input-group">
                                         <span class="input-group-prepend"><span class="input-group-text">Amount</span></span>
@@ -595,7 +623,8 @@ $showSection = static function (string $name) use ($section): bool {
                                     <div class="input-group mcc-admission-installment-input-group">
                                         <span class="input-group-prepend"><span class="input-group-text">Date</span></span>
                                         <label class="mcc-sr-only" for="admission-hostel-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>">Date</label>
-                                        <input class="form-control" id="admission-hostel-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>" name="hostel_installment_<?= $number ?>_date[]" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input((string) ($row['installment_' . $number . '_date'] ?? ''))) ?>">
+                                        <?php $hostelInstallmentDate = (string) ($row['installment_' . $number . '_date'] ?? ''); ?>
+                                        <input class="form-control" id="admission-hostel-installment-<?= $number ?>-date-<?= esc((string) ($row['year_number'] ?? '')) ?>" name="hostel_installment_<?= $number ?>_date[]" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" min="<?= esc($installmentMinimumDate) ?>" <?= $hasPersistedInstallmentDate($storedHostelInstallmentRows, $row['year_number'] ?? 0, $number, $hostelInstallmentDate) ? 'data-mcc-admission-existing-date="' . esc($normalizeInstallmentDate($hostelInstallmentDate)) . '"' : '' ?> data-mcc-admission-installment-date data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc(mcc_user_date_input($hostelInstallmentDate)) ?>">
                                     </div>
                                     <div class="input-group mcc-admission-installment-input-group">
                                         <span class="input-group-prepend"><span class="input-group-text">Amount</span></span>

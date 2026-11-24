@@ -540,6 +540,10 @@ final class Browser extends StaffController
     {
         $message = $exception->getMessage();
 
+        if ($message === 'The entered date must not be later than the current date.') {
+            return ['applicant_date_of_birth' => $message];
+        }
+
         if (in_array($message, ['Invalid status.', 'Invalid transition.', 'Reason required.'], true)) {
             return ['status' => $message];
         }
@@ -718,6 +722,14 @@ final class Browser extends StaffController
             if (str_contains($message, $fragment)) {
                 return [$field => $message];
             }
+        }
+
+        if ($message === 'Coaching installment dates must be in the future.') {
+            return ['installment_rows' => $message];
+        }
+
+        if ($message === 'Hostel installment dates must be in the future.') {
+            return ['hostel_installment_rows' => $message];
         }
 
         if (str_contains(strtolower($message), 'instalment')) {

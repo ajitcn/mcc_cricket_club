@@ -737,8 +737,17 @@ final class CrmService
                     throw new RuntimeException('Invalid lead.');
                 }
                 $dob = $parsedDob->format('Y-m-d');
-            } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+            } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+                $parsedDob = DateTimeImmutable::createFromFormat('!Y-m-d', $dob);
+                if ($parsedDob === false || $parsedDob->format('Y-m-d') !== $dob) {
+                    throw new RuntimeException('Invalid lead.');
+                }
+            } else {
                 throw new RuntimeException('Invalid lead.');
+            }
+
+            if ($dob > date('Y-m-d')) {
+                throw new RuntimeException('The entered date must not be later than the current date.');
             }
         }
         $remarks = isset($data['remarks']) ? trim((string) $data['remarks']) : null;

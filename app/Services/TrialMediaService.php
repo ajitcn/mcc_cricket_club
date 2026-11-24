@@ -154,7 +154,7 @@ final class TrialMediaService
         }
 
         $db ??= Database::connect('default');
-        $sql = 'SELECT id, branch_id, lead_id, coach_user_id, secondary_coach_user_id FROM trials WHERE id = ? LIMIT 1';
+        $sql = 'SELECT id, branch_id, lead_id, coach_user_id, secondary_coach_user_id, status FROM trials WHERE id = ? LIMIT 1';
         if ($lock) {
             $sql .= ' FOR UPDATE';
         }
@@ -170,6 +170,10 @@ final class TrialMediaService
     /** @param array<string, mixed> $trial */
     private function authorizeTrialReview(array $trial): int
     {
+        if (($trial['status'] ?? '') === 'no_show') {
+            throw new RuntimeException('Not found.');
+        }
+
         $branch = (int) ($trial['branch_id'] ?? 0);
         $sessionBranches = session('authorizedBranches');
         $authorizedBranches = is_array($sessionBranches)
@@ -201,6 +205,10 @@ final class TrialMediaService
     /** @param array<string, mixed> $trial */
     private function authorizeTrialMediaUpload(array $trial): int
     {
+        if (($trial['status'] ?? '') === 'no_show') {
+            throw new RuntimeException('Not found.');
+        }
+
         $branch = (int) ($trial['branch_id'] ?? 0);
         $actor = session('user');
         $actorId = is_array($actor) ? (int) ($actor['id'] ?? 0) : 0;

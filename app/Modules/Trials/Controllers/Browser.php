@@ -280,9 +280,15 @@ final class Browser extends StaffController
 
     private function redirectWithTrialError(string $target, Throwable $exception): ResponseInterface
     {
-        $message = $this->safe($exception);
+        $message = match ($exception->getMessage()) {
+            'Trial date must be today or in the future.' => 'Choose today or a future date for the Trial.',
+            'Trial time must be in the future when the Trial date is today.' => 'Choose a future time when the Trial date is today.',
+            default => $this->safe($exception),
+        };
         $field = match ($exception->getMessage()) {
             'Invalid trial date.' => 'trial_date',
+            'Trial date must be today or in the future.' => 'trial_date',
+            'Trial time must be in the future when the Trial date is today.' => 'trial_time',
             'Invalid trial time.' => 'trial_time',
             'Invalid trial location.' => 'location',
             'Invalid coach.' => 'coach_user_id',

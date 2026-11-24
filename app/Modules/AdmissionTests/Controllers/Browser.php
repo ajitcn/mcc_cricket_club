@@ -503,6 +503,12 @@ final class Browser extends StaffController
     private function followUpFieldErrors(Throwable $exception): array
     {
         return match ($exception->getMessage()) {
+            'Coaching installment dates must be in the future.' => [
+                'coaching_installment_rows' => $exception->getMessage(),
+            ],
+            'Hostel installment dates must be in the future.' => [
+                'hostel_installment_rows' => $exception->getMessage(),
+            ],
             'Invalid follow-up date.' => ['follow_up_date' => 'Enter a valid follow-up date.'],
             'Invalid follow-up time.' => ['follow_up_time' => 'Enter a valid follow-up time.'],
             'Invalid Admission Test follow-up.' => [

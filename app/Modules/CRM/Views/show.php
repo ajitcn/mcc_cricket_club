@@ -9,6 +9,8 @@ $canBookTrial = (bool) ($canBookTrial ?? false);
 $canViewAdmissions = (bool) ($canViewAdmissions ?? false);
 $fieldErrors = session()->getFlashdata('field_errors');
 $fieldErrors = is_array($fieldErrors) ? $fieldErrors : [];
+$trialTimezone = new \DateTimeZone((string) (config('App')->appTimezone ?: 'Asia/Kolkata'));
+$minimumTrialDate = (new \DateTimeImmutable('today', $trialTimezone))->format('Y-m-d');
 $statuses = is_array($statuses ?? null) ? $statuses : [];
 $formatDate = static function (?string $value): string {
     if ($value === null || $value === '') {
@@ -499,7 +501,7 @@ href="<?= site_url('crm/trials/from-lead/' . (int) ($lead['id'] ?? 0)) ?>"
 <input type="hidden" name="return_context" value="lead_detail">
 <div class="col-12 col-md-4 mb-2">
 <label for="trial-date">Trial date</label>
-<input class="form-control" id="trial-date" name="trial_date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" required value="<?= esc((string) old('trial_date')) ?>">
+<input class="form-control" id="trial-date" name="trial_date" type="text" inputmode="numeric" placeholder="DD-MM-YYYY" autocomplete="off" min="<?= esc($minimumTrialDate) ?>" data-mcc-date-picker data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" required value="<?= esc((string) old('trial_date')) ?>">
 <?php if (isset($fieldErrors['trial_date'])): ?>
 <p class="mcc-field-error" role="alert"><?= esc($fieldErrors['trial_date']) ?></p>
 <?php endif; ?>

@@ -45,7 +45,7 @@ final class DashboardIntegrationTest extends CIUnitTestCase
     {
         $response = $this->withSession(session()->get())->get('/');
         $response->assertStatus(200);
-        $response->assertSee('MCC Cricket Club Management System');
+        $response->assertSee('Mumbai Cricket Club Management System');
         $response->assertSee('Operational overview');
         $response->assertSee('Total leads');
         $response->assertSee('CRM');

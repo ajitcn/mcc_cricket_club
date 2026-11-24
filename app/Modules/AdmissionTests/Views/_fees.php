@@ -3,6 +3,7 @@
 $fieldValue = static function (string $field) use ($test): string {
     return esc((string) old($field, $test[$field] ?? ''));
 };
+$installmentMinimumDate = date('Y-m-d', strtotime('+1 day'));
 $planValue = static function (string $field) use ($test): string {
     return (string) old($field, $test[$field] ?? '');
 };
@@ -38,6 +39,12 @@ $hostelPlan = $planValue('hostel_installment_plan');
 $installmentPlanValue = 'Instalment Plan';
 $coachingRows = $rowsFor('installment_', 'coaching_installment_rows');
 $hostelRows = $rowsFor('hostel_installment_', 'hostel_installment_rows');
+$coachingPersistedRows = is_array($test['coaching_installment_rows'] ?? null)
+    ? $test['coaching_installment_rows']
+    : [];
+$hostelPersistedRows = is_array($test['hostel_installment_rows'] ?? null)
+    ? $test['hostel_installment_rows']
+    : [];
 $defaultRows = [['year_number' => 1]];
 $coachingSavedRows = $coachingRows;
 $hostelSavedRows = $hostelRows;
@@ -50,11 +57,64 @@ $hostelRows = $hostelPlan === $installmentPlanValue
 $dateValue = static function (string $value): string {
     return esc(mcc_user_date_input($value));
 };
+$normalizeInstallmentDate = static function (mixed $value): string {
+    $date = trim((string) $value);
+
+    if (preg_match('/^(\d{2})-(\d{2})-(\d{4})$/', $date, $matches) === 1) {
+        return $matches[3] . '-' . $matches[2] . '-' . $matches[1];
+    }
+
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1 ? $date : '';
+};
+$hasPersistedInstallmentDate = static function (
+    array $persistedRows,
+    array $row,
+    int $number,
+    string $date,
+) use ($normalizeInstallmentDate): bool {
+    $date = $normalizeInstallmentDate($date);
+    $submittedId = (int) ($row['installment_ids'][$number] ?? 0);
+
+    if ($date === '' || $submittedId < 1) {
+        return false;
+    }
+
+    foreach ($persistedRows as $persistedRow) {
+        if ((int) ($persistedRow['year_number'] ?? 0) === (int) ($row['year_number'] ?? 0)
+            && (int) ($persistedRow['installment_ids'][$number] ?? 0) === $submittedId
+            && $normalizeInstallmentDate($persistedRow['installment_' . $number . '_date'] ?? '') === $date) {
+            return true;
+        }
+    }
+
+    return false;
+};
+$includePersistedDates = static function (array $rows, array $persistedRows) use ($hasPersistedInstallmentDate): array {
+    foreach ($rows as &$row) {
+        for ($number = 1; $number <= 4; $number++) {
+            $date = (string) ($row['installment_' . $number . '_date'] ?? '');
+            if ($hasPersistedInstallmentDate($persistedRows, $row, $number, $date)) {
+                $row['existing_dates'][$number] = $date;
+            }
+        }
+    }
+
+    unset($row);
+
+    return $rows;
+};
+$coachingSavedRows = $includePersistedDates($coachingSavedRows, $coachingPersistedRows);
+$hostelSavedRows = $includePersistedDates($hostelSavedRows, $hostelPersistedRows);
 $errorFor = static function (string $field): string {
     $errors = session()->getFlashdata('field_errors');
     return is_array($errors) ? esc((string) ($errors[$field] ?? '')) : '';
 };
-$renderSchedule = static function (string $prefix, string $title, array $rows) use ($dateValue): void {
+$renderSchedule = static function (
+    string $prefix,
+    string $title,
+    array $rows,
+    array $persistedRows,
+) use ($dateValue, $installmentMinimumDate, $hasPersistedInstallmentDate): void {
     $idsField = $prefix === 'installment_'
         ? 'coaching_installment_ids[]'
         : 'hostel_installment_ids[]';
@@ -89,10 +149,11 @@ $renderSchedule = static function (string $prefix, string $title, array $rows) u
         <?php
         for ($number = 1; $number <= 4; $number++) {
             $date = (string) ($row['installment_' . $number . '_date'] ?? '');
+            $isUnchangedPastDate = $hasPersistedInstallmentDate($persistedRows, $row, $number, $date);
             ?>
                     <td>
                         <div class="input-group mcc-admission-installment-input-group">
-                            <input class="form-control" name="<?= esc($prefix . $number . '_date[]') ?>" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= $dateValue($date) ?>">
+                            <input class="form-control" name="<?= esc($prefix . $number . '_date[]') ?>" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" min="<?= esc($installmentMinimumDate) ?>" <?= $isUnchangedPastDate ? 'data-mcc-admission-existing-date="' . esc($normalizeInstallmentDate($date)) . '"' : '' ?> data-mcc-admission-installment-date data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= $dateValue($date) ?>">
                             <input class="form-control" name="<?= esc($prefix . $number . '[]') ?>" type="number" min="0" step="0.01" placeholder="0.00" value="<?= esc((string) ($row['installment_' . $number] ?? '')) ?>">
                         </div>
                     </td>
@@ -167,19 +228,21 @@ $renderSchedule = static function (string $prefix, string $title, array $rows) u
             <div class="col-12" data-admission-test-schedule="coaching">
                 <div class="mcc-empty-state" data-admission-installment-empty <?= $coachingPlan === $installmentPlanValue ? 'hidden' : '' ?>>Installments: Not applicable</div>
                 <div class="mcc-admission-installment-schedule" data-admission-installment-schedule data-admission-installment-prefix="installment_" data-admission-installment-plan-field="installment_plan" data-admission-installment-plan-value="<?= esc($installmentPlanValue) ?>" data-admission-installment-ids-field="coaching_installment_ids[]" data-admission-removed-field="removed_installment_ids" data-admission-test-saved-rows="<?= esc(json_encode($coachingSavedRows, JSON_THROW_ON_ERROR)) ?>" <?= $coachingPlan === $installmentPlanValue ? '' : 'hidden' ?>>
-                    <?php $renderSchedule('installment_', 'Coaching Installment Schedule', $coachingRows); ?>
+                    <?php $renderSchedule('installment_', 'Coaching Installment Schedule', $coachingRows, $coachingPersistedRows); ?>
                     <div class="mcc-admission-installment-actions">
                         <button class="mcc-button mcc-button-secondary" type="button" data-admission-installment-add>Add More</button>
                     </div>
                 </div>
+                <p class="mcc-field-error" role="alert"><?= $errorFor('coaching_installment_rows') ?></p>
             </div>
             <div class="col-12" data-admission-test-schedule="hostel">
                 <div class="mcc-admission-installment-schedule" data-admission-installment-schedule data-admission-installment-prefix="hostel_installment_" data-admission-installment-plan-field="hostel_installment_plan" data-admission-installment-plan-value="<?= esc($installmentPlanValue) ?>" data-admission-installment-ids-field="hostel_installment_ids[]" data-admission-removed-field="removed_hostel_installment_ids" data-admission-test-saved-rows="<?= esc(json_encode($hostelSavedRows, JSON_THROW_ON_ERROR)) ?>" <?= $hostelPlan === $installmentPlanValue ? '' : 'hidden' ?>>
-                    <?php $renderSchedule('hostel_installment_', 'Hostel Installment Schedule', $hostelRows); ?>
+                    <?php $renderSchedule('hostel_installment_', 'Hostel Installment Schedule', $hostelRows, $hostelPersistedRows); ?>
                     <div class="mcc-admission-installment-actions">
                         <button class="mcc-button mcc-button-secondary" type="button" data-admission-installment-add>Add More</button>
                     </div>
                 </div>
+                <p class="mcc-field-error" role="alert"><?= $errorFor('hostel_installment_rows') ?></p>
             </div>
             <div class="col-12">
                 <label for="admission-test-fee-reason">Reason for fee update</label>

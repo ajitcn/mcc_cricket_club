@@ -9,7 +9,7 @@ $title = $title ?? 'Admission Test';
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#172b4d">
     <meta name="mcc-timezone" content="<?= esc(config('App')->appTimezone) ?>">
-    <title><?= esc($title) ?> - MCC Cricket Club</title>
+    <title><?= esc($title) ?> - Mumbai Cricket Club</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
         crossorigin="anonymous">
@@ -19,8 +19,8 @@ $title = $title ?? 'Admission Test';
 <body class="mcc-public-test-app">
     <a class="mcc-skip-link" href="#main-content">Skip to content</a>
     <div class="mcc-public-test-shell">
-        <header class="mcc-public-test-brand" aria-label="MCC Cricket Club">
-            <img src="<?= site_url('assets/img/logo.png') ?>" alt="MCC Cricket Club" class="mcc-public-test-logo">
+        <header class="mcc-public-test-brand" aria-label="Mumbai Cricket Club">
+            <img src="<?= site_url('assets/img/logo.png') ?>" alt="Mumbai Cricket Club" class="mcc-public-test-logo">
         </header>
         <main id="main-content" class="mcc-public-test-main">
             <div class="mcc-public-test-container">

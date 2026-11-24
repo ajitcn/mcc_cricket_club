@@ -832,8 +832,20 @@ final class AdmissionTestService
         $fees = $this->feeFields($input);
         $ignoredCoachingIds = [];
         $ignoredHostelIds = [];
-        $coachingRows = $this->normalizeFeeRows($input, 'installment_', $ignoredCoachingIds);
-        $hostelRows = $this->normalizeFeeRows($input, 'hostel_installment_', $ignoredHostelIds);
+        $existingCoachingRows = $this->loadFeeRows($db, $id, 'coaching', (int) $current['branch_id']);
+        $existingHostelRows = $this->loadFeeRows($db, $id, 'hostel', (int) $current['branch_id']);
+        $coachingRows = $this->normalizeFeeRows(
+            $input,
+            'installment_',
+            $ignoredCoachingIds,
+            $existingCoachingRows,
+        );
+        $hostelRows = $this->normalizeFeeRows(
+            $input,
+            'hostel_installment_',
+            $ignoredHostelIds,
+            $existingHostelRows,
+        );
         $removedCoachingIds = array_values(array_unique(array_merge(
             $this->normalizedRemovedInstallmentIds($input, 'removed_installment_ids'),
             $ignoredCoachingIds,
@@ -932,7 +944,12 @@ final class AdmissionTestService
         return $fields;
     }
 
-    private function normalizeFeeRows(array $input, string $prefix, array &$ignoredIds = []): array
+    private function normalizeFeeRows(
+        array $input,
+        string $prefix,
+        array &$ignoredIds = [],
+        array $existingRows = [],
+    ): array
     {
         $planField = $prefix === 'installment_' ? 'installment_plan' : 'hostel_installment_plan';
         if (($input[$planField] ?? '') !== 'Instalment Plan') {
@@ -993,6 +1010,12 @@ final class AdmissionTestService
                     || ! checkdate((int) substr($date, 5, 2), (int) substr($date, 8, 2), (int) substr($date, 0, 4)))) {
                     throw new RuntimeException('Invalid installment due date.');
                 }
+                $scheduleLabel = $prefix === 'installment_' ? 'Coaching' : 'Hostel';
+                if ($date !== ''
+                    && $date <= date('Y-m-d')
+                    && ! $this->isUnchangedFeeInstallmentDate($existingRows, $row, $number, $date)) {
+                    throw new RuntimeException($scheduleLabel . ' installment dates must be in the future.');
+                }
                 if ($amount !== '' && preg_match('/^\d+(?:\.\d{1,2})?$/', $amount) !== 1) {
                     throw new RuntimeException('Invalid installment amount.');
                 }
@@ -1004,6 +1027,29 @@ final class AdmissionTestService
             $rows[] = $row;
         }
         return $rows;
+    }
+
+    /** @param list<array<string, mixed>> $existingRows */
+    private function isUnchangedFeeInstallmentDate(
+        array $existingRows,
+        array $submittedRow,
+        int $installmentNumber,
+        string $date,
+    ): bool {
+        $yearNumber = (int) ($submittedRow['year_number'] ?? 0);
+        $submittedId = (int) ($submittedRow['installment_ids'][$installmentNumber] ?? 0);
+
+        foreach ($existingRows as $existingRow) {
+            if ((int) ($existingRow['year_number'] ?? 0) !== $yearNumber
+                || (int) ($existingRow['installment_ids'][$installmentNumber] ?? 0) !== $submittedId
+                || $submittedId < 1) {
+                continue;
+            }
+
+            return (string) ($existingRow['installment_' . $installmentNumber . '_date'] ?? '') === $date;
+        }
+
+        return false;
     }
 
     /** @return list<int> */

@@ -135,7 +135,12 @@ final class Browser extends StaffController
     /** @param array<string, mixed> $input @return array<string, string> */
     private function leadFieldErrors(array $input, Throwable $exception, bool $editing = false): array
     {
-        if (! in_array($exception->getMessage(), ['Invalid lead.', 'Invalid owner.', 'Forbidden'], true)) {
+        if (! in_array($exception->getMessage(), [
+            'Invalid lead.',
+            'Invalid owner.',
+            'Forbidden',
+            'The entered date must not be later than the current date.',
+        ], true)) {
             return [];
         }
 
@@ -157,6 +162,10 @@ final class Browser extends StaffController
 
         $dateOfBirth = trim((string) ($input['date_of_birth'] ?? ''));
         if ($dateOfBirth !== '') {
+            if ($exception->getMessage() === 'The entered date must not be later than the current date.') {
+                $errors['date_of_birth'] = $exception->getMessage();
+            }
+
             $validDate = false;
             if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $dateOfBirth)) {
                 $parsedDate = DateTimeImmutable::createFromFormat('!d-m-Y', $dateOfBirth);
@@ -165,7 +174,7 @@ final class Browser extends StaffController
                 $parsedDate = DateTimeImmutable::createFromFormat('!Y-m-d', $dateOfBirth);
                 $validDate = $parsedDate !== false && $parsedDate->format('Y-m-d') === $dateOfBirth;
             }
-            if (! $validDate) {
+            if (! $validDate && ! isset($errors['date_of_birth'])) {
                 $errors['date_of_birth'] = 'Enter a valid date as DD-MM-YYYY.';
             }
         }

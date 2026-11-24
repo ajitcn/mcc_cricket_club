@@ -20254,6 +20254,18 @@ tr:last-child td {
     margin-top: .5rem;
 }
 
+.mcc-admission-form-shell .mcc-admission-installment-table .form-control.is-invalid {
+    background-color: #fff7f7;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 .15rem rgba(220, 53, 69, .12);
+}
+
+.mcc-admission-test-fees .mcc-admission-installment-table .form-control.is-invalid {
+    background-color: #fff7f7;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 .15rem rgba(220, 53, 69, .12);
+}
+
 @media (max-width: 767.98px) {
     .mcc-admission-form-shell .mcc-admission-installment-table {
         display: block;

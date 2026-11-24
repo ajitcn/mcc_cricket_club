@@ -41,7 +41,7 @@ $slug = static fn (string $label): string => 'mcc-nav-group-' . strtolower((stri
             <img
                 class="mcc-brand-logo"
                 src="<?= site_url('assets/img/logo.png') ?>"
-                alt="MCC Cricket Club"
+                alt="Mumbai Cricket Club"
                 onerror="this.hidden = true"
             >
         </div>

@@ -111,7 +111,7 @@ final class NavigationServiceTest extends TestCase
         self::assertStringContainsString('mcc-coming-soon', $sidebar);
         self::assertStringContainsString('aria-disabled="true"', $sidebar);
         self::assertStringContainsString("site_url('assets/img/logo.png')", $sidebar);
-        self::assertStringContainsString('alt="MCC Cricket Club"', $sidebar);
+        self::assertStringContainsString('alt="Mumbai Cricket Club"', $sidebar);
         self::assertStringNotContainsString('mcc-brand-copy', $sidebar);
         self::assertStringNotContainsString('mcc-brand-mark', $sidebar);
         self::assertStringContainsString('mcc-brand-logo', $styles);

@@ -1,5 +1,5 @@
 <?php
-$title = $title ?? 'MCC Cricket Club';
+$title = $title ?? 'Mumbai Cricket Club';
 $pageSubtitle = $pageSubtitle ?? null;
 $nav = $nav ?? [];
 $suppressGlobalAlerts = $suppressGlobalAlerts ?? false;
@@ -11,7 +11,7 @@ $suppressGlobalAlerts = $suppressGlobalAlerts ?? false;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#172b4d">
     <meta name="mcc-timezone" content="<?= esc(config('App')->appTimezone) ?>">
-    <title><?= esc($title) ?> - MCC Cricket Club</title>
+    <title><?= esc($title) ?> - Mumbai Cricket Club</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
         rel="stylesheet"
         crossorigin="anonymous">
@@ -33,7 +33,7 @@ $suppressGlobalAlerts = $suppressGlobalAlerts ?? false;
                     ]) ?>
                     <div class="mcc-page-heading">
                         <div>
-                            <span class="mcc-eyebrow">MCC Cricket Club</span>
+                            <span class="mcc-eyebrow">Mumbai Cricket Club</span>
                             <h1><?= esc($title) ?></h1>
                             <?php if ($pageSubtitle !== null && $pageSubtitle !== ''): ?>
                                 <p class="mcc-page-subtitle"><?= esc((string) $pageSubtitle) ?></p>
@@ -41,6 +41,8 @@ $suppressGlobalAlerts = $suppressGlobalAlerts ?? false;
                         </div>
                         <?= $pageActions ?? '' ?>
                     </div>
-                    <?php if (! $suppressGlobalAlerts): ?>
-                        <?= view('partials/alerts', ['message' => $message ?? null, 'error' => $error ?? null]) ?>
-                    <?php endif; ?>
+                    <?= view('partials/alerts', [
+                        'message' => $suppressGlobalAlerts ? null : ($message ?? null),
+                        'error' => $suppressGlobalAlerts ? null : ($error ?? null),
+                        'showValidationSummary' => true,
+                    ]) ?>

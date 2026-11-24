@@ -15,7 +15,10 @@ final class SmtpRecoveryDeliveryTest extends TestCase
         $token = bin2hex(random_bytes(32));
         $mailer = $this->createMock(Email::class);
         $mailer->expects(self::once())->method('initialize')->willReturnSelf();
-        $mailer->expects(self::once())->method('setFrom')->with('recovery@mcc.example', 'MCC Cricket Club')->willReturnSelf();
+        $mailer->expects(self::once())
+            ->method('setFrom')
+            ->with('recovery@mcc.example', 'Mumbai Cricket Club')
+            ->willReturnSelf();
         $mailer->expects(self::once())->method('setTo')->with('player@example.test')->willReturnSelf();
         $mailer->expects(self::once())->method('setSubject')->with('MCC account recovery')->willReturnSelf();
         $mailer->expects(self::once())->method('setMessage')->with(self::stringContains($token))->willReturnSelf();
@@ -56,7 +59,7 @@ final class SmtpRecoveryDeliveryTest extends TestCase
     {
         $config = new EmailConfig();
         $config->fromEmail = 'recovery@mcc.example';
-        $config->fromName = 'MCC Cricket Club';
+        $config->fromName = 'Mumbai Cricket Club';
         $config->protocol = 'smtp';
         $config->SMTPHost = 'smtp.test.invalid';
         $config->SMTPAuthMethod = 'login';

@@ -18,7 +18,7 @@
 </head>
 <body>
     <main>
-        <h1>MCC Cricket Club payment receipt</h1>
+        <h1>Mumbai Cricket Club payment receipt</h1>
         <p>Payment recorded against <?= esc((string) ($payment['admission_number'] ?? 'Admission')) ?>.</p>
         <dl>
             <div><dt>Receipt number</dt><dd><?= esc((string) ($payment['receipt_number'] ?? 'Not provided')) ?></dd></div>

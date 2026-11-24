@@ -8,7 +8,7 @@ $reference = 'ERR-' . strtoupper(substr(hash('sha256', (string) ($type ?? '') . 
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request error - MCC Cricket Club</title>
+    <title>Request error - Mumbai Cricket Club</title>
 </head>
 <body>
     <main>
