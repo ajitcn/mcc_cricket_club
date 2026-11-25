@@ -114,7 +114,7 @@ $renderSchedule = static function (
     string $title,
     array $rows,
     array $persistedRows,
-) use ($dateValue, $installmentMinimumDate, $hasPersistedInstallmentDate): void {
+) use ($dateValue, $installmentMinimumDate, $hasPersistedInstallmentDate, $normalizeInstallmentDate): void {
     $idsField = $prefix === 'installment_'
         ? 'coaching_installment_ids[]'
         : 'hostel_installment_ids[]';
