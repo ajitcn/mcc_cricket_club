@@ -476,6 +476,9 @@ final class Browser extends StaffController
     {
         $message = $this->safe($exception);
         $fieldErrors = $this->followUpFieldErrors($exception);
+        if ($fieldErrors !== [] && str_contains($exception->getMessage(), 'installment total must match')) {
+            $message = $exception->getMessage();
+        }
         $reference = null;
 
         log_message('error', 'Admission Test action failed [{type}]: {detail}', [
@@ -503,6 +506,12 @@ final class Browser extends StaffController
     private function followUpFieldErrors(Throwable $exception): array
     {
         return match ($exception->getMessage()) {
+            'Coaching installment total must match the coaching fee.' => [
+                'coaching_installment_rows' => $exception->getMessage(),
+            ],
+            'Hostel installment total must match the hostel fee.' => [
+                'hostel_installment_rows' => $exception->getMessage(),
+            ],
             'Coaching installment dates must be in the future.' => [
                 'coaching_installment_rows' => $exception->getMessage(),
             ],
@@ -511,6 +520,8 @@ final class Browser extends StaffController
             ],
             'Invalid follow-up date.' => ['follow_up_date' => 'Enter a valid follow-up date.'],
             'Invalid follow-up time.' => ['follow_up_time' => 'Enter a valid follow-up time.'],
+            'Follow-up date cannot be in the past.' => ['follow_up_date' => 'Choose today or a future date.'],
+            'Follow-up time must be in the future.' => ['follow_up_time' => 'Choose a future time for today.'],
             'Invalid Admission Test follow-up.' => [
                 'follow_up_type' => 'Select a valid follow-up type.',
                 'status' => 'Select a valid status.',

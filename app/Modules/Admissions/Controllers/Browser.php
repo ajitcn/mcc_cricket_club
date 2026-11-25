@@ -724,6 +724,14 @@ final class Browser extends StaffController
             }
         }
 
+        if ($message === 'Coaching installment total must match the coaching fee.') {
+            return ['installment_rows' => $message];
+        }
+
+        if ($message === 'Hostel installment total must match the hostel fee.') {
+            return ['hostel_installment_rows' => $message];
+        }
+
         if ($message === 'Coaching installment dates must be in the future.') {
             return ['installment_rows' => $message];
         }

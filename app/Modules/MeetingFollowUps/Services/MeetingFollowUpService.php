@@ -32,7 +32,7 @@ final class MeetingFollowUpService
         $pages = max(1, (int) ceil($count / $perPage));
         $page = min($page, $pages);
         $rows = $this->query($branches, $filters)
-            ->orderBy('f.start_at', 'DESC')
+            ->orderBy('COALESCE(f.start_at, f.follow_up_at)', 'DESC', false)
             ->orderBy('f.id', 'DESC')
             ->limit($perPage, ($page - 1) * $perPage)
             ->get()
@@ -167,10 +167,12 @@ final class MeetingFollowUpService
             }
         }
         if (($filters['date_from'] ?? '') !== '') {
-            $query->where('f.start_at >=', $filters['date_from'] . ' 00:00:00');
+            $query->where('COALESCE(f.start_at, f.follow_up_at) >= '
+                . Database::connect('default')->escape($filters['date_from'] . ' 00:00:00'), null, false);
         }
         if (($filters['date_to'] ?? '') !== '') {
-            $query->where('f.start_at <', date('Y-m-d', strtotime($filters['date_to'] . ' +1 day')) . ' 00:00:00');
+            $query->where('COALESCE(f.start_at, f.follow_up_at) < '
+                . Database::connect('default')->escape(date('Y-m-d', strtotime($filters['date_to'] . ' +1 day')) . ' 00:00:00'), null, false);
         }
         return $query;
     }

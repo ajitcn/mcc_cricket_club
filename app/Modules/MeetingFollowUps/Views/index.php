@@ -236,7 +236,7 @@ $pageActions = '<div class="mcc-page-actions">
                             <td><?= esc((string) ($followUp['branch_name'] ?? '')) ?></td>
                             <td><?= esc(ucwords(str_replace('_', ' ', (string) ($followUp['follow_up_type'] ?? '')))) ?></td>
                             <td><span class="mcc-badge mcc-status-badge <?= esc($statusPresentation['class']) ?>"><?= esc($statusPresentation['label']) ?></span></td>
-                            <td><?= esc(mcc_follow_up_datetime($followUp['start_at'] ?? null, '—')) ?></td>
+                            <td><?= esc(mcc_follow_up_datetime($followUp['start_at'] ?? $followUp['follow_up_at'] ?? null, '—')) ?></td>
                             <td><?= esc((string) ($followUp['assigned_user_name'] ?: 'Unassigned')) ?></td>
                             <td class="mcc-meeting-follow-up-next-action"><?= esc((string) ($followUp['next_action'] ?: '—')) ?></td>
                             <td><?= esc(mcc_follow_up_datetime($followUp['updated_at'] ?? null, '—')) ?></td>

@@ -6805,7 +6805,123 @@
         });
     }
 
+    function initAdmissionAge() {
+        document.querySelectorAll('[data-admission-age-source]').forEach(function (dateInput) {
+            var form = dateInput.closest('form');
+            var ageInput = form && form.querySelector('[name="age"]');
+            if (!ageInput) {
+                return;
+            }
+
+            function updateAge() {
+                var value = dateInput.value.trim();
+                var match = value.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                var iso = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                var year = Number(match ? match[3] : iso && iso[1]);
+                var month = Number(match ? match[2] : iso && iso[2]);
+                var day = Number(match ? match[1] : iso && iso[3]);
+                var birth = new Date(Date.UTC(year, month - 1, day));
+                var meta = document.querySelector('meta[name="mcc-timezone"]');
+                var parts = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: meta ? meta.content : undefined,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                }).formatToParts(new Date());
+                var today = {};
+                parts.forEach(function (part) {
+                    today[part.type] = Number(part.value);
+                });
+                if ((!match && !iso) || birth.getUTCFullYear() !== year
+                    || birth.getUTCMonth() + 1 !== month || birth.getUTCDate() !== day) {
+                    ageInput.value = '';
+                    return;
+                }
+
+                var age = today.year - year;
+                if (today.month < month || (today.month === month && today.day < day)) {
+                    age -= 1;
+                }
+                ageInput.value = age >= 0 ? String(age) : '';
+            }
+
+            dateInput.addEventListener('change', updateAge);
+            if (dateInput.value.trim() && !ageInput.value.trim()) {
+                updateAge();
+            }
+        });
+    }
+
+    function initFormStatusPopups() {
+        var container = document.createElement('div');
+        container.className = 'mcc-form-status-popups';
+        document.body.appendChild(container);
+        var lastMessages = new WeakMap();
+
+        function showStatus(element) {
+            if (!element.isConnected || element.hidden || !element.getClientRects().length) {
+                lastMessages.delete(element);
+                return;
+            }
+
+            var message = element.textContent.trim();
+            var isError = element.matches('.mcc-alert-danger, .alert-danger, [role="alert"]');
+            if (!message || lastMessages.get(element) === message) {
+                return;
+            }
+
+            lastMessages.set(element, message);
+            var popup = document.createElement('div');
+            popup.className = 'mcc-form-status-popup ' + (isError ? 'is-error' : 'is-success');
+            popup.setAttribute('role', isError ? 'alert' : 'status');
+            var icon = document.createElement('i');
+            icon.className = isError ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check';
+            icon.setAttribute('aria-hidden', 'true');
+            var text = document.createElement('span');
+            text.textContent = message;
+            popup.appendChild(icon);
+            popup.appendChild(text);
+            container.appendChild(popup);
+            window.setTimeout(function () {
+                popup.remove();
+            }, 5000);
+        }
+
+        var selector = '[data-form-status], .mcc-alert-success, .mcc-alert-danger, '
+            + 'form .alert-success, form .alert-danger';
+        document.querySelectorAll(selector).forEach(showStatus);
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                var target = mutation.target.nodeType === Node.ELEMENT_NODE
+                    ? mutation.target
+                    : mutation.target.parentElement;
+                var alert = target && target.closest(selector);
+                if (alert) {
+                    showStatus(alert);
+                }
+                mutation.addedNodes.forEach(function (node) {
+                    if (node.nodeType !== Node.ELEMENT_NODE || container.contains(node)) {
+                        return;
+                    }
+                    if (node.matches(selector)) {
+                        showStatus(node);
+                    }
+                    node.querySelectorAll(selector).forEach(showStatus);
+                });
+            });
+        });
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class', 'hidden', 'style'],
+            childList: true,
+            characterData: true,
+            subtree: true,
+        });
+    }
+
     function init() {
+        initAdmissionAge();
+        initFormStatusPopups();
         initTrialMediaUpload();
         initSessionPlanActionMenus();
         initFeedbackPlayerSearch();

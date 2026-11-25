@@ -1104,6 +1104,40 @@ tr:last-child td {
     background: #eef8ff;
     color: #075985
 }
+.mcc-form-status-popups {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    z-index: 11000;
+}
+
+.mcc-form-status-popup {
+    align-items: flex-start;
+    background: #effaf3;
+    border: 1px solid #a6dfb8;
+    border-radius: .5rem;
+    box-shadow: 0 .4rem 1.25rem rgba(15, 23, 42, .16);
+    color: #176b3a;
+    display: flex;
+    gap: .65rem;
+    overflow-wrap: anywhere;
+    padding: .75rem 1rem;
+}
+
+.mcc-form-status-popup > i {
+    flex: 0 0 auto;
+    margin-top: .2rem;
+}
+
+.mcc-form-status-popup.is-error {
+    background: #fff1f1;
+    border-color: #f1b5b1;
+    color: #b42318;
+}
 .mcc-button:focus-visible,.button:focus-visible,.button-link:focus-visible,.button-ghost:focus-visible,.mcc-nav-link:focus-visible,.mcc-icon-button:focus-visible,.mcc-account summary:focus-visible {
     outline: 3px solid #f0b429;
     outline-offset: 2px

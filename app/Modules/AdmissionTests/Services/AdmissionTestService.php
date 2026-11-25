@@ -846,6 +846,12 @@ final class AdmissionTestService
             $ignoredHostelIds,
             $existingHostelRows,
         );
+        if ($fees['installment_plan'] === 'Instalment Plan') {
+            $this->validateScheduleTotal($coachingRows, $fees['training_fee'], 'Coaching');
+        }
+        if ($fees['hostel_installment_plan'] === 'Instalment Plan') {
+            $this->validateScheduleTotal($hostelRows, $fees['hostel_charges'], 'Hostel');
+        }
         $removedCoachingIds = array_values(array_unique(array_merge(
             $this->normalizedRemovedInstallmentIds($input, 'removed_installment_ids'),
             $ignoredCoachingIds,
@@ -921,6 +927,27 @@ final class AdmissionTestService
             $db->transRollback();
             $db->resetTransStatus();
             throw $exception;
+        }
+    }
+
+    private function validateScheduleTotal(array $rows, ?string $fee, string $label): void
+    {
+        $total = 0;
+        foreach ($rows as $row) {
+            for ($number = 1; $number <= 4; $number++) {
+                $amount = $row['installment_' . $number] ?? null;
+                if ($amount === null) {
+                    continue;
+                }
+                [$whole, $fraction] = explode('.', $amount . '.00');
+                $total += (int) $whole * 100 + (int) str_pad(substr($fraction, 0, 2), 2, '0');
+            }
+        }
+
+        [$whole, $fraction] = explode('.', ($fee ?? '0') . '.00');
+        $feeInPaise = (int) $whole * 100 + (int) str_pad(substr($fraction, 0, 2), 2, '0');
+        if ($fee === null || $total !== $feeInPaise) {
+            throw new RuntimeException($label . ' installment total must match the ' . strtolower($label) . ' fee.');
         }
     }
 
@@ -1124,6 +1151,23 @@ final class AdmissionTestService
             }
         }
         $existingRows = $this->installmentRowsById($db, $table, $id, $branch, $referencedIds);
+        if ($removedIds !== []) {
+            $db->table($table)
+                ->where('admission_test_id', $id)
+                ->where('branch_id', $branch)
+                ->whereIn('id', $removedIds)
+                ->delete();
+        }
+        $existingSlots = [];
+        $currentRows = $db->table($table)
+            ->select('id, year_number, installment_number')
+            ->where('admission_test_id', $id)
+            ->where('branch_id', $branch)
+            ->get()
+            ->getResultArray();
+        foreach ($currentRows as $currentRow) {
+            $existingSlots[(int) $currentRow['year_number']][(int) $currentRow['installment_number']] = (int) $currentRow['id'];
+        }
         $usedIds = $removedIds;
         foreach ($rows as $row) {
             for ($number = 1; $number <= 4; $number++) {
@@ -1135,6 +1179,13 @@ final class AdmissionTestService
                         $removedIds[] = $installmentId;
                     }
                     continue;
+                }
+                if ($installmentId === 0) {
+                    $slotId = $existingSlots[(int) $row['year_number']][$number] ?? 0;
+                    if ($slotId > 0 && ! in_array($slotId, $referencedIds, true)) {
+                        $installmentId = $slotId;
+                        $existingRows[$slotId] = ['id' => $slotId];
+                    }
                 }
                 if ($installmentId > 0) {
                     if (in_array($installmentId, $usedIds, true) || ! isset($existingRows[$installmentId])) {
@@ -1353,6 +1404,15 @@ final class AdmissionTestService
             trim((string) ($input['follow_up_date'] ?? '')),
             trim((string) ($input['follow_up_time'] ?? '')),
         );
+        $timezone = new DateTimeZone((string) (config('App')->appTimezone ?: 'Asia/Kolkata'));
+        $nowLocal = new DateTimeImmutable('now', $timezone);
+        $scheduledLocal = (new DateTimeImmutable($at, new DateTimeZone('UTC')))->setTimezone($timezone);
+        if ($scheduledLocal->format('Y-m-d') < $nowLocal->format('Y-m-d')) {
+            throw new RuntimeException('Follow-up date cannot be in the past.');
+        }
+        if ($scheduledLocal <= $nowLocal) {
+            throw new RuntimeException('Follow-up time must be in the future.');
+        }
         if (! in_array($type, self::FOLLOW_UP_TYPES, true) || ! in_array($status, self::FOLLOW_UP_STATUSES, true) || trim((string) ($input['notes'] ?? '')) === '') {
             throw new RuntimeException('Invalid Admission Test follow-up.');
         }
@@ -1402,6 +1462,7 @@ final class AdmissionTestService
                 'trial_id' => (int) $test['trial_id'],
                 'branch_id' => (int) $test['branch_id'],
                 'follow_up_at' => $at,
+                'start_at' => $at,
                 'follow_up_type' => $type,
                 'status' => $status,
                 'assigned_user_id' => $assignedUserId,

@@ -9,16 +9,16 @@ $hasValidationErrors = is_array($validationErrors) && $validationErrors !== [];
 $showValidationSummary = (bool) ($showValidationSummary ?? false);
 ?>
 <?php if (! empty($message)): ?>
-    <div class="mcc-alert mcc-alert-success" role="status">
+    <div class="mcc-alert mcc-alert-success" role="status" data-form-status>
         <?= esc($message) ?>
     </div>
 <?php endif; ?>
 <?php if ($showValidationSummary && $hasValidationErrors): ?>
-    <div class="mcc-alert mcc-alert-danger" role="alert">
+    <div class="mcc-alert mcc-alert-danger" role="alert" data-form-status>
         Please correct the highlighted fields and try again.
     </div>
 <?php elseif (! empty($error)): ?>
-    <div class="mcc-alert mcc-alert-danger" role="alert">
+    <div class="mcc-alert mcc-alert-danger" role="alert" data-form-status>
         <?= esc($error) ?>
     </div>
 <?php endif; ?>

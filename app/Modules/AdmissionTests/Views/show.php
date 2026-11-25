@@ -375,13 +375,13 @@ $studentTestLink = is_string($studentTestLink) ? trim($studentTestLink) : '';
                 </table>
             </div>
         <?php endif; ?>
-        <details class="mcc-admission-test-edit-panel mt-3">
+        <details class="mcc-admission-test-edit-panel mt-3"<?= isset($fieldErrors['follow_up_date']) || isset($fieldErrors['follow_up_time']) ? ' open' : '' ?>>
             <summary>Add Meeting Follow-up</summary>
             <form method="post" action="<?= site_url('admission-tests/' . (int) $test['id'] . '/follow-ups') ?>" id="admission-test-follow-up-form" class="row mt-3">
                 <?= csrf_field() ?>
                 <div class="col-12 col-md-4 mb-3">
                     <label for="follow-up-date">Follow-up date</label>
-                    <input class="form-control" id="follow-up-date" name="follow_up_date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc($followUpDateInput) ?>" required>
+                    <input class="form-control" id="follow-up-date" name="follow_up_date" type="text" inputmode="numeric" autocomplete="off" placeholder="DD-MM-YYYY" min="<?= esc((new DateTimeImmutable('now', new DateTimeZone((string) (config('App')->appTimezone ?: 'Asia/Kolkata'))))->format('Y-m-d')) ?>" data-mcc-date-picker data-mcc-date-picker-no-toggle data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d" value="<?= esc($followUpDateInput) ?>" required>
                     <?php if (isset($fieldErrors['follow_up_date'])): ?><p class="mcc-field-error" role="alert"><?= esc($fieldErrors['follow_up_date']) ?></p><?php endif; ?>
                 </div>
                 <div class="col-12 col-md-4 mb-3">

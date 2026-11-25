@@ -365,6 +365,7 @@ $pageActions = '<div class="mcc-page-actions">
                         <?php
                         $input = '<input class="form-control" id="' . $definition['id'] . '" name="' . $field . '"';
                         $input .= ' type="text" inputmode="numeric" autocomplete="off"';
+                        $input .= $isEdit ? '' : ' data-admission-age-source';
                         $input .= ' data-mcc-date-picker data-mcc-date-picker-no-toggle';
                         $input .= ' data-mcc-date-format="d-m-Y" data-mcc-date-submit-format="Y-m-d"';
                         $input .= ' value="' . esc(mcc_user_date_input((string) old($field))) . '">';

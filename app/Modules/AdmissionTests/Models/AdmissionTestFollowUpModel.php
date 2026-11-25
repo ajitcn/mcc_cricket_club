@@ -12,7 +12,7 @@ final class AdmissionTestFollowUpModel extends Model
     protected $primaryKey = 'id';
     protected $returnType = 'array';
     protected $allowedFields = [
-        'admission_test_id', 'trial_id', 'branch_id', 'follow_up_at', 'follow_up_type',
+        'admission_test_id', 'trial_id', 'branch_id', 'follow_up_at', 'start_at', 'follow_up_type',
         'status', 'assigned_user_id', 'notes', 'outcome', 'next_action', 'version',
         'created_by', 'updated_by', 'created_at', 'updated_at',
     ];

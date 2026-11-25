@@ -12,7 +12,7 @@ $applicantName = trim((string) ($followUp['applicant_full_name'] ?? ''));
 $applicantName = $applicantName === '' ? 'Applicant unavailable' : $applicantName;
 $statusPresentation = mcc_follow_up_status_presentation((string) ($followUp['status'] ?? ''));
 $testStatusPresentation = mcc_follow_up_status_presentation((string) ($followUp['admission_test_status'] ?? ''));
-$startPresentation = mcc_follow_up_datetime($followUp['start_at'] ?? null, 'Not available');
+$startPresentation = mcc_follow_up_datetime($followUp['start_at'] ?? $followUp['follow_up_at'] ?? null, 'Not available');
 $startParts = explode(', ', $startPresentation, 2);
 $startDate = $startParts[0] ?? 'Not available';
 $startTime = $startParts[1] ?? 'Not available';

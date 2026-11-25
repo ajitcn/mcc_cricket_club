@@ -923,6 +923,7 @@ final class AdmissionService
             $profile = $this->intakeFields($input);
             $installmentRows = $this->normalizeInstallmentRows($input, 'installment_', [], 'Coaching');
             $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_', [], 'Hostel');
+            $this->validateNewAdmissionInstallmentTotals($profile, $installmentRows, $hostelInstallmentRows);
             $this->validateExtendedFields($profile, $branch, $db);
             $this->validateTrialRelationship($profile['trial_id'], $leadId, $branch, $db);
             $profile = array_merge($profile, $this->masterSnapshots($profile, $branch, $db));
@@ -998,6 +999,7 @@ final class AdmissionService
         $profile = $this->intakeFields($input);
         $installmentRows = $this->normalizeInstallmentRows($input, 'installment_', [], 'Coaching');
         $hostelInstallmentRows = $this->normalizeInstallmentRows($input, 'hostel_installment_', [], 'Hostel');
+        $this->validateNewAdmissionInstallmentTotals($profile, $installmentRows, $hostelInstallmentRows);
         $actor = $this->authorize($branch, 'admission.create');
         $db = Database::connect('default');
             $this->validateExtendedFields($profile, $branch, $db);
@@ -1994,6 +1996,30 @@ final class AdmissionService
                 if (! $historicalCoachIsValid) {
                     throw new RuntimeException('Invalid admission Coach.');
                 }
+            }
+        }
+    }
+
+    private function validateNewAdmissionInstallmentTotals(array $profile, array $coachingRows, array $hostelRows): void
+    {
+        foreach ([
+            ['installment_plan', 'training_fee', $coachingRows, 'Coaching'],
+            ['hostel_installment_plan', 'hostel_charges', $hostelRows, 'Hostel'],
+        ] as [$planField, $feeField, $rows, $label]) {
+            if (($profile[$planField] ?? null) !== 'Instalment Plan') {
+                continue;
+            }
+
+            $total = 0;
+            foreach ($rows as $row) {
+                foreach (range(1, 4) as $number) {
+                    $total += $this->moneyToCents($row['installment_' . $number] ?? null);
+                }
+            }
+
+            $fee = $profile[$feeField] ?? null;
+            if ($fee === null || $total !== $this->moneyToCents($fee)) {
+                throw new RuntimeException($label . ' installment total must match the ' . strtolower($label) . ' fee.');
             }
         }
     }
